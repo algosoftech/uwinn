@@ -1,0 +1,946 @@
+/*************************
+*******Manoj Kumar******
+**************************/
+.pcoded-navbar .main-menu-header {
+    padding: 0px !important;
+    margin-bottom: 20px;
+}
+label.error { color:#FF0000; float:left; }
+span.error { color:#FF0000; }
+.modal-backdrop { opacity:.4; }
+.modal-xlg {max-width: 1000px;}
+
+.row.pagee ul.pagination li a {
+    letter-spacing: 1px;
+    font-size: 13px;
+    line-height: 13px;
+    position: relative;
+    display: block;
+    padding: .5rem .75rem;
+    margin-left: -1px;
+    color: #0275d8;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+.row.pagee ul.pagination .page-item.active a {
+    z-index: 2;
+    color: #fff;
+    background-color: #0275d8;
+    border-color: #0275d8;
+}
+#postImageDiv .close-u-p img {
+    width: 10px;
+}
+#postImageDiv {
+    width: 150px;
+    height: auto;
+    margin-bottom: 15px;
+    overflow: hidden;
+    border-radius: 3px;
+    margin-left: 15px;
+    text-align: center;
+    padding: 0;
+    display: none;
+}
+#postImageDiv img {
+
+    margin: 0 auto;
+
+}
+#postImageDiv .close-u-p {
+
+    position: absolute;
+    right:5px;
+    top:5px;
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border-radius: 50px;
+    line-height: 18px;
+    text-align: center;
+    box-shadow: 1px 1px 5px #c8c5c5;
+
+}
+.toturial_shortbox { margin-top: 40px;}
+.toturial_img {
+    max-height: 430px;
+    overflow: hidden;
+}
+.c_box {
+    margin-bottom:10px;
+}
+.datepicker.dropdown-menu {z-index:9999;}
+
+/*     Lock Screen Modal       START      */
+.lock_screen {
+    margin: 0 auto;
+}
+.white_form {
+    background-color: #fff;
+    padding: 30px;
+    margin-top: 3em;
+    border-radius: 20px;
+    min-height: 300px;
+    opacity: 0;
+    animation: fadeIn 1s ease-in both;
+}
+.white_form {
+    animation-delay: 0.4s;
+}
+.lock_screen .white_form {
+    text-align: center;
+}
+.lock_pop > .white_form {
+    margin: 0 auto;
+    border-radius: 0;
+    padding: 8px;
+}
+.userlock h1 p {
+    font-size: 21px;
+    padding-top: 15px;
+    margin: 0;
+    padding-left: 15px;
+}
+.userlock h1 span {
+    display: block;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 4px solid #ef6517;
+    box-shadow: 4px 1px 40px rgba(239, 101, 23, .68);
+    margin: 0 auto;
+}
+.userlock h1 span > img {
+    max-width: 100%;
+}
+.img-responsive {
+   /* width: 100%;*/
+    height: auto;
+    display: block;
+}
+/*     Lock Screen Modal       End      */
+.card.calendra-alignment {box-shadow:none;}
+.user-card .change-profile .profile-dp .overlay span {
+    left:0;
+    cursor: pointer;
+}
+.f_profilebanner {
+    max-height: 300px;
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+}
+.f_profilebanner .coverchnage_btn {
+    position: absolute;
+    left: 15px;
+    font-size: 13px;
+    color: #fff;
+    top: -50%;
+    padding: 7px 10px;
+    letter-spacing: 0.5px;
+    transition: 1s all;
+}
+.f_profilebanner .coverchnage_btn {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff; 
+}
+.f_profilebanner:hover .coverchnage_btn {
+    top: 15px;
+}
+.user-card .change-profile .profile-dp {
+    width: auto;
+    height: auto;
+}
+
+/*   wall post */
+.pull-right {
+    float: right;
+}
+.pull-left {
+    float: left;
+}
+.row.profile_launch {
+    padding: 20px 0px;
+}
+.box.profile-info {
+    background-color: #fff;
+    margin-bottom: 15px;
+    box-shadow: 1px 3px 9px rgba(51, 51, 34, 0.13);
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+.box.profile-info textarea {
+    border: 0;
+}
+#postImageDiv {
+    width: 150px;
+    height: auto;
+    margin-bottom: 15px;
+    overflow: hidden;
+    border-radius: 3px;
+    margin-left: 15px;
+    text-align: center;
+    padding: 0;
+    display: none;
+}
+.box-form {
+    padding: 10px 15px;
+    background-color: #f5f5f5;
+    border-top: 1px solid #ddd;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+.post_box-f .box-footer.box-form {
+    padding-bottom: 0;
+}
+.post_box-f .box-footer.box-form button {
+    margin-left: 10px;
+}
+span.attachfile {
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    visibility: visible !important;
+}
+.post_box-f .box-footer.box-form button {
+    margin-left: 10px;
+}
+.box-footer.box-form .dropdown-menu {
+    padding: 0;
+}
+.box-footer.box-form .dropdown-menu a {
+    font-size: 13px;
+}
+.dropdown-item {
+    padding: 8px 1rem;
+    color: #67757c;
+}
+.box-footer.box-form .dropdown-menu .dropdown-item.active, .box-footer.box-form .dropdown-menu .dropdown-item:active {
+    color: #344a64;
+    text-decoration: none;
+    background-color: #f2f0f5;
+}
+.box-footer.box-form .dropdown-menu a {
+    font-size: 13px;
+}
+.card-body {min-height:500px;}
+span.required {color:red;}
+fieldset {
+    border: 2px solid #49CCED;
+    margin: 20px 0 10px 22px;
+    padding: 10px;
+    width: 96%;
+}
+legend {border-bottom: 1px solid #49CCED;}
+.sparkline12-list {padding: 20px;background: #fff;}
+.check_repeat.modul_head {
+    margin: 0;
+    margin-bottom: 0px;
+    background: #f9f9f9;
+    margin-bottom: 10px;
+}
+.check_repeat.modul_head p, .module_rows p {
+    margin: 0;
+    padding: 12px 0;
+    text-transform: capitalize;
+    letter-spacing: 0.2px;
+    color: #1d252c;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* image crope section   */
+#coverImageUploadModel.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#coverImageUploadModel .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#coverImageUploadModel .modal-body{padding: 5px;}
+#coverImageUploadModel .modal-header{padding: 5px;}
+#coverImageUploadModel .modal-footer{padding: 5px 10px; margin-top:0px;}
+#coverImageUploadModel .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#coverImageUploadModel .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#coverImageUploadModel .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#coverImageUploadModel .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#coverImageUploadModel .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#coverImageUploadModel .image-editor img { max-width:inherit!important;}
+#coverImageUploadModel .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#coverImageUploadModel .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#coverImageUploadModel .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#coverImageUploadModel .plucgin-clodebtn button:hover, #coverImageUploadModel .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#coverImageUploadModel .profileimg-plug .image-editor {overflow:hidden;}
+#coverImageUploadModel .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#coverImageUploadModel .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#coverImageUploadModel .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#coverImageUploadModel .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+
+/*Zodiac */
+#trainingImageUploadModel.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#trainingImageUploadModel .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#trainingImageUploadModel .modal-body{padding: 5px;}
+#trainingImageUploadModel .modal-header{padding: 5px;}
+#trainingImageUploadModel .modal-footer{padding: 5px 10px; margin-top:0px;}
+#trainingImageUploadModel .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#trainingImageUploadModel .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#trainingImageUploadModel .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#trainingImageUploadModel .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#trainingImageUploadModel .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#trainingImageUploadModel .image-editor img { max-width:inherit!important;}
+#trainingImageUploadModel .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#trainingImageUploadModel .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#trainingImageUploadModel .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#trainingImageUploadModel .plucgin-clodebtn button:hover, #trainingImageUploadModel .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#trainingImageUploadModel .profileimg-plug .image-editor {overflow:hidden;}
+#trainingImageUploadModel .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#trainingImageUploadModel .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#trainingImageUploadModel .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#trainingImageUploadModel .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+
+/* Slider Image */
+#sliderImageUploadModel.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#sliderImageUploadModel .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#sliderImageUploadModel .modal-body{padding: 5px;}
+#sliderImageUploadModel .modal-header{padding: 5px;}
+#sliderImageUploadModel .modal-footer{padding: 5px 10px; margin-top:0px;}
+#sliderImageUploadModel .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#sliderImageUploadModel .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#sliderImageUploadModel .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#sliderImageUploadModel .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#sliderImageUploadModel .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#sliderImageUploadModel .image-editor img { max-width:inherit!important;}
+#sliderImageUploadModel .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#sliderImageUploadModel .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#sliderImageUploadModel .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#sliderImageUploadModel .plucgin-clodebtn button:hover, #sliderImageUploadModel .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#sliderImageUploadModel .profileimg-plug .image-editor {overflow:hidden;}
+#sliderImageUploadModel .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#sliderImageUploadModel .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#sliderImageUploadModel .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#sliderImageUploadModel .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+
+/*Media */
+#mediaImageUploadModel.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#mediaImageUploadModel .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#mediaImageUploadModel .modal-body{padding: 5px;}
+#mediaImageUploadModel .modal-header{padding: 5px;}
+#mediaImageUploadModel .modal-footer{padding: 5px 10px; margin-top:0px;}
+#mediaImageUploadModel .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#mediaImageUploadModel .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#mediaImageUploadModel .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#mediaImageUploadModel .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#mediaImageUploadModel .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#mediaImageUploadModel .image-editor img { max-width:inherit!important;}
+#mediaImageUploadModel .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#mediaImageUploadModel .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#mediaImageUploadModel .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#mediaImageUploadModel .plucgin-clodebtn button:hover, #mediaImageUploadModel .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#mediaImageUploadModel .profileimg-plug .image-editor {overflow:hidden;}
+#mediaImageUploadModel .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#mediaImageUploadModel .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#mediaImageUploadModel .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#mediaImageUploadModel .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+
+
+/*About Us Banner*/
+#aboutImageUploadModel.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#aboutImageUploadModel .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#aboutImageUploadModel .modal-body{padding: 5px;}
+#aboutImageUploadModel .modal-header{padding: 5px;}
+#aboutImageUploadModel .modal-footer{padding: 5px 10px; margin-top:0px;}
+#aboutImageUploadModel .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#aboutImageUploadModel .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#aboutImageUploadModel .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#aboutImageUploadModel .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#aboutImageUploadModel .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#aboutImageUploadModel .image-editor img { max-width:inherit!important;}
+#aboutImageUploadModel .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#aboutImageUploadModel .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#aboutImageUploadModel .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#aboutImageUploadModel .plucgin-clodebtn button:hover, #aboutImageUploadModel .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#aboutImageUploadModel .profileimg-plug .image-editor {overflow:hidden;}
+#aboutImageUploadModel .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#aboutImageUploadModel .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#aboutImageUploadModel .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#aboutImageUploadModel .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+/* Astro Services */
+#visionImageUploadModelMission.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#visionImageUploadModelMission .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#visionImageUploadModelMission .modal-body{padding: 5px;}
+#visionImageUploadModelMission .modal-header{padding: 5px;}
+#visionImageUploadModelMission .modal-footer{padding: 5px 10px; margin-top:0px;}
+#visionImageUploadModelMission .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#visionImageUploadModelMission .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#visionImageUploadModelMission .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#visionImageUploadModelMission .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#visionImageUploadModelMission .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#visionImageUploadModelMission .image-editor img { max-width:inherit!important;}
+#visionImageUploadModelMission .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#visionImageUploadModelMission .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#visionImageUploadModelMission .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#visionImageUploadModelMission .plucgin-clodebtn button:hover, #visionImageUploadModelMission .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#visionImageUploadModelMission .profileimg-plug .image-editor {overflow:hidden;}
+#visionImageUploadModelMission .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#visionImageUploadModelMission .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#visionImageUploadModelMission .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#visionImageUploadModelMission .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+/***** VISION Upload **************/
+/* Astro Services */
+
+/***** HISTORY Upload **************/
+/* Astro Services */
+
+/* Astro Services */
+#canvasCropMultipleImageUploadModel.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#canvasCropMultipleImageUploadModel .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#canvasCropMultipleImageUploadModel .modal-body{padding: 5px;}
+#canvasCropMultipleImageUploadModel .modal-header{padding: 5px;}
+#canvasCropMultipleImageUploadModel .modal-footer{padding: 5px 10px; margin-top:0px;}
+#canvasCropMultipleImageUploadModel .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#canvasCropMultipleImageUploadModel .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#canvasCropMultipleImageUploadModel .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#canvasCropMultipleImageUploadModel .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#canvasCropMultipleImageUploadModel .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#canvasCropMultipleImageUploadModel .image-editor img { max-width:inherit!important;}
+#canvasCropMultipleImageUploadModel .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#canvasCropMultipleImageUploadModel .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#canvasCropMultipleImageUploadModel .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#canvasCropMultipleImageUploadModel .plucgin-clodebtn button:hover, #canvasCropMultipleImageUploadModel .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#canvasCropMultipleImageUploadModel .profileimg-plug .image-editor {overflow:hidden;}
+#canvasCropMultipleImageUploadModel .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#canvasCropMultipleImageUploadModel .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#canvasCropMultipleImageUploadModel .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#canvasCropMultipleImageUploadModel .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+
+/*PanCard Image */
+#astrologerpancardImageUploadModel.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#astrologerpancardImageUploadModel .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#astrologerpancardImageUploadModel .modal-body{padding: 5px;}
+#astrologerpancardImageUploadModel .modal-header{padding: 5px;}
+#astrologerpancardImageUploadModel .modal-footer{padding: 5px 10px; margin-top:0px;}
+#astrologerpancardImageUploadModel .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#astrologerpancardImageUploadModel .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#astrologerpancardImageUploadModel .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#astrologerpancardImageUploadModel .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#astrologerpancardImageUploadModel .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#astrologerpancardImageUploadModel .image-editor img { max-width:inherit!important;}
+#astrologerpancardImageUploadModel .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#astrologerpancardImageUploadModel .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#astrologerpancardImageUploadModel .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#astrologerpancardImageUploadModel .plucgin-clodebtn button:hover, #astrologerpancardImageUploadModel .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#astrologerpancardImageUploadModel .profileimg-plug .image-editor {overflow:hidden;}
+#astrologerpancardImageUploadModel .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#astrologerpancardImageUploadModel .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#astrologerpancardImageUploadModel .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#astrologerpancardImageUploadModel .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+/*Country logo */
+#countryImageUploadModel.modal{ left:0; right:0; margin:0 auto;overflow-x: hidden;overflow-y: auto;}
+#countryImageUploadModel .modal-dialog{padding: 5px;width:900px;max-width:900px;}
+#countryImageUploadModel .modal-body{padding: 5px;}
+#countryImageUploadModel .modal-header{padding: 5px;}
+#countryImageUploadModel .modal-footer{padding: 5px 10px; margin-top:0px;}
+#countryImageUploadModel .profileimg-plug{margin:0 0 auto;text-align: center;max-width:100%;}
+#countryImageUploadModel .plucgin-clodebtn{overflow:hidden;float:left;width:96%;background-color:#fff;}
+#countryImageUploadModel .side-images .sideimg-box{padding-top:10px; cursor:pointer;}
+#countryImageUploadModel .profileimg-plug .cropit-preview{margin: 0 auto;width:100%;}
+#countryImageUploadModel .cover-input-wrapper input {display: none;text-align: center;width: 100%;}
+#countryImageUploadModel .image-editor img { max-width:inherit!important;}
+#countryImageUploadModel .profileimg-plug .image-editor button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0 auto 0px;
+    padding: 2px 9px;
+    transition: all 0.3s ease-out 0s;
+}
+#countryImageUploadModel .plucgin-clodebtn button{
+  background-color: #0084ff;
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 5px 13px;
+    transition: all 0.3s ease-out 0s;}
+#countryImageUploadModel .profileimg-plug .image-editor .rotat-btn{
+  display: block;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+#countryImageUploadModel .plucgin-clodebtn button:hover, #countryImageUploadModel .profileimg-plug .image-editor button:hover{background-color:rgba(0, 132, 255, 0.07) !important;}
+#countryImageUploadModel .profileimg-plug .image-editor {overflow:hidden;}
+#countryImageUploadModel .profileimg-plug .image-editor .cropit-preview {
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 0px;
+  width: 800px;
+  height: 300px;
+}
+#countryImageUploadModel .profileimg-plug .image-editor .cropit-preview-image-container {cursor: move;}
+#countryImageUploadModel .cover-input-wrapper {display: inline-block;overflow-y: hidden;}
+#countryImageUploadModel .cover-input-wrapper .cover-input-button {
+    background: none repeat scroll 0 0 #0084ff;
+    border: 1px solid #0084ff;
+    box-sizing: border-box;
+    color: white;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    height: 30px;
+    line-height: 15px;
+    margin-top: 2px;
+  margin-bottom:0px;
+    padding-top: 7px;
+    text-align: center;
+    transition: color 500ms ease 0s, background-color 500ms ease 0s;
+    width: 140px;
+}
+
+.error span p {
+    color: red;
+}
+.form-group-inner {
+    margin-bottom: 1rem;
+}
+form#Data_Form .dt-responsive.table-responsive {
+    overflow: visible;
+}
+
+.navigation-name {font-weight:bold;}

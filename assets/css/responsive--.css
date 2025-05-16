@@ -1,0 +1,292 @@
+/* Normal desktop :992px. */
+@media (min-width: 992px) and (max-width: 1169px) {
+	.head-nav-third ul li a{
+		padding: 10px 0;
+		font-size: 11px;
+	}
+	.property-search-box ul li input.form-control {
+		min-width: 415px;
+	}
+	.property-search-box .button-list li select {
+		min-width: 96px;
+	}
+	.clear-btn {
+		padding: 10px 10px;
+	}
+	.home-about-box .box-content {
+		width: 183px;
+	}
+	.explore-block ul li .home-explore-box .explore-img {
+		width: 155px;
+		height: 131px;
+	}
+	.get-app-block .big-mobile {
+		margin-top: -82px;
+	}
+	.property-search-box .button-list li{
+		margin-right: 1px;
+	}
+	.property-search-box ul li .form-control{
+		font-size: 12px;
+	}
+	.login-box .nav-tabs .nav-link{
+		padding-left: 10px;
+	}
+	.contact-section ul li a.twitter, .contact-section ul li a.fb, .contact-section ul li a.linkedin{
+		padding: 15px 64px;
+	}
+	.online-merchant-sidebar ul li a {
+		padding: 18px 3px 16px 8px;
+	}
+}
+/* Tablet desktop :768px. */
+@media (min-width: 768px) and (max-width: 991px) {
+	.head-nav-third ul li a{
+		padding: 10px 0;
+		font-size: 11px;
+	}
+	.property-search-box ul li input.form-control {
+		min-width: 397px;
+	}
+	.property-search-box .button-list li select {
+		min-width: 96px;
+	}
+	.clear-btn {
+		padding: 10px 10px;
+	}
+	.home-about-box .box-content {
+		width: 108px;
+	}
+	.explore-block ul li .home-explore-box .explore-img {
+		width: 155px;
+		height: 131px;
+	}
+	.get-app-block .big-mobile {
+		margin-top: 0;
+	}
+	.property-search-box .button-list li{
+		margin-right: 1px;
+	}
+	.property-search-box ul li .form-control{
+		font-size: 12px;
+	}
+	.property-search-box{
+		margin-left:0;
+		margin-right:0;
+		padding: 23px 20px;
+		margin-top: -107px;
+	}
+	.explore-block ul{
+		margin-top:25px;
+		margin-bottom:0;
+	}
+	.get-app-block .default-heading{
+		width:100%;
+		margin-top: 0;
+	}
+	.our-partners .owl-carousel .owl-nav button.owl-next{
+		right: -20px;
+	}
+	.our-partners .owl-carousel .owl-nav button.owl-prev{
+		left:-20px;
+	}
+	.default-heading{
+		font-size:24px;
+	}
+	.footer-register-block .left-align p{
+		width:94%;
+	}
+	.footer-register-block p{
+		width:100%;
+	}
+	.header-white .navbar-toggler i{
+		color:#000;
+	}
+	.login-box .nav-tabs .nav-link{
+		padding-left: 28px;
+	}
+	.contact-section ul li a.twitter, .contact-section ul li a.fb, .contact-section ul li a.linkedin{
+		padding: 15px 24px;
+	}
+	.property-details-caption .property-details-bannaer-img {
+		margin-top: -33px;
+	}
+	.online-merchant-sidebar ul li a {
+		padding: 18px 3px 16px 8px;
+		text-align: center;
+	}
+	.online-merchant-sidebar ul li a span{
+		display: inline-block;
+		width: 30px;
+		height: 30px;
+		background: #fff;
+		border-radius: 25px;
+		float: none;
+		margin-right: 13px;
+		margin-top: 5px;
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+	}
+}
+/* small mobile :320px. */
+@media (max-width: 767px) {
+	.property-search-box{
+		margin-top: -36px;
+		padding: 20px;
+		margin-left:0;
+		margin-right:0;
+	}
+	.default-heading{
+		font-size:24px;
+		width: 100%;
+		line-height:34px;
+	}
+	.property-search-box ul li{
+		display:block;
+		margin-bottom:5px;
+	}
+	.property-search-box ul li input.form-control {
+		min-width: 100%;
+	}
+	.property-search-box .button-list li{
+		margin-bottom:15px;
+		margin-right:0;
+	}
+	.property-search-box .button-list li select.width-190 {
+		min-width: 100%;
+	}
+	.property-search-box ul li .color-default-btn {
+		padding: 7px 25px;
+		width: 100%;
+	}
+	.property-search-box .default-heading, .property-search-box p {
+		width: 100%;
+	}
+	.home-about-info img{
+		margin-bottom:20px;
+	}
+	.recommended-block .default-heading {
+		text-align: left;
+		margin-bottom:25px;
+	}
+	.inro-para p{
+		width:100%;
+	}
+	#home-property .owl-dots{
+		margin-left: 36%;
+	}
+	.explore-block ul li {
+		display: block;
+		margin-right: 0;
+		margin-top: 29px;
+	}
+	.explore-block ul li .home-explore-box .explore-img, .explore-block ul li .home-explore-box .explore-img img{
+		height:210px;
+	}
+	.explore-block ul li .home-explore-box p{
+		font-size:17px;
+	}
+	.explore-block {
+		padding: 0;
+	}
+	.get-app-block .big-mobile {
+		margin-top: 25px;
+	}
+	.get-app-block .default-heading{
+		width: 100%;
+		line-height: 40px;
+	}
+	.get-app-block p{
+		width:100%;
+	}
+	.our-partners .owl-carousel .owl-nav button.owl-next{
+		right:5px;
+		top: 24%;
+	}
+	.our-partners .owl-carousel .owl-nav button.owl-prev{
+		left:4px;
+		top: 24%;
+	}
+	.footer-register-block .right-align, .footer-register-block .right-align .default-heading {
+		text-align: left;
+	}
+	.footer-register-block p, .footer-register-block .left-align p{
+		width:100%;
+	}
+	.footer-register-block .left-align {
+		padding-left: 0;
+		margin-top:25px;
+	}
+	.testimonial-section .owl-slider {
+		margin: 35px 0;
+	}
+	.testimonial-section .owl-slider img{
+		margin-bottom:25px;
+	}
+	.testimonial-section .owl-nav span{
+		width: 35px;
+		height: 35px;
+		line-height: 23px;
+	}
+	.head-nav-third ul li a.property-btn, .head-nav-third ul li a.login-btn{
+		display:inline-block;
+		margin-bottom:25px;
+	}
+	.our-partners .brand-carousel img{
+		width:250px;
+	}
+	.single-banner .single-banner-caption.contact-caption.about-caption {
+		top: 13%;
+		padding: 0 25px;
+	}
+	.single-banner .single-banner-caption.contact-caption.about-caption p{
+		width:100%;
+	}
+	.our-marketplace .buyer-tag{
+		left: 31%;
+	}
+	.our-value .value-box{
+		margin-bottom: 69px;
+	}
+	.header-white .navbar-toggler i{
+		color:#000;
+	}
+	.login-box{
+		margin-left:0;
+		margin-right:0;
+	}
+	.login-box .nav-tabs .nav-link{
+		padding-left:18px;
+	}
+	.single-banner .single-banner-caption.contact-caption {
+		top: 25%;
+		padding: 0 25px;
+	}
+	.single-banner .single-banner-caption.contact-caption p{
+		width:100%;
+	}
+	.contact-section ul li a.fb, .contact-section ul li a.twitter, .contact-section ul li a.linkedin{
+		display:block;
+		width:100%;
+		margin-bottom:25px;
+	}
+	.contact-section ul li{
+		display:block;
+		margin-right:0;
+	}
+	.single-banner .single-banner-caption.contact-caption .auction-caption{
+		width:100%;
+	}
+	.property-details-caption .property-details-bannaer-img {
+		margin-top: 0;
+	}
+	.single-banner .single-banner-caption.property-details-caption{
+		top:10%;
+	}
+	.property-detail-block .bid-amount-box {
+		padding: 20px 3px;
+		margin-left: 0;
+	}
+}
+

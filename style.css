@@ -1,0 +1,66 @@
+.poppins-medium {
+    font-family: "Poppins", system-ui;
+    font-weight: 500;
+    font-style: normal;
+}
+  
+.poppins-semibold {
+    font-family: "Poppins", system-ui;
+    font-weight: 600;
+    font-style: normal;
+}
+  
+.poppins-bold {
+    font-family: "Poppins", system-ui;
+    font-weight: 700;
+    font-style: normal;
+}
+
+body {
+     /* Correctly specifying the Poppins font family */
+}
+
+.container {
+    padding: 15px;
+}
+
+p {
+    text-align: justify;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-family: "Poppins", system-ui;
+    font-size: 14px;
+}
+
+li {
+    font-family: "Poppins", system-ui;
+    font-size: 14px;
+}
+
+strong {
+    font-family: "Poppins", system-ui; /* Removed redundant line */
+    font-weight: 600;
+    font-style: normal;
+    font-size: 18px;
+}
+
+.strongg {
+    font-family: "Poppins", system-ui; /* Removed redundant line */
+    font-weight: 600;
+    font-style: normal;
+    font-size: 16px;
+}
+
+
+
+.heading {
+    font-family: "Poppins", system-ui; /* Apply font family */
+    font-weight: 700; /* Use font-weight to make it bold */
+    margin-top: 25px;
+    padding: 0; /* padding: auto is not valid, use specific value like 0 or desired unit */
+}
+
+.subheading {
+    font-family: "Poppins", system-ui; /* Apply font family */
+    font-weight: 600; /* Use font-weight to make it bold */
+}

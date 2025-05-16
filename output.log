@@ -1,0 +1,135 @@
+nohup: ignoring input
+PHP Notice:  Undefined index: SERVER_NAME in /var/www/html/u-win/application/config/constants.php on line 111
+PHP Notice:  Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/constants.php on line 122
+PHP Notice:  Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/constants.php on line 123
+PHP Notice:  Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/constants.php on line 126
+PHP Notice:  Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/constants.php on line 127
+PHP Notice:  Undefined index: SERVER_NAME in /var/www/html/u-win/application/config/config.php on line 27
+PHP Notice:  Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/config.php on line 33
+
+Notice: Undefined index: SERVER_NAME in /var/www/html/u-win/application/config/constants.php on line 111
+
+Notice: Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/constants.php on line 122
+
+Notice: Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/constants.php on line 123
+
+Notice: Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/constants.php on line 126
+
+Notice: Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/constants.php on line 127
+
+Notice: Undefined index: SERVER_NAME in /var/www/html/u-win/application/config/config.php on line 27
+
+Notice: Undefined index: HTTP_HOST in /var/www/html/u-win/application/config/config.php on line 33
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Undefined index: SERVER_NAME
+Filename:    /var/www/html/u-win/application/config/config.php
+Line Number: 27
+
+Backtrace:
+	File: /var/www/html/u-win/application/config/config.php
+	Line: 27
+	Function: _error_handler
+
+	File: /var/www/html/u-win/index.php
+	Line: 319
+	Function: require_once
+
+
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Undefined index: HTTP_HOST
+Filename:    /var/www/html/u-win/application/config/config.php
+Line Number: 33
+
+Backtrace:
+	File: /var/www/html/u-win/application/config/config.php
+	Line: 33
+	Function: _error_handler
+
+	File: /var/www/html/u-win/index.php
+	Line: 319
+	Function: require_once
+
+
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Constant HRS_MEDIA_FILE_URL already defined
+Filename:    /var/www/html/u-win/application/config/config.php
+Line Number: 37
+
+Backtrace:
+	File: /var/www/html/u-win/application/config/config.php
+	Line: 37
+	Function: define
+
+	File: /var/www/html/u-win/index.php
+	Line: 319
+	Function: require_once
+
+
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Constant HRS_MEDIA_FOLDER_URL already defined
+Filename:    /var/www/html/u-win/application/config/config.php
+Line Number: 38
+
+Backtrace:
+	File: /var/www/html/u-win/application/config/config.php
+	Line: 38
+	Function: define
+
+	File: /var/www/html/u-win/index.php
+	Line: 319
+	Function: require_once
+
+
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Constant HRS_CAPTCHA_FOLDER already defined
+Filename:    /var/www/html/u-win/application/config/config.php
+Line Number: 39
+
+Backtrace:
+	File: /var/www/html/u-win/application/config/config.php
+	Line: 39
+	Function: define
+
+	File: /var/www/html/u-win/index.php
+	Line: 319
+	Function: require_once
+
+
+
+A PHP Error was encountered
+
+Severity:    Notice
+Message:     Constant ROOT_UPLOAD_IMPORT_PATH already defined
+Filename:    /var/www/html/u-win/application/config/config.php
+Line Number: 40
+
+Backtrace:
+	File: /var/www/html/u-win/application/config/config.php
+	Line: 40
+	Function: define
+
+	File: /var/www/html/u-win/index.php
+	Line: 319
+	Function: require_once
+
+
+
+ERROR: Not Found
+
+	The controller/method pair you requested was not found.
+
