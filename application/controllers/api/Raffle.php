@@ -100,67 +100,84 @@ class Raffle extends CI_Controller {
     * * **********************************************************************/
     public function checkWinnerType()
     {
-        $apiHeaderData      =   getApiHeaderData();
-        $this->generatelogs->putLog('APP',logOutPut($_POST));
-        $result             =   array();
+        try {
 
-        if(requestAuthenticate(APIKEY,'POST')):
-                $USERID   =  $this->input->post('users_id');
-                $orderID  =  $this->input->post('tickect_id');
+            $apiHeaderData =   getApiHeaderData();
+            $this->generatelogs->putLog('APP',logOutPut($_POST));
+            $result        =   array();
 
-                if(empty($USERID)):
-                    echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
-                elseif(empty($orderID)):
-                    echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_TICKET'),$result);die();
+            if(requestAuthenticate(APIKEY,'POST')):
+                $userID   =  $this->input->post('users_id');
+                $orderId  =  $this->input->post('tickect_id');
+
+                if(empty($userID)):
+                   throw new Exception(lang('USER_ID_EMPTY'), 1);
+                elseif(empty($orderId)):
+                   throw new Exception(lang('EMPTY_TICKET'), 1);
                 else:
-                    /*-------------USER QUERY START HERE-------------------*/ 
-                    $tblName            = 'uw_users';
-                    $whereCon['where']  = array('users_id' => (int)$USERID ,'status' => 'A' );
-                    $USerData           = $this->common_model->getData('count',$tblName,$whereCon);
-                    /*-------------USER DETAILS END HERE-------------------*/ 
-                    if(!empty($USerData)):
 
-                        /*-------------DRAW ALERT START HERE-------------------*/ 
-                        $whereCon1['where']= array('order_id' => $orderID);
-                        $orderDetails      = $this->geneal_model->getOrderDetail($whereCon1);
-                        $Drawdate =  date('d/m/y',strtotime($orderDetails['draw_dateTime']));
-                        $Drawtime =  date('h:i A',strtotime($orderDetails['draw_dateTime']));
-                        if( strtotime($orderDetails['draw_dateTime']) > strtotime(date('Y-m-d H:i'))):
-                            echo outPut(0,lang('SUCCESS_CODE'),"The draw is scheduled for $Drawdate at $Drawtime. Please check the results after the draw.",$result);die();
-                        endif;
-                        /*-------------DRAW ALERT END HERE-------------------*/ 
+                    /* Checked User Validation */
+                    $requestFrom      = "app";
+                    $validationResult = $this->common_model->userValidate($userID,$requestFrom);
 
-                        /*-------------WINNER QUERY START HERE-------------------*/ 
-                        $tblName            = 'uw_raffle_winner';
-                        $whereCon['where']  = array('order_id' => $orderID);
-                        $WinnerData         = $this->common_model->getData('count',$tblName,$whereCon);
-                        if(!empty($WinnerData)):
-                            $result['winner_type'] = 'RaffleWinner';
-                            echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);  die();  
-                        else:
-                            $tblName            = 'uw_uwin_winner';
-                            $whereCon['where']  = array('order_id' => $orderID);
-                            $UwinnData          = $this->common_model->getData('count',$tblName,$whereCon);
-                            if(!empty($UwinnData)):
-                                $result['winner_type'] = 'uwinnWinner';
-                                echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);  die();  
-                            else:
-                                $result['winner_type'] = [];
-                                echo outPut(0,lang('SUCCESS_CODE'),lang('NOT_WINNER'),$result);  die();  
+                    // Checking Entered order. 
+                    $whereCon1['where'] = array('order_id' => $orderId );
+                    $orderDetails       = $this->common_model->getOrderDetail($whereCon1);
+                    // echo "<pre>"; print_r($orderDetails); die();
+
+                    if(!empty($orderDetails) && $orderDetails['status'] == "A" ):
+                        
+                        // checking current draw date and time..
+                        $currentDate  = strtotime(date('Y-m-d H:i'));
+                        $drawDateTime = strtotime($orderDetails['draw_dateTime']);
+
+                        if($currentDate >= $drawDateTime):
+
+                            $tblName            = 'uw_raffle_winner';
+                            $whereCon['where']  = array('order_id' => $orderId);
+                            $WinnerData         = $this->common_model->getData('count',$tblName,$whereCon);
+                            if($WinnerData == 0):
+                                $tblName2       = 'uw_uwin_winner';
+                                $UwinnData      = $this->common_model->getData('count',$tblName2,$whereCon);
                             endif;
 
-                        endif;
-                        /*-------------WINNER DETAILS END HERE-------------------*/ 
-                    else:
-                        echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_INCORRECT'),$result);die();
-                    endif;
-                endif;
-                echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$results);    
-        else:
-            echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
-        endif;
-    }
+                            if($WinnerData >=1 || $UwinnData >=1  ):
+                                $winnerType            = ($WinnerData >=1 ) ? 'RaffleWinner' : 'uwinnWinner' ;
+                                $result['winner_type'] = $winnerType;
+                                echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);  die();  
 
+                            elseif($orderDetails['draw_id'] == $orderDetails['current_draw_id']):
+                                throw new Exception(lang('DRAW_ONGOIN'));
+                            else:
+                                throw new Exception(lang('NOT_WINNER'));
+                            endif;
+                        else:
+                            $Drawdate =  date('d/m/y',strtotime($orderDetails['draw_dateTime']));
+                            $Drawtime =  date('h:i A',strtotime($orderDetails['draw_dateTime']));
+                            $error    = "The draw is scheduled for $Drawdate at $Drawtime. Please check the results after the draw.";
+                            throw new Exception($error);
+                        endif;
+
+                    elseif($orderDetails['status'] == "CL"):
+                        throw new Exception(lang('CANCELLED_ORDER'));
+                    else:
+                        throw new Exception(lang('ORDET_ID_INVALID')); //Error added for invalid order id.
+                    endif;
+
+
+
+                endif;
+
+
+            else:
+
+            endif;
+            
+        } catch (Exception $e) {
+            echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);   
+        }
+    }
+    
     /* * *********************************************************************
      * * Function name : checkWinner
      * * Developed By  : Dilip Halder
@@ -420,7 +437,7 @@ class Raffle extends CI_Controller {
                 $UserData          = $this->common_model->getData('single',$tblName,$whereCon);
                 $UserData['from']  = $this->input->post('from');
                 $UserData['to']    = $this->input->post('to');
-                if(!empty($UserData) && $UserData['status'] == 'A' && ($UserData['is_verify']  == 'Y' || $UserData['is_varified']  == 'Y') ):
+                if(!empty($UserData) && $UserData['status'] == 'A'):
                     
                     $whereCondition['user_oid']    = new MongoDB\BSON\ObjectId($UserData['_id']->{'$id'});
                     if(!empty($from)):

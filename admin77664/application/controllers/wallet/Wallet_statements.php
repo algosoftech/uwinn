@@ -77,6 +77,8 @@ class Wallet_statements extends CI_Controller {
 		if($searchField && $searchValue):
 			if($searchField == 'users_mobile'):
 				$whereCon['where'] = array($searchField => (int)$searchValue );
+			elseif($searchField == 'pos_number'):
+				$whereCon['where'] = array($searchField => is_numeric($searchValue)?(int)$searchValue:$searchValue );
 			else:
 				$whereCon['where'] = array($searchField => $searchValue );
 			endif;
@@ -85,7 +87,6 @@ class Wallet_statements extends CI_Controller {
 			$tblName 	  = 'uw_users';
 			$userdetails  = $this->common_model->getData('single',$tblName, $whereCon, $shortField);
 			// echo "<pre>"; print_r($userdetails); die();
-
 			$user_OId     = $userdetails['_id']->{'$id'};
 			
 			// Statements query start...
@@ -200,6 +201,7 @@ class Wallet_statements extends CI_Controller {
 			$shortField   = array('_id'=> -1 );
 			$tblName 	  = 'uw_users';
 			$userdetails  = $this->common_model->getData('single',$tblName, $whereCon, $shortField);
+			$data['page_name'] = $userdetails['users_name'];
 			
 			$user_OId     = $userdetails['_id']->{'$id'};
 			$whereCondition['where']['user_oid'] =  new MongoDB\BSON\ObjectId($user_OId);

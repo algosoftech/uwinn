@@ -37,6 +37,7 @@ $(function(){
                     </div>
                     <div class="card-body">
                         <div class="basic-login-inner">
+
                             <form id="currentPageForm" name="currentPageForm" class="form-auth-small" method="post" action="" enctype="multipart/form-data">
                                 <input type="hidden" name="CurrentFieldForUnique" id="CurrentFieldForUnique" value="users_id"/>
                                 <input type="hidden" name="CurrentIdForUnique" id="CurrentIdForUnique" value="<?=$EDITDATA['users_id']?>"/>
@@ -63,13 +64,18 @@ $(function(){
                                     <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('category_id')): ?>error<?php endif; ?>">
                                     <label>User Type<span class="required">*</span></label>
                                     <select name="user_type" id="user_type" class="form-control required">
-                                        <option >Select user type</option>
+                                        <option value="">Select user type</option>
                                         <option value="Freelancer" <?php if ($EDITDATA['users_type'] == 'Freelancer') {?> selected <?php } ?>>Freelancer</option>
                                         <option value="Sales Person" <?php if ($EDITDATA['users_type'] == 'Sales Person') {?> selected <?php } ?>>Sales Person</option>
                                         <option value="Retailer" <?php if ($EDITDATA['users_type'] == 'Retailer') {?> selected <?php } ?>>Retailer</option>
                                         <option value="Promoter" <?php if ($EDITDATA['users_type'] == 'Promoter') {?> selected <?php } ?>>Promoter</option>
                                         <option value="Users" <?php if ($EDITDATA['users_type'] == 'Users') {?> selected <?php } ?>>Users</option>
                                         <option value="Tester" <?php if ($EDITDATA['users_type'] == 'Tester') {?> selected <?php } ?>>Tester</option>
+                                        <option value="Api User" <?php if ($EDITDATA['users_type'] == 'Api User') {?> selected <?php } ?>>Api User</option>
+                                        <option value="BDM" <?php if ($EDITDATA['users_type'] == 'BDM') {?> selected <?php } ?>>BDM</option>
+                                        <option value="Manager" <?php if ($EDITDATA['users_type'] == 'Manager') {?> selected <?php } ?>>Manager</option>
+                                        <option value="Sales Supervisor" <?php if ($EDITDATA['users_type'] == 'Sales Supervisor') {?> selected <?php } ?>>Sales Supervisor</option>
+
                                     </select>
                                     <?php if(form_error('user_type')): ?>
                                       <span for="user_type" generated="true" class="help-inline"><?php echo form_error('user_type'); ?></span>
@@ -77,17 +83,15 @@ $(function(){
                                   </div>
 
                                   <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12" id="area_block">
-                                
                                     <label>Area<span class="required">*</span></label>
                                     <input type="text" name="area" id="area" class="form-control" value="<?php if(set_value('area')): echo set_value('area'); else: echo stripslashes($EDITDATA['area']);endif; ?>" placeholder="Area">
                                     <?php if(form_error('area')): ?>
                                     <span for="name" generated="true" class="help-inline"><?php echo form_error('area'); ?></span>
                                     <?php endif; ?>
                                   </div>
-
                                 </div>
-                                
-                                <div class="row" id="store">
+
+                                <div class="row">
                                     <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('store_name')): ?>error<?php endif; ?>" id="store_name_block">
                                         <label>Store Name<span class="required">*</span></label>
                                         <input type="text" name="store_name" id="store_name" class="form-control required" value="<?php if(set_value('store_name')): echo set_value('store_name'); else: echo stripslashes($EDITDATA['store_name']);endif; ?>" placeholder="Name">
@@ -96,25 +100,28 @@ $(function(){
                                         <?php endif; ?>
                                     </div>
 
-                                    <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('bind_user_type')): ?>error<?php endif; ?>">
+                                    <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('bind_user_type')): ?>error<?php endif; ?>" id="bind_with_section">
                                         <label>Bind with<span class="required">*</span></label>
                                         <select name="bind_user_type" id="bind_user_type" class="form-control required">
+                                            <option value="">Select</option>
                                             <option value="Sales Person" <?php if ($EDITDATA['bind_user_type'] == 'Sales Person') {?> selected <?php } ?>>Sales Person</option>
                                             <option value="Freelancer" <?php if ($EDITDATA['bind_user_type'] == 'Freelancer') {?> selected <?php } ?>>Freelancer</option>
+                                            <option value="BDM" <?php if ($EDITDATA['bind_user_type'] == 'BDM') {?> selected <?php } ?>>BDM</option>
+                                            <option value="Manager" <?php if ($EDITDATA['bind_user_type'] == 'Manager') {?> selected <?php } ?>>Manager</option>
+                                            <option value="Sales Supervisor" <?php if ($EDITDATA['bind_user_type'] == 'Sales Supervisor') {?> selected <?php } ?>>Sales Supervisor</option>
                                             <!-- <option value="Retailer" <?php if ($EDITDATA['bind_user_type'] == 'Retailer') {?> selected <?php } ?>>Retailer</option> -->
                                         </select>
                                         <?php if(form_error('bind_user_type')): ?>
                                         <span for="bind_user_type" generated="true" class="help-inline"><?php echo form_error('bind_user_type'); ?></span>
                                         <?php endif; ?>
                                     </div>
-
-
+                                   
                                     <!-- Sales Person List -->
-                                    <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('sales_man')): ?>error<?php endif; ?>" id="sales_person_block">
-                                        <label>Select Sales Person<span class="required">*</span></label>
-                                        <input type="text" list="sales_man_list" name="sales_person" id="sales_person" class="form-control required" value="<?php if(isset($EDITDATA['bind_person_id'])): echo $EDITDATA['bind_person_id'].'|'.$EDITDATA['bind_person_name']; endif; ?>" placeholder="Enter Sales Person" />
-                                        <datalist id="sales_man_list">
-                                            <?php foreach ($sales_man_list as $key => $item) { ?>
+                                    <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('bind_with_person_name')): ?>error<?php endif; ?>" id="bind_with_list_block">
+                                        <label>Select Bind with Person<span class="required">*</span></label>
+                                        <input type="text" list="bind_with_list" name="bind_with_person_name" id="bind_with_person_name" class="form-control required" value="<?php if(isset($EDITDATA['bind_person_id'])): echo $EDITDATA['bind_person_id'].'|'.$EDITDATA['bind_person_name']; endif; ?>" placeholder="Enter Sales Person" />
+                                        <datalist id="bind_with_list">
+                                            <?php foreach ($bind_with_list as $key => $item) { ?>
                                                 <option value="<?php echo stripcslashes($item['users_id']).'|'.stripcslashes($item['users_name']).'|'.stripcslashes($item['users_mobile']); ?>"><?php echo stripcslashes($item['users_id']).'|'.stripcslashes($item['users_name']).'|'.stripcslashes($item['users_mobile']); ?></option>   
                                             <?php } ?>
                                         </datalist>
@@ -124,22 +131,11 @@ $(function(){
                                         <span for="products_list" id="products_list_error" generated="true" class="help-inline" style="color: red;"><?php if(isset($email_id_error)): echo $email_id_error; endif; ?></span>
                                         <?php endif; ?>
                                     </div>
-                                    <!-- Freelancer List -->
-                                    <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('sales_man')): ?>error<?php endif; ?>" id="freelancer_person_block">
-                                        <label>Select Freelancer<span class="required">*</span></label>
-                                        <input type="text" list="freelancer_list" name="freelancer_person" id="freelancer_person" class="form-control required" value="<?php if(isset($EDITDATA['bind_person_id'])): echo $EDITDATA['bind_person_id'].'|'.$EDITDATA['bind_person_name']; endif; ?>" placeholder="Enter Freelancer" />
-                                        <datalist id="freelancer_list">
-                                            <?php foreach ($freelancer_list as $key => $item) { ?>
-                                                <option value="<?php echo stripcslashes($item['users_id']).'|'.stripcslashes($item['users_name']).'|'.stripcslashes($item['users_mobile']); ?>"><?php echo stripcslashes($item['users_id']).'|'.stripcslashes($item['users_name']).'|'.stripcslashes($item['users_mobile']); ?></option>   
-                                            <?php } ?>
-                                        </datalist>
-                                        <?php if(form_error('freelancer_person')): ?>
-                                            <span for="freelancer_person" generated="true" class="help-inline"><?php echo form_error('freelancer_person'); ?></span>
-                                        <?php endif; ?>
-                                    </div>
+
+
                                 </div>
 
-                                <div class="row" id="pos">
+                                <div class="row" id="pos_section">
                                      <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('pos_number')): ?>error<?php endif; ?>" id="pos_number_block">
                                         <label>POS device Number<span class="required">*</span></label>
                                         <input type="text" name="pos_number" id="pos_number" class="form-control" value="<?php if(set_value('pos_number')): echo set_value('pos_number'); else: echo stripslashes($EDITDATA['pos_number']);endif; ?>" placeholder="POS Device">
@@ -154,14 +150,36 @@ $(function(){
                                         <span for="name" generated="true" class="help-inline"><?php echo form_error('pos_device_id'); ?></span>
                                         <?php endif; ?>
                                     </div>
-                                    <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('commission_percentage')): ?>error<?php endif; ?>" id="commission_percentage_block">
-                                        <label>Commission Percentage<span class="required">*</span></label>
-                                        <input type="text" name="commission_percentage" id="commission_percentage" class="form-control" value="<?php if(set_value('commission_percentage')): echo set_value('commission_percentage'); else: echo stripslashes($EDITDATA['commission_percentage']?$EDITDATA['commission_percentage']:'10');endif; ?>" placeholder="Commission Percentage">
-                                        <?php if(form_error('commission_percentage')): ?>
-                                        <span for="name" generated="true" class="help-inline"><?php echo form_error('commission_percentage'); ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                 </div>
+                                    
+                                    <fieldset class="commission_container">
+                                        <legend>Commission Percentage</legend>
+                                        <div class="row">
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('commission_percentage')): ?>error<?php endif; ?>" id="commission_percentage_block">
+                                                <label>Commission Percentage<span class="required">*</span></label>
+                                                <input type="text" name="commission_percentage" id="commission_percentage" class="form-control" value="<?php if(set_value('commission_percentage')): echo set_value('commission_percentage'); else: echo stripslashes($EDITDATA['commission_percentage']?$EDITDATA['commission_percentage']:'10');endif; ?>" placeholder="Commission Percentage">
+                                                <?php if(form_error('commission_percentage')): ?>
+                                                <span for="name" generated="true" class="help-inline"><?php echo form_error('commission_percentage'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('recharge_commission_percentage')): ?>error<?php endif; ?>" id="recharge_commission_percentage_block">
+                                                <label>Online Recharge and Voucher Commission Percentage<span class="required">*</span></label>
+                                                <input type="text" name="recharge_commission_percentage" id="recharge_commission_percentage" class="form-control" value="<?php if(set_value('recharge_commission_percentage')): echo set_value('recharge_commission_percentage'); else: echo stripslashes($EDITDATA['recharge_commission_percentage']?$EDITDATA['recharge_commission_percentage']:'15');endif; ?>" placeholder="Recharge Commission Percentage">
+                                                <?php if(form_error('recharge_commission_percentage')): ?>
+                                                <span for="name" generated="true" class="help-inline"><?php echo form_error('recharge_commission_percentage'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('redeeming_commission_percentage')): ?>error<?php endif; ?>" id="redeeming_commission_percentage_block">
+                                                <label>Online redeeming Commission Percentage<span class="required">*</span></label>
+                                                <input type="text" name="redeeming_commission_percentage" id="redeeming_commission_percentage" class="form-control" value="<?php if(set_value('redeeming_commission_percentage')): echo set_value('redeeming_commission_percentage'); else: echo stripslashes($EDITDATA['redeeming_commission_percentage']?$EDITDATA['redeeming_commission_percentage']:'5');endif; ?>" placeholder="Recharge Commission Percentage">
+                                                <?php if(form_error('redeeming_commission_percentage')): ?>
+                                                <span for="name" generated="true" class="help-inline"><?php echo form_error('redeeming_commission_percentage'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
                                     
                                 <div class="row">
 
@@ -321,170 +339,205 @@ else{ $("#store").hide(); }
 <link href="{ASSET_INCLUDE_URL}dist/css/fSelect.css" rel="stylesheet">
 <script src="{ASSET_INCLUDE_URL}dist/js/fSelect.js"></script> 
 <script type="text/javascript">
-  $(document).ready(function(){  
-    $('.select-search').fSelect();
+ $(document).ready(function(e){
+        $('.select-search').fSelect();
+        $('#Checkbox_password').on('change', function(){
 
+            if($(this).prop('checked')) {
+                $('.password-section').removeClass('d-none');
+                $('#password').attr('disabled',false);
+                $('#cpassword').attr('disabled',false);
+            } else {
+                $('.password-section').addClass('d-none');
+                $('#password').attr('disabled',true);
+                $('#cpassword').attr('disabled',true);
+            }
+        });
 
-    $('#Checkbox_password').on('change', function(){
+        //Default field hiding.
+        $('#bind_with_list_block ,.commission_container , #bind_with_section , #store_name_block , #pos_section').addClass('d-none');
 
-        if($(this).prop('checked')) {
-            $('.password-section').removeClass('d-none');
-            $('#password').attr('disabled',false);
-            $('#cpassword').attr('disabled',false);
-        } else {
-            $('.password-section').addClass('d-none');
-            $('#password').attr('disabled',true);
-            $('#cpassword').attr('disabled',true);
+        // Showing EditData..
+        let current_userType = "<?=$EDITDATA['users_type'];?>";
 
+        if(current_userType == 'Sales Person' || current_userType == 'Freelancer' ){
+            $('#pos_section , #bind_with_section , #bind_with_list_block').removeClass('d-none');
 
-        }
-    });
-  });
-</script>
-<script>
-$(document).ready(function(){
-    var b = $('#user_type').val();
+            if(current_userType == 'Freelancer'){
+              $("#bind_user_type option:contains('Sales Person')").prop("disabled", false);
+            }else if(current_userType == 'Sales Person'){
+              $("#bind_user_type option:contains('Sales Supervisor') , #bind_user_type option:contains('Manager') ").prop("disabled", false);
+            }
+        
+        }else if( current_userType == "Retailer" || current_userType == 'Promoter' ){
+           $(' #store_name_block , #bind_with_section , #bind_with_list_block , #pos_section , .commission_container').removeClass('d-none');
 
-    if(b == 'Retailer' || b == 'Promoter' || b == 'Freelancer'|| b == 'Sales Person'){ $('#pos').show(); }else{ $('#pos').hide(); }
+          $("#bind_user_type option:contains('Sales Person') , #bind_user_type option:contains('Sales Supervisor') , #bind_user_type option:contains('Manager') ").prop("disabled", false);
 
-    if(b == 'Retailer' || b == 'Promoter'){ 
-        $("#store").show();
-        $('#store_name_block').show();
-        // $('#area_block').show();
-    }
-    if(b == 'Freelancer'){ 
-        $("#store").show();
-        $('#store_name_block').show();
-        // $('#area_block').show();
-    }
-    if(b == 'Users'){ $("#store").hide();}
-    if(b == 'Sales Person'){ $("#store").hide();}
-    if(b == 'Select user type'){ $("#store").hide();}
-    
-    $("#user_type").change(function(){
-
-        var a = $(this).val();
-        POSNumber = $('#pos_number').val();
-        var existingPOSNO = "<?=$EDITDATA['pos_number'];?>";
-        if(a != 'Users' && POSNumber == "" && existingPOSNO == ''){
-            var ur  = "<?=base_url('/users/allusers/generatePosNumber')?>";
-            $.ajax({
-                url : ur,
-                method: "GET", 
-                success: function(data){
-                    var jsonObject =  $.parseJSON(data)
-                    $('#pos_number').val(jsonObject.counter);
-                }
-            });
-        }
-
-        if(a == 'Retailer' || a == 'Promoter' || a == 'Freelancer' || a == 'Sales Person'){ $('#pos').show(); }else{ $('#pos').hide(); }
-
-        if(a == 'Retailer' || a == 'Promoter' || a == 'Freelancer Promoter' ){ 
-            $("#store").show();
-            $('#store_name_block').show();
-            // $('#area_block').show();
-            $("#bind_user_type option:contains('Freelancer')").removeAttr("disabled");
-        }
-        if(a == 'Freelancer'){ 
-            $("#store").show();
-            $('#store_name_block').hide();
-            // $('#area_block').hide();
-            $("#bind_user_type option:contains('Freelancer')").attr("disabled","disabled");
-        }
-        if(a == 'Users'){ $("#store").hide();}
-        if(a == 'Sales Person'){ $("#store").hide();}
-        if(a == 'Select user type'){ $("#store").hide();}
-    });
-
-    var c = $('#bind_user_type').val();
-    if(c == 'Freelancer'){ 
-        $('#freelancer_person_block').show(); 
-        $('#sales_person_block').hide();
-    }
-    if(c == 'Sales Person'){ 
-        $('#sales_person_block').show();
-        $('#freelancer_person_block').hide()
-    }
-    $('#bind_user_type').change(function(){
-        var c = $('#bind_user_type').val();
-        if(c == 'Freelancer'){ 
-            $('#freelancer_person_block').show();
-            $('#sales_person_block').hide();
-        }
-        if(c == 'Sales Person'){ 
-            $('#sales_person_block').show();
-            $('#freelancer_person_block').hide();
-        }
-    });
-});
-</script>
-
-<script type="text/javascript">
-$(document).ready(function(){
-    $('#users_email').change(function(){
-        var user = $(this).val();
-        var oldemail = $('#old_users_email').val();
-
-        if(user != oldemail){
-            var ur  = '<?=base_url().'/users/allusers/checkDeplicacy'?>';
-           
-            $.ajax({
-                url : ur,
-                method: "POST", 
-                data: {user: user},
-                success: function(data){
-                    $('#validationError').empty().append(data);
-
-                    if(data == ""){
-                        $('.submit-btn').attr('disabled', false);
-                    }else{
-                        $('.submit-btn').attr('disabled', true);
-                    }
-
-                }
-            });
-
-        }else{
-            $('.submit-btn').attr('disabled', false);
-            $('#validationError').empty();
-        }
-    });
-
-$('#users_mobile').change(function(){
-    var user = $(this).val();
-    var ur      = '<?=base_url().'/users/allusers/checkDeplicacy'?>';
-    var oldenumber = $('#old_users_mobile').val();
-
-    if(user != oldenumber){
-    $.ajax({
-        url : ur,
-        method: "POST", 
-        data: {user: user},
-        success: function(data){
-            $('#m_validationError').empty().append(data);
-
-            if(data == ""){
-                $('.submit-btn').attr('disabled', false);
-            }else{
-                $('.submit-btn').attr('disabled', true);
+            if(current_userType == 'Promoter'){
+                $('.commission_container').addClass('d-none');
             }
 
+        }else if(current_userType == 'Manager'){
+            $('#bind_with_section , #bind_with_list_block').removeClass('d-none');
+            $("#bind_user_type option:contains('Manager')").prop("disabled", false);
 
+        }else if(current_userType == 'Sales Supervisor'){
+            $('#bind_with_section , #bind_with_list_block').removeClass('d-none');
+            $("#bind_user_type option:contains('Manager')").prop("disabled", false);
         }
+
+
+        let bind_person_id = "<?=$EDITDATA['bind_person_id'];?>";
+
+        if(bind_person_id != ""){
+            let bind_user_type = $('#bind_user_type').val();
+            // console.log(bind_user_type);
+            var path      = '<?=getCurrentDashboardPath('allusers/getbindwith');?>';
+            $.ajax({
+                 url      : path,
+                 method   : "POST", 
+                 dataType : "json",
+                 data     : {bindWith : bind_user_type},
+                 success  : function(response){
+                    $('#bind_with_list_block').removeClass('d-none');
+                    let datalist = $("#bind_with_list");
+                    datalist.empty(); // Clear existing options
+                     $.each(response, function(index, item) {
+                       // Construct value just like in your PHP code
+                        let value = item.users_id + "|" + item.users_name + "|" + item.users_mobile;
+                        datalist.append(
+                            $("<option>", { value: value, text: value })
+                        );
+                    });
+                }
+            });
+        }
+
+        $('#user_type').on('change', function(){
+            $('#bind_with_list_block ,.commission_container , #bind_with_section , #store_name_block , #pos_section').addClass('d-none');
+            $("#bind_user_type option").prop("disabled", true);
+
+            let userType      = $(this).val();
+            let POSNumber     = $('#pos_number').val();
+            var existingPOSNO = "<?=$EDITDATA['pos_number'];?>";
+            if(userType != 'Users' && POSNumber == "" && existingPOSNO == ''){
+                var path      = '<?=getCurrentDashboardPath('allusers/generatePosNumber');?>';
+                $.ajax({
+                    url : path,
+                    method: "GET", 
+                    success: function(data){
+                        var jsonObject =  $.parseJSON(data)
+                        $('#pos_number').val(jsonObject.counter);
+                    }
+                });
+            }
+
+            // console.log(userType);
+
+            if( userType == 'Freelancer'){
+                $('#bind_with_section , #pos_section').removeClass('d-none');
+                $("#bind_user_type option:contains('Sales Person')").prop("disabled", false);
+
+            } else if(userType == 'Sales Person' ){
+                $('#bind_with_section , #pos_section').removeClass('d-none');
+                $("#bind_user_type option:contains('Manager')").prop("disabled", false);
+                $("#bind_user_type option:contains('Sales Supervisor')").prop("disabled", false);
+
+            } else if(userType == 'Retailer' || userType == 'Promoter' ){
+               $('#bind_with_section , #store_name_block , #pos_section , .commission_container').removeClass('d-none');
+               if(userType == 'Promoter'){
+                $('.commission_container').addClass('d-none');
+               }
+
+               $("#bind_user_type option:contains('Sales Person') , #bind_user_type option:contains('Sales Supervisor'),#bind_user_type option:contains('Manager')").prop("disabled", false);
+            } else if(userType == 'Manager' ){
+               $('#bind_with_section').removeClass('d-none');
+               $("#bind_user_type option:contains('BDM')").prop("disabled", false);
+
+            }else if(userType == 'Sales Supervisor' ){
+               $('#bind_with_section').removeClass('d-none');
+               $("#bind_user_type option:contains('Manager')").prop("disabled", false);
+            }
+        });
+
+        $('#users_mobile').on('keyup' , function(){
+            let mobile = $(this).val();
+            let path   = '<?=getCurrentDashboardPath('allusers/checkDeplicacy');?>';
+            let oldnumber = $('#old_users_mobile').val();
+            if(mobile != oldnumber){
+                $.ajax({
+                    url : path,
+                    method: "POST", 
+                    data: {user: mobile},
+                    success: function(data){
+                        $('#m_validationError').empty().append(data);
+
+                        if(data == ""){
+                            $('.submit-btn').attr('disabled', false);
+                        }else{
+                            $('.submit-btn').attr('disabled', true);
+                        }
+                    }
+                });
+            }
+        });
+
+        $('#users_email').on('keyup' , function(){
+            var email = $(this).val();
+            var oldmail = $('#old_users_email').val();
+
+            if(email != oldmail){
+                let path = '<?=getCurrentDashboardPath('allusers/checkDeplicacy');?>';
+               
+                $.ajax({
+                    url : path,
+                    method: "POST", 
+                    data: {user: email},
+                    success: function(data){
+                        $('#validationError').empty().append(data);
+
+                        if(data == ""){
+                            $('.submit-btn').attr('disabled', false);
+                        }else{
+                            $('.submit-btn').attr('disabled', true);
+                        }
+                    }
+                });
+
+            }else{
+                $('.submit-btn').attr('disabled', false);
+                $('#validationError').empty();
+            }
+        });
+
+        // Bind With Type changes option showing..
+        $('#bind_user_type').on('change', function(){
+            let bindWith = $(this).val();
+            console.log(bindWith);
+            var path      = '<?=getCurrentDashboardPath('allusers/getbindwith');?>';
+            $.ajax({
+                 url      : path,
+                 method   : "POST", 
+                 dataType : "json",
+                 data     : {bindWith : bindWith},
+                 success  : function(response){
+                    $('#bind_with_list_block').removeClass('d-none');
+                    let datalist = $("#bind_with_list");
+                    datalist.empty(); // Clear existing options
+                     $.each(response, function(index, item) {
+                       // Construct value just like in your PHP code
+                        let value = item.users_id + "|" + item.users_name + "|" + item.users_mobile;
+                        datalist.append(
+                            $("<option>", { value: value, text: value })
+                        );
+                    });
+                }
+            });
+        });
+
     });
-  }else{
-            $('.submit-btn').attr('disabled', false);
-            $('#m_validationError').empty();
-        }
-
-});
-
-});
-
-
 </script>
-
 
 <script type="text/javascript">
 //  $(function(){create_editor_for_textarea('description')});

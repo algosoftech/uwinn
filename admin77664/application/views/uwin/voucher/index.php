@@ -91,6 +91,7 @@ $(function(){
                                 <div class="upload-btn-wrapper">
                                   <a href="javascript:coid(0)" class="btn btn-sm btn-primary pull-right" id="delete-selected-orders" style="margin-left: 5px;">Delete Seleted Orders</a>
                                   <a href="javascript:coid(0)" class="btn btn-sm btn-primary pull-right" id="batch-selected-orders" style="margin-left: 5px;">Delete Complate Uploaded batch</a>
+                                  <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right" style="margin-left: 5px;" data-toggle="modal" data-target="#exportModal">Export excel</a>
                                 </div>
                                 <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right mr-2" data-toggle="modal" data-target="#bulkInactive">Bulk Inactive</a>
 
@@ -293,7 +294,45 @@ $(function(){
     </div>
   </div>
 </div>
+<div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Download WInner Reports</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div> 
+      <form action="<?=getCurrentControllerPath('exportexcel');?>" method="post" autocomplete="off">
+      <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-12 col-md-6">
+              <label for="recipient-name" class="col-form-label">Form:</label>
+            </div>
+            <div class="col-sm-12 col-md-6">
+              <label for="recipient-name" class="col-form-label">To:</label>
+            </div>
+            <div class="col-sm-12 col-md-6">
+              <input type="datetime-local" name="fromDate" id="fromDate" autocomplete="off" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
+            </div>
+            <div class="col-sm-12 col-md-6">
+             <input type="datetime-local" name="toDate" id="ToDate" autocomplete="off" value="<?php echo $toDate; ?>" class="form-control form-control-sm" placeholder="To Date">
+            </div>
+          </div>
 
+           
+
+            
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Download Report</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
 <script>
 
 

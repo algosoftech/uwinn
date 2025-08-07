@@ -712,16 +712,65 @@ class Allonlinerecharges extends CI_Controller {
 	** Function name 	: changestatus
 	** Developed By 	: Dilip Halder
 	** Purpose  		: This function used for change status
-	** Date 			: 07 February 2024
+	** Date 			: 01 July 2025
+	** Updated Date 	: 04 July 2025
+	** Date 			: Dilip Halder
 	************************************************************************/
-	function changestatus($changeStatusId='',$statusType='')
+	function changestatus($editId)
 	{  
 		$this->admin_model->authCheck('edit_data');
-		$param['status']		=	$statusType;
-		$this->common_model->editData('uw_loadBalance',$param,'load_balance_id',(int)$changeStatusId);
-		$this->session->set_flashdata('alert_success',lang('statussuccess'));
-		
-		redirect(correctLink('ALLRECHARGEDATA',getCurrentControllerPath('index')));
+		$transactionData =	$this->common_model->getDataByParticularField('uw_transactions','tranasactionID',$editId);
+
+
+		if(!empty($transactionData)):
+			$this->admin_model->authCheck('edit_data');
+
+			$success         = $transactionData['status'] == 'success' ? 'cancelled':'success';
+			$param['status'] = $success;
+			$this->common_model->editData('uw_transactions',$param,'tranasactionID',$editId);
+
+			$UserData =	$this->common_model->getDataByParticularField('uw_users','users_id',(int)$transactionData['users_id']);
+			if($UserData):
+				if($success == 'cancelled'):
+					$recordType 			= 'Debit';
+					$narration 				= 'Online recharge cancelled';
+					$totalArabianPoints     = $UserData['totalArabianPoints']     - $transactionData['amount'];
+					$availableArabianPoints = $UserData['availableArabianPoints'] - $transactionData['amount'];
+				else:
+					$recordType 			= 'Credit';
+					$narration 				= 'Online recharge';
+					$totalArabianPoints     = $UserData['totalArabianPoints']     + $transactionData['amount'];
+					$availableArabianPoints = $UserData['availableArabianPoints'] + $transactionData['amount'];
+				endif;
+
+				$userParam['totalArabianPoints']     = (float)$totalArabianPoints;
+				$userParam['availableArabianPoints'] = (float)$availableArabianPoints;
+				$this->common_model->editData('uw_users',$userParam,'users_id',(int)$transactionData['users_id']);
+
+				// Adding LoadBalance for status.
+		      	$loadBalance['load_balance_id'] = (int)$this->common_model->getNextSequence('uw_loadBalance');
+                $loadBalance['user_oid']        = new MongoDB\BSON\ObjectId($UserData['_id']->{'$id'});
+                $loadBalance['request_id']      = $transactionData['tranasactionID'];
+                $loadBalance['request_oid']     = new MongoDB\BSON\ObjectId($transactionData['_id']->{'$id'});
+                $loadBalance['user_id_deb']     = (int)$transactionData['users_id'];
+                $loadBalance['user_id_cred']    = (int)0;
+                $loadBalance["availableArabianPoints"] = (float)$UserData['availableArabianPoints'];
+                $loadBalance["end_balance"]     = (float)$availableArabianPoints;
+                $loadBalance['record_type']     = $recordType;
+                $loadBalance['narration']       = $narration;
+                $loadBalance['remarks']         = 'Online rechagred '.$transactionData['amount'].' aed.';
+                $loadBalance['upoints']         = (float)$transactionData['amount'];
+                $loadBalance['creation_ip']     = $this->input->ip_address();;
+                $loadBalance['created_at']      = date('Y-m-d H:i');
+                $loadBalance['created_by']      = (int)$transactionData['users_id'];
+                $loadBalance['status']          = 'A';
+                $this->common_model->addData('uw_loadBalance', $loadBalance);
+				$this->session->set_flashdata('alert_success',lang('statussuccess'));
+			endif;
+		else:
+				$this->session->set_flashdata('alert_success',lang('updatewarning'));
+		endif;
+		redirect(correctLink('MASTERDATARECHARGETYPE',getCurrentControllerPath('index')));
 	}
 
 	/***********************************************************************

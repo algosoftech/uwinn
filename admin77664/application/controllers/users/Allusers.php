@@ -131,8 +131,8 @@ class Allusers extends CI_Controller {
 	 + + Updated By    :
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-	public function addeditdata($editId='')
-	{		
+	 public function addeditdata($editId='')
+	 {		
 		//echo $editId; die();
 		$data['error'] 						= 	'';
 		$data['activeMenu'] 				= 	'users';
@@ -147,12 +147,15 @@ class Allusers extends CI_Controller {
 		endif;
 		
 		if($this->input->post('SaveChanges')):
-			$error					=	'NO';
-			$this->form_validation->set_rules('name', 'Name', 'trim');
+			
+			$error =	'NO';
+			$this->form_validation->set_rules('users_name', 'First Name', 'trim|required');
+			$this->form_validation->set_rules('last_name', 'Last Name', 'trim|required');
+			$this->form_validation->set_rules('country_code', 'Country Code', 'trim|required');
+			$this->form_validation->set_rules('users_mobile', 'Mobile', 'trim|required|is_unique[uw_users.users_mobile]');
 			//$this->form_validation->set_rules('email', 'Email', 'trim|is_unique[uw_users.users_email]');
-			$this->form_validation->set_rules('country_code', 'Country Code', 'trim');
-			$this->form_validation->set_rules('mobile', 'Mobile', 'trim|is_unique[uw_users.users_mobile]');
-			$this->form_validation->set_rules('arabianPoints', 'Arabian Points', 'trim');
+			$this->form_validation->set_rules('totalArabianPoints', 'Arabian Points', 'trim');
+			$this->form_validation->set_rules('availableArabianPoints', 'Arabian Points', 'trim');
 			$this->form_validation->set_rules('users_type', 'Users Type', 'trim');
 
 			if($this->input->post('password')){
@@ -161,29 +164,58 @@ class Allusers extends CI_Controller {
 			}
 
 			$this->form_validation->set_message('is_unique', 'The %s is already taken');
-			if($this->input->post('user_type') == 'Retailer' || $this->input->post('user_type') == 'Promoter' || $this->input->post('user_type') == 'Sales Person'){
-				$this->form_validation->set_rules('store_name', 'Store Name', 'trim');
-				$this->form_validation->set_rules('sales_person', 'Sales Person', 'trim');
-				$this->form_validation->set_rules('commission_percentage', 'Commission Percentage', 'trim|required');
+			$userType = $this->input->post('user_type');
+			if($userType == 'Freelancer'){
+				$this->form_validation->set_rules('bind_user_type', 'Bind with User Type', 'trim|required');
+				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
+			}
+			elseif($userType == 'Sales Person'){
+				$this->form_validation->set_rules('bind_user_type', 'Bind with User Type', 'trim|required');
+				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
+			}
+			elseif($userType == 'Retailer' ||$userType == 'Promoter' ){
+				$this->form_validation->set_rules('store_name', 'Store Name', 'trim|required');
+				$this->form_validation->set_rules('bind_user_type', 'Bind with User Type', 'trim|required');
+				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
+				$this->form_validation->set_rules('pos_number', 'Pos Number', 'trim|required');
+				$this->form_validation->set_rules('pos_device_id', 'Pos Device ID', 'trim');
+				if($userType == 'Retailer'):
+					$this->form_validation->set_rules('commission_percentage', 'Commission Percentage', 'trim|required' );
+					$this->form_validation->set_rules('recharge_commission_percentage', 'Recharge Commission Percentage', 'trim|required' );
+					$this->form_validation->set_rules('redeeming_commission_percentage', 'Redeeming Commission Percentage', 'trim|required' );
+				endif;
+
+			} 
+			elseif($userType == 'Manager'){
+				$this->form_validation->set_rules('bind_user_type', 'Bind with User Type', 'trim|required');
+				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
 			}
 
 			if($this->form_validation->run() && $error == 'NO'): 
-				$param['users_type']	    	= 	$this->input->post('user_type');
-				$param['users_name']	    	= 	addslashes($this->input->post('users_name'));
-				$param['last_name']	    		= 	addslashes($this->input->post('last_name'));
-				$param['users_email']	    	= 	$this->input->post('users_email');
-				$param['country_code']	    	= 	$this->input->post('country_code');
-				$param['users_mobile']	    	= 	(int)$this->input->post('users_mobile');
-				$param['area']					= 	$this->input->post('area');
-				$param['show_raffle_campaign']	= 	$this->input->post('show_raffle_campaign');
+
+				$param['users_type']	    	= $this->input->post('user_type');
+				$param['users_name']	    	= addslashes($this->input->post('users_name'));
+				$param['last_name']	    		= addslashes($this->input->post('last_name'));
+				$param['users_email']	    	= $this->input->post('users_email');
+				$param['country_code']	    	= $this->input->post('country_code');
+				$param['users_mobile']	    	= (int)$this->input->post('users_mobile');
+				$param['area']					= $this->input->post('area');
+				$param['show_raffle_campaign']	= $this->input->post('show_raffle_campaign');
+
+
+				$bind_with_person_name = $this->input->post('bind_with_person_name');
+				if(!empty($bind_with_person_name)):
+				   $sales_person  = explode('|',$bind_with_person_name);
+				endif;
 				
 				//Adding bindwith as per user type.
 				if( $this->input->post('user_type') != 'Users'):
-					$sales_person 					 = explode('|',$this->input->post('sales_person'));
 					$param['pickup_point_holder']	 = $this->input->post('pickup_point_holder');
-					$param['commission_percentage']	 = $this->input->post('commission_percentage');
+					$param['commission_percentage']	 		  = $this->input->post('commission_percentage');
+					$param['recharge_commission_percentage']  = $this->input->post('recharge_commission_percentage');
+					$param['redeeming_commission_percentage'] = $this->input->post('redeeming_commission_percentage');
 					$param['store_name']	    	 = addslashes($this->input->post('store_name'));
-					$param['bind_person_id']		 = $sales_person['0'];
+					$param['bind_person_id']		 = (int)$sales_person['0'];
 					$param['bind_person_name']		 = $sales_person['1'];
 					$param['bind_user_type']		 = $this->input->post('bind_user_type');
 					$param['pos_number']			 = (int)$this->input->post('pos_number');
@@ -219,6 +251,8 @@ class Allusers extends CI_Controller {
 					$param['password']	   = md5($this->input->post('password'));
 					$param['login_token']  = "";
 				endif;
+				// echo "<pre>"; print_r($param);die();
+
 				//Change Password syntex end here...
 				if($this->input->post('CurrentDataID') ==''):
 					$userType  = $this->input->post('user_type');
@@ -236,8 +270,6 @@ class Allusers extends CI_Controller {
 					if( $this->input->post('user_type') != 'Users'):
 						$param['summery_pin']        = '1111';
 					endif;
-
-
 					// echo "<pre>"; print_r($param);die();
 					$alastInsertId					 =	$this->common_model->addData('uw_users',$param);
 					if(!empty($alastInsertId)):
@@ -271,27 +303,176 @@ class Allusers extends CI_Controller {
 			endif;
 		endif;
 
-		$where['where'] 		=	array(
-			'status'=>'A',
-			'$or'	=>	array(
-				array('users_type' => 'Sales Person'),
-				array('users_type' => 'Freelancer'),
-			));
-		$shortField 			=	array('_id'=> -1);
-		$fields 				=	array('users_id','users_name','users_mobile','users_type');
-		$data['sales_man_list'] = $this->common_model->getDataByNewQuery($fields,'multiple','uw_users',$where,$shortField);
+		$data['countryCodeData']  = countryCodeList();
 
-		$where1['where'] 		=	array(
-										'status'=>'A',
-										'users_type' => 'Freelancer');
-		$shortField 			=	array('_id'=> -1);
-		$fields 				=	array('users_id','users_name','users_mobile','users_type');
-		$data['freelancer_list'] = $this->common_model->getDataByNewQuery($fields,'multiple','uw_users',$where1,$shortField);
-		$data['countryCodeData']    =   countryCodeList();
-
+		// echo "<pre>";
+		// print_r($data);
+		// die();
+		
 		$this->layouts->set_title('Add/Edit Sales Person');
 		$this->layouts->admin_view('users/allusers/addeditdata',array(),$data);
-	}	// END OF FUNCTION	
+	 }
+	// public function addeditdata($editId='')
+	// {		
+	// 	//echo $editId; die();
+	// 	$data['error'] 						= 	'';
+	// 	$data['activeMenu'] 				= 	'users';
+	// 	$data['activeSubMenu'] 				= 	'allusers';
+		
+	// 	if(!empty($editId)):
+	// 		$this->admin_model->authCheck('edit_data');
+	// 		$data['EDITDATA'] =	$this->common_model->getDataByParticularField('uw_users','users_id',(int)$editId);
+	// 		// echo '<pre>';print_r($data['EDITDATA']);die;
+	// 	else:
+	// 		$this->admin_model->authCheck('add_data');
+	// 	endif;
+		
+	// 	if($this->input->post('SaveChanges')):
+	// 		$error					=	'NO';
+	// 		$this->form_validation->set_rules('name', 'Name', 'trim');
+	// 		//$this->form_validation->set_rules('email', 'Email', 'trim|is_unique[uw_users.users_email]');
+	// 		$this->form_validation->set_rules('country_code', 'Country Code', 'trim');
+	// 		$this->form_validation->set_rules('mobile', 'Mobile', 'trim|is_unique[uw_users.users_mobile]');
+	// 		$this->form_validation->set_rules('arabianPoints', 'Arabian Points', 'trim');
+	// 		$this->form_validation->set_rules('users_type', 'Users Type', 'trim');
+
+	// 		if($this->input->post('password')){
+	// 			$this->form_validation->set_rules('password', 'Password', 'trim');
+	// 			$this->form_validation->set_rules('cpassword', 'Confirm Password', 'trim|matches[password]');
+	// 		}
+
+	// 		$this->form_validation->set_message('is_unique', 'The %s is already taken');
+	// 		if($this->input->post('user_type') == 'Retailer' || $this->input->post('user_type') == 'Promoter' || $this->input->post('user_type') == 'Sales Person'){
+	// 			$this->form_validation->set_rules('store_name', 'Store Name', 'trim');
+	// 			$this->form_validation->set_rules('sales_person', 'Sales Person', 'trim');
+	// 			$this->form_validation->set_rules('commission_percentage', 'Commission Percentage', 'trim|required');
+	// 		}
+
+	// 		if($this->form_validation->run() && $error == 'NO'): 
+	// 			$param['users_type']	    	= 	$this->input->post('user_type');
+	// 			$param['users_name']	    	= 	addslashes($this->input->post('users_name'));
+	// 			$param['last_name']	    		= 	addslashes($this->input->post('last_name'));
+	// 			$param['users_email']	    	= 	$this->input->post('users_email');
+	// 			$param['country_code']	    	= 	$this->input->post('country_code');
+	// 			$param['users_mobile']	    	= 	(int)$this->input->post('users_mobile');
+	// 			$param['area']					= 	$this->input->post('area');
+	// 			$param['show_raffle_campaign']	= 	$this->input->post('show_raffle_campaign');
+				
+	// 			//Adding bindwith as per user type.
+	// 			if( $this->input->post('user_type') != 'Users'):
+	// 				$sales_person 					 = explode('|',$this->input->post('sales_person'));
+	// 				$param['pickup_point_holder']	 = $this->input->post('pickup_point_holder');
+	// 				$param['commission_percentage']	 = $this->input->post('commission_percentage');
+	// 				$param['store_name']	    	 = addslashes($this->input->post('store_name'));
+	// 				$param['bind_person_id']		 = $sales_person['0'];
+	// 				$param['bind_person_name']		 = $sales_person['1'];
+	// 				$param['bind_user_type']		 = $this->input->post('bind_user_type');
+	// 				$param['pos_number']			 = (int)$this->input->post('pos_number');
+	// 				$param['referral_code']			 = (int)$this->input->post('pos_number');
+	// 				$param['pos_device_id']			 = $this->input->post('pos_device_id');
+
+	// 				// Updated pos_number for all usertpes except users..
+	// 				if($this->input->post('pos_number') == "" || $this->input->post('pos_number') == 0 ):
+	// 					$param['pos_number']		 = (int)$this->common_model->getNextPOSId('posId');
+	// 					$param['referral_code']		 = $param['pos_number'];
+	// 				endif;
+
+	// 			else:
+	// 				$param['bind_person_id']		 = (int)$this->session->userdata('UW_ADMIN_ID');
+	// 				$param['bind_person_name']		 = "Admin";
+	// 				$param['bind_user_type']		 = "Admin";
+
+	// 				// Removed if case of user_type is Users..
+	// 				// if(!empty($data['EDITDATA'])):
+	// 				//   $param['pos_number']	  = "";
+	// 				//   $param['pos_device_id'] = "";
+	// 				// endif;
+
+	// 			endif;
+
+	// 			if(!empty($data['EDITDATA']) && $this->input->post('pos_device_id') == ''):
+	// 				$param['device_id']		  =	'';
+	// 				$param['users_device_id'] =	'';
+	// 			endif;
+
+	// 			//Change Password syntex start here...
+	// 			if($this->input->post('Checkbox_password')  == 'on' ):
+	// 				$param['password']	   = md5($this->input->post('password'));
+	// 				$param['login_token']  = "";
+	// 			endif;
+	// 			//Change Password syntex end here...
+	// 			if($this->input->post('CurrentDataID') ==''):
+	// 				$userType  = $this->input->post('user_type');
+	// 				$param['users_seq_id']	  		 = $this->common_model->getNextIdSequence('users_seq_id',$userType);
+	// 				$param['totalArabianPoints']     = (int)$this->input->post('totalArabianPoints');
+	// 				$param['availableArabianPoints'] = (int)$this->input->post('availableArabianPoints');
+	// 				$param['referral_code']			 = strtoupper(uniqid(16));
+	// 				$param['password']		    	 = md5($this->input->post('password'));
+	// 				$param['users_id']			     = (int)$this->common_model->getNextSequence('uw_users');
+	// 				$param['creation_ip']			 = currentIp();
+	// 				$param['created_at']			 = date('Y-m-d H:i');
+	// 				$param['created_by']			 = (int)$this->session->userdata('UW_ADMIN_ID');
+	// 				$param["is_verify"] 			 = "Y";
+	// 				$param['status']				 = 'A';
+	// 				if( $this->input->post('user_type') != 'Users'):
+	// 					$param['summery_pin']        = '1111';
+	// 				endif;
+
+
+	// 				// echo "<pre>"; print_r($param);die();
+	// 				$alastInsertId					 =	$this->common_model->addData('uw_users',$param);
+	// 				if(!empty($alastInsertId)):
+	// 					$loadbalenceData = array(
+	// 					'uw_users'				=>	$param['users_email'],
+	// 					'user_id_cred'			=>	$param['users_id'],
+	// 					'user_id_deb'			=>	(int)0,
+	// 					'record_type'			=>	'Credit',
+	// 					'arabian_points'		=>	(float)$param['availableArabianPoints'],
+	// 					'arabian_points_from'	=>	'Recharge',
+	// 					'record_type'			=>	'Credit',
+	// 					'load_balance_id'		=>	(int)$this->common_model->getNextSequence('uw_loadBalance'),
+	// 					'creation_ip'			=>	currentIp(),
+	// 					'created_at'			=>	date('Y-m-d H:i'),
+	// 					'created_by'			=>	'ADMIN',
+	// 					'created_user_id'	=>	(int)$this->session->userdata('UW_ADMIN_ID'),
+	// 					'status'				=>	'A'
+	// 					);
+	// 					$this->common_model->addData('uw_loadBalance',$loadbalenceData);
+	// 				endif;
+	// 				$this->session->set_flashdata('alert_success',lang('addsuccess'));
+	// 			else:
+	// 				$categoryId					= $this->input->post('CurrentDataID');
+	// 				$param['update_ip']			= currentIp();
+	// 				$param['update_date']		= date('Y-m-d h:i');
+	// 				$param['updated_by']		= (int)$this->session->userdata('UW_ADMIN_ID');
+	// 				$this->common_model->editData('uw_users',$param,'users_id',(int)$categoryId);
+	// 				$this->session->set_flashdata('alert_success',lang('updatesuccess'));
+	// 			endif;
+	// 			redirect(correctLink('MASTERDATAUSERSTYPE',getCurrentControllerPath('index')));
+	// 		endif;
+	// 	endif;
+
+	// 	$where['where'] 		=	array(
+	// 		'status'=>'A',
+	// 		'$or'	=>	array(
+	// 			array('users_type' => 'Sales Person'),
+	// 			array('users_type' => 'Freelancer'),
+	// 		));
+	// 	$shortField 			=	array('_id'=> -1);
+	// 	$fields 				=	array('users_id','users_name','users_mobile','users_type');
+	// 	$data['sales_man_list'] = $this->common_model->getDataByNewQuery($fields,'multiple','uw_users',$where,$shortField);
+
+	// 	$where1['where'] 		=	array(
+	// 									'status'=>'A',
+	// 									'users_type' => 'Freelancer');
+	// 	$shortField 			=	array('_id'=> -1);
+	// 	$fields 				=	array('users_id','users_name','users_mobile','users_type');
+	// 	$data['freelancer_list'] = $this->common_model->getDataByNewQuery($fields,'multiple','uw_users',$where1,$shortField);
+	// 	$data['countryCodeData']    =   countryCodeList();
+
+	// 	$this->layouts->set_title('Add/Edit Sales Person');
+	// 	$this->layouts->admin_view('users/allusers/addeditdata',array(),$data);
+	// }	// END OF FUNCTION	
 
 
 	/***********************************************************************
@@ -396,6 +577,7 @@ class Allusers extends CI_Controller {
 		if($this->input->post('searchField') == "users_mobile"):
 			$sField							=	$this->input->post('searchField');
 			$sValue							=	$this->input->post('searchValue');
+			$whereCon['where']['users_type']=$sValue;
 			$whereCon['where']			 	= 	array($sField =>(int)$sValue);
 		endif;
 
@@ -418,7 +600,7 @@ class Allusers extends CI_Controller {
 		// echo "<pre>";
 		// print_r($whereCon);
 		// die();
-
+		$whereCon['where'] = array('users_type' => array('$ne' => 'Users'));
 		/* Export excel button code */
 		$data        			=   $this->common_model->getData('multiple','uw_users',$whereCon);
 		// echo '<pre>';print_r($data);die;
@@ -858,4 +1040,42 @@ class Allusers extends CI_Controller {
 		$this->layouts->set_title('Add/Edit - Redeeming Limit');
 		$this->layouts->admin_view('users/allusers/addeditredeeminglimitdata',array(),$data);
 	}	// END OF FUNCTION	
+
+	/***********************************************************************
+	** Function name 	: getbindwith
+	** Developed By 	: Dilip Halder
+	** Purpose 			: This function used for logout
+	** Date 			: 28 July 2025
+	************************************************************************/ 
+	public function getbindwith($value='')
+	{
+
+		try {
+
+			$bindWith = $this->input->post('bindWith');
+			if(empty($bindWith)):
+				throw new Exception("Bind with is required", 1);
+			else:
+
+				$tblName  = "uw_users";
+				$whereCon['where']['users_type'] = $bindWith;
+				// $whereCon['where']['users_type'] = "Retailer";
+				$whereCon['where']['status'] 	 = 'A';
+
+				$searchField = array('users_id','users_name','last_name','users_type','users_mobile');
+				$shortField  = array('users_id'=> -1);
+				$UserList    = $this->common_model->getDataByNewQuery($searchField,'multiple',$tblName, $whereCon);
+			    echo json_encode($UserList);
+			    exit;
+				// return $UserList;
+			endif;
+			
+		} catch (Exception $e) {
+			$error = $e->getMessage();
+			echo "<pre>";
+			print_r($error );
+			die();
+		}
+	}
+
 }

@@ -70,19 +70,9 @@
                                   <td ><?=$i++?></td>
                                   <td><?=(strlen($ALLDATAINFO['notific_title'])> 30) ? wordwrap($ALLDATAINFO['notific_title'], 30, "<br>\n", true) : $ALLDATAINFO['notific_title'];?></td>
                                   <td><?= (strlen($ALLDATAINFO['notific_message'])> 70) ? wordwrap($ALLDATAINFO['notific_message'], 70, "<br>\n", true) : $ALLDATAINFO['notific_message'];?></td>
-                                  <td> <?php 
-                                  $shortField 						= 	array('_id'=>-1);
-                                  $whereCon['where']= 	array("is_read"=>'Y','notification_id'=>$ALLDATAINFO['notification_id']);
-                                  $status =  $this->common_model->getData('count','uw_notifications_details',$whereCon,$shortField);
-                                  
-                                 ?> <a href="javascript:void(0)" class="btn btn-sm btn-primary view-users-btn" data-toggle="modal" data-target="#userlistModal" data-notification-id="<?= $ALLDATAINFO['notification_id']; ?>" data-ntype="Y">
-                                 <?= $status ?> <i class="feather icon-eye"></i></a></td>
-                                 <td> <?php
-                                  
-                                  $whereCons['where']= 	array('is_read'=>'N','notification_id'=>$ALLDATAINFO['notification_id']);
-                                  $unstatus =  $this->common_model->getData('count','uw_notifications_details',$whereCons,$shortField);
-                                  
-                                 ?> <a href="javascript:void(0)" class="btn btn-sm btn-primary view-users-btn" data-toggle="modal" data-target="#userlistModal" data-notification-id="<?= $ALLDATAINFO['notification_id']; ?>" data-ntype="N"><?=$unstatus ?> <i class="feather icon-eye"></i></a></td>
+                                  <td> <a href="javascript:void(0)" class="btn btn-sm btn-primary view-users-btn" data-toggle="modal" data-target="#userlistModal" data-notification-id="<?= $ALLDATAINFO['notification_id']; ?>" data-ntype="Y">
+                                 <?= $ALLDATAINFO['read_count'] ?> <i class="feather icon-eye"></i></a></td>
+                                 <td><a href="javascript:void(0)" class="btn btn-sm btn-primary view-users-btn" data-toggle="modal" data-target="#userlistModal" data-notification-id="<?= $ALLDATAINFO['notification_id']; ?>" data-ntype="N"><?=$ALLDATAINFO['unread_count'] ?> <i class="feather icon-eye"></i></a></td>
                                   <td><?=(new DateTime('@' . $ALLDATAINFO['creation_date']))->setTimezone(new DateTimeZone('Asia/Dubai'))->format('Y-m-d H:i');?></td>
                                   <td><?=showStatus($ALLDATAINFO['status'])?></td>
                                   <!-- <td>

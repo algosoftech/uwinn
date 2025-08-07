@@ -142,7 +142,9 @@ defined('baseUrlForCommonWeb')     		OR 	define('baseUrlForCommonWeb',$baseUrlFo
 /////////////// SMS Details ///////////////////
 defined('SMSCOUNTRYUSER')     			OR 	define('SMSCOUNTRYUSER','buy2day');
 defined('SMSCOUNTRYPASSWORD')     		OR 	define('SMSCOUNTRYPASSWORD','Buy2day@123');
-defined('SIGNUPBONUS')     				OR 	define('SIGNUPBONUS','0');
+defined('SIGNUPBONUS')     				OR 	define('SIGNUPBONUS','10');
+defined('REFFERLBONUS')     			OR 	define('REFFERLBONUS','2');
+
 
 // TEST CREDIENTIALS..
 defined('STRIPE_PAYMENT_MODE') 	OR 	define('STRIPE_PAYMENT_MODE','live');//test//live
@@ -153,5 +155,7 @@ defined('STRIPE_TEST_SK')		OR 	define('STRIPE_TEST_SK','sk_test_51R7ExQHKfZlnTAD
 defined('STRIPE_TEST_PK')		OR 	define('STRIPE_TEST_PK','pk_test_51R7ExQHKfZlnTADp6mfisa8W35WkBi8RWvtcMd1FS3eaD1Dhda4vwn0M2wmFIOeRQgstvqslXzUG9UxhWKLnXeRj00AcjsKgpx');
 
 // LIVE CREDIENTIALS..
-defined('STRIPE_LIVE_SK')		OR 	define('STRIPE_LIVE_SK','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');
+defined('STRIPE_LIVE_SK')		OR 	define('STRIPE_LIVE_SK','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');
 defined('STRIPE_LIVE_PK')		OR 	define('STRIPE_LIVE_PK','pk_live_51R7ExDHq8ojwu8I8PdwPUnzzzaJLzxefWkqgqFCdAbuQdzxopmJ1nQyJ00DzDg82b6ZylsBXWUIZkDLj0o926tEc00EWEaGf2n');
+
+defined('MAILJET') OR define('MAILJET','OGIxYzEwMzRmYTUzZmRmMzAzZjBkOTRhOWQ0ZWNiMjg6M2E2OTNjMTIzNTExNjllZWYzMTQ2ZmFhZmYxMjMwN2Y=');

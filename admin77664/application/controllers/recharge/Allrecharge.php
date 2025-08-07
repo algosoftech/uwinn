@@ -676,15 +676,15 @@ public function checkDeplicacy(){
 		endif;
 		$wcon['where']  = array('load_balance_id'=>(int)$id,'narration'=>'Recharge');
 		$data			= $this->common_model->getData('single','uw_loadBalance',$wcon);
-
 		if(!empty($data)):
 			$this->admin_model->authCheck('edit_data');
+
+			// Updating reverse entries in laodbalance..
 			$whereCondition['user_id_cred'] = (int)$data['user_id_cred'];
 			$whereCondition['user_id_deb']  = (int)$data['user_id_deb'];
 			$whereCondition['narration']    = 'Recharge';
 			$whereCondition['created_at']['$gte'] = date('Y-m-d H:i', strtotime($data['created_at']));
 			$whereCondition['created_at']['$lte'] = date('Y-m-d H:i', strtotime($data['created_at'] . ' +2 seconds'));
-
 			$tableName 			 = 'uw_loadBalance';
 			$udateData['status'] = 'R'; 
 		 	$this->common_model->editMultipleDataByMultipleCondition($tableName, $udateData,$whereCondition);
@@ -693,6 +693,7 @@ public function checkDeplicacy(){
 			$tblName = 'uw_users';
 			$whereCon['where']  = array('users_id' => (int)$data['user_id_cred']);
 			$userdata 			=	$this->common_model->getData('single',$tblName,$whereCon);
+
 			$param1['availableArabianPoints'] =  -$data['upoints'];
 			$balanceCredit = $this->common_model->manageBalance($tblName,$param1,'users_id',(int)$data['user_id_cred']);
 			
@@ -730,39 +731,34 @@ public function checkDeplicacy(){
 				endif;
 			else:
 
-				// Crediting balance to BTB User..
-				$param11['availableArabianPoints'] = +$data['upoints'];
-				$balanceCredit 					   = $this->common_model->manageBalance($tblName,$param11,'users_id',(int)$data['user_id_deb']);
+				// Crediting balance to BTB User..	
+				$Fields     = array('availableArabianPoints','totalArabianPoints','_id');
+				$sellerData = $this->common_model->getSingleDataByParticularField($Fields,$tblName,'users_id',(int)$data['user_id_deb']);
 
-				$from = date('Y-m-d H:i', strtotime($data['created_at']));
-				$to = date('Y-m-d H:i', strtotime($data['created_at'] . ' +1 minutes'));
+				if(!empty($sellerData)):
 
-				$wcon1['where']['user_id_cred']  	= (int)$data['user_id_deb'];	  
-				$wcon1['where']['record_type']  	= 'Credit';	  
-				$wcon1['where']['narration']  	    = 'Recharge Commission';	  
-				$wcon1['where']['created_at']  	    =  array('$gte' => $from , '$lte' => $to); 
-				$commissionData = $this->common_model->getData('single','uw_loadBalance',$wcon1);
-				
-				if(!empty($commissionData)):
+					// Getting commission details..
+					$from   = date('Y-m-d H:i', strtotime($data['created_at']));
+					$to     = date('Y-m-d H:i', strtotime($data['created_at'] . ' +1 minutes'));
+					$wcon1['where']['user_id_cred']  	= (int)$data['user_id_deb'];	  
+					$wcon1['where']['record_type']  	= 'Credit';	  
+					$wcon1['where']['narration']  	    = 'Recharge Commission';	  
+					$wcon1['where']['created_at']  	    =  array('$gte' => $from , '$lte' => $to); 
+					$commissionData = $this->common_model->getData('single','uw_loadBalance',$wcon1);
 
-					// Added cancellection Commission status.
-					$tableName 			      = 'uw_loadBalance';
-					$can_Commission['status'] = 'R'; 
-					$Can_Where_Commission     = array( 'load_balance_id' => (int)$commissionData['load_balance_id'] );
-				 	$this->common_model->editMultipleDataByMultipleCondition($tableName, $can_Commission,$Can_Where_Commission);
-					
-					// Crediting balance to BTB User..
-					$tblName 			= 'uw_users';
-					$whereCon['where']  = array('users_id' => (int)$data['user_id_deb']);
-					$BTBUserData 		=	$this->common_model->getData('single',$tblName,$whereCon);
+					if(!empty($commissionData)):
 
-					if(!empty($BTBUserData)):
-						//Created credited recharge amount and removed commisison..
-						$finalAmount		 					 =  $data['upoints'] - $commissionData['upoints'];
-						// $param11['totalArabianPoints']    	 	 =  -(float)$finalAmount;
-						$param11['availableArabianPoints']    	 =  +(float)$finalAmount;
+						// Added cancellection Commission status.
+						$tableName 			      = 'uw_loadBalance';
+						$can_Commission['status'] = 'R'; 
+						$Can_Where_Commission     = array( 'load_balance_id' => (int)$commissionData['load_balance_id'] );
+					 	$this->common_model->editMultipleDataByMultipleCondition($tableName, $can_Commission,$Can_Where_Commission);
 
-						$balanceCredit 					   		 = $this->common_model->manageBalance($tblName,$param11,'users_id',(int)$data['user_id_deb']);
+
+						// Seller Balance Updating..
+						$SellerBalaneParam['availableArabianPoints'] = +$data['upoints']-$commissionData['upoints'];
+						$balanceCredit = $this->common_model->manageBalance($tblName,$SellerBalaneParam,'users_id',(int)$data['user_id_deb']);
+
 
 						$user_oid = (string)$commissionData['user_oid'];
 					    // Generating loadBalance for Commission amount deducting..
@@ -772,8 +768,8 @@ public function checkDeplicacy(){
 		                $commisionBalance['request_oid']     =  new MongoDB\BSON\ObjectId($data['_id']->{'$id'});
 		                $commisionBalance['user_id_deb']     =  (int)$data['user_id_deb'];
 		                $commisionBalance['user_id_cred']    =  (int)0;
-		                $commisionBalance["availableArabianPoints"]  =	(float)$BTBUserData["availableArabianPoints"];
-						$commisionBalance["end_balance"] 			 =	(float)$BTBUserData["availableArabianPoints"] - $commissionData['upoints'];
+		                $commisionBalance["availableArabianPoints"]  =	(float)$sellerData["availableArabianPoints"];
+						$commisionBalance["end_balance"] 			 =	(float)$sellerData["availableArabianPoints"] - $commissionData['upoints'];
 		                $commisionBalance['record_type']     = 'Debit';
 		                $commisionBalance['narration']       = 'Recharge Commission Reverted';
 		                $commisionBalance['remarks']         = "Commission reverted for recharge worth AED ".$data['upoints'].".";
@@ -782,55 +778,55 @@ public function checkDeplicacy(){
 		                $commisionBalance['created_at']      = date('Y-m-d H:i');
 		                $commisionBalance['created_by']      = (int)$data['user_id_deb'];
 		                $commisionBalance['status']          = 'A';
+				    	$commissionResponce = $this->common_model->addData('uw_loadBalance', $commisionBalance);
+
+				    	if(!empty($commissionResponce)):
+				    		$commisionBalance1['load_balance_id'] =  (int)$this->common_model->getNextSequence('uw_loadBalance');
+			                $commisionBalance1['user_oid']        =  new MongoDB\BSON\ObjectId($user_oid);
+			                $commisionBalance1['request_id']      =  $data['load_balance_id'];
+			                $commisionBalance1['request_oid']     =  new MongoDB\BSON\ObjectId($data['_id']->{'$id'});
+			                $commisionBalance1['user_id_deb']     =  (int)0;
+			                $commisionBalance1['user_id_cred']    =  (int)$data['user_id_deb'];
+			                $commisionBalance1["availableArabianPoints"]  =	(float)$commissionResponce["end_balance"];
+							$commisionBalance1["end_balance"] 			  =	(float)$commisionBalance["end_balance"] + $data['upoints'];
+			                $commisionBalance1['record_type']     = 'Credit';
+			                $commisionBalance1['narration']       = 'Reverse Recharge';
+			                $commisionBalance1['remarks']         = "Recharge has been reversed to ".$userdata['users_mobile'];
+			                $commisionBalance1['upoints']         = (float)$data['upoints'];
+			                $commisionBalance1['creation_ip']     = $this->input->ip_address();;
+			                $commisionBalance1['created_at']      = date('Y-m-d H:i');
+			                $commisionBalance1['created_by']      = (int)$data['user_id_deb'];
+			                $commisionBalance1['status']          = 'A';
+					    	$this->common_model->addData('uw_loadBalance', $commisionBalance1);
 
 
+						    $param111['load_balance_id']		= (int)$this->common_model->getNextSequence('uw_loadBalance');
+							$param111["user_oid"] 				= new MongoDB\BSON\ObjectId(($userdata['_id']->{'$id'} ));
+			                $param111['request_id']      		= $data['load_balance_id'];
+			                $param111['request_oid']     		= new MongoDB\BSON\ObjectId($data['_id']->{'$id'});
+							$param111["user_id_deb"] 			= (int)$userdata['users_id'];
+							$param111['user_id_cred']			= (int)$data['user_id_deb'];
+							$param111['upoints']				= (float)$data['upoints'];
+							$param111["availableArabianPoints"] = (float)$userdata["availableArabianPoints"];
+							$param111["end_balance"] 			= (float)$userdata["availableArabianPoints"] - (float)$data['upoints'] ;
+							$param111['record_type']			= 'Debit';
+							$param111["narration"] 				= 'Reverse Recharge';
+							$param111['remarks']				= "Recharge has been reversed to ".$userdata['users_mobile'];
+							$param111['creation_ip']			= currentIp();
+							$param111['created_at']				= date('Y-m-d H:i:s');//currentDateTime();
+							$param111['created_by']				= 'ADMIN';
+							$param111['update_date']			= date('Y-m-d H:i:s');//currentDateTime();
+							$param111['status']					= 'R';
+							$param111["created_user_id"] 		= (int)$this->session->userdata('UW_ADMIN_ID');
+							$alastInsertId						= $this->common_model->addData('uw_loadBalance',$param111);
 
-				    	$this->common_model->addData('uw_loadBalance', $commisionBalance);
-
-				    	$commisionBalance1['load_balance_id'] =  (int)$this->common_model->getNextSequence('uw_loadBalance');
-		                $commisionBalance1['user_oid']        =  new MongoDB\BSON\ObjectId($user_oid);
-		                $commisionBalance1['request_id']      =  $data['load_balance_id'];
-		                $commisionBalance1['request_oid']     =  new MongoDB\BSON\ObjectId($data['_id']->{'$id'});
-		                $commisionBalance1['user_id_deb']     =  (int)0;
-		                $commisionBalance1['user_id_cred']    =  (int)$data['user_id_deb'];
-		                $commisionBalance1["availableArabianPoints"]  =	(float)$commisionBalance["end_balance"];
-						$commisionBalance1["end_balance"] 			  =	(float)$commisionBalance["end_balance"] + $data['upoints'];
-		                $commisionBalance1['record_type']     = 'Credit';
-		                $commisionBalance1['narration']       = 'Reverse Recharge';
-		                $commisionBalance1['remarks']         = "Recharge has been reversed to ".$userdata['users_mobile'];
-		                $commisionBalance1['upoints']         = (float)$data['upoints'];
-		                $commisionBalance1['creation_ip']     = $this->input->ip_address();;
-		                $commisionBalance1['created_at']      = date('Y-m-d H:i');
-		                $commisionBalance1['created_by']      = (int)$data['user_id_deb'];
-		                $commisionBalance1['status']          = 'A';
-				    	$this->common_model->addData('uw_loadBalance', $commisionBalance1);
-
-				    	$param111['load_balance_id']		= (int)$this->common_model->getNextSequence('uw_loadBalance');
-						$param111["user_oid"] 				= new MongoDB\BSON\ObjectId(($userdata['_id']->{'$id'} ));
-		                $param111['request_id']      		= $data['load_balance_id'];
-		                $param111['request_oid']     		= new MongoDB\BSON\ObjectId($data['_id']->{'$id'});
-						$param111["user_id_deb"] 			= (int)$userdata['users_id'];
-						$param111['user_id_cred']			= (int)$data['user_id_deb'];
-						$param111['upoints']				= (float)$data['upoints'];
-						$param111["availableArabianPoints"] = (float)$userdata["availableArabianPoints"];
-						$param111["end_balance"] 			= (float)$userdata["availableArabianPoints"] - (float)$data['upoints'] ;
-						$param111['record_type']			= 'Debit';
-						$param111["narration"] 				= 'Reverse Recharge';
-						$param111['remarks']				= "Recharge has been reversed to ".$userdata['users_mobile'];
-						$param111['creation_ip']			= currentIp();
-						$param111['created_at']				= date('Y-m-d H:i:s');//currentDateTime();
-						$param111['created_by']				= 'ADMIN';
-						$param111['update_date']			= date('Y-m-d H:i:s');//currentDateTime();
-						$param111['status']					= 'R';
-						$param111["created_user_id"] 		= (int)$this->session->userdata('UW_ADMIN_ID');
-						$alastInsertId						= $this->common_model->addData('uw_loadBalance',$param111);
-
-						$this->session->set_flashdata('alert_success','Recharge Reverse Successfully.');
-						redirect('recharge/allrecharge/index');
-				    	// Credit the purchesed points and get available arabian points of user.
-					else:
-						$this->session->set_flashdata('alert_error','Commission not Removed');
-						redirect('recharge/allrecharge/index');
+							$this->session->set_flashdata('alert_success','Recharge Reverse Successfully.');
+							redirect('recharge/allrecharge/index');
+					    	// Credit the purchesed points and get available arabian points of user.
+						else:
+							$this->session->set_flashdata('alert_error','Commission not Removed');
+							redirect('recharge/allrecharge/index');
+						endif;
 					endif;
 				else:
 					$this->session->set_flashdata('alert_error','Commission not Removed');

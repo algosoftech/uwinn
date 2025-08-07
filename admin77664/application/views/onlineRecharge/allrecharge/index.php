@@ -105,6 +105,7 @@ $(function(){
                                 <th width="20%">Date and Time</th>
                                 <th width="20%">Payment method</th>
                                 <th width="20%">Descrition</th>
+                                <th width="20%">Action</th>
                               </tr>
                             </thead>
                             <tbody style="text-align: center;">
@@ -122,6 +123,14 @@ $(function(){
                                 <td> <?=$ALLDATAINFO['created_at']?> </td>
                                 <td> <?='Stripe';?> </td>
                                 <td> <?=$ALLDATAINFO['description'];?> </td>
+                                <td>
+                                    <div class="btn-group">
+                                      <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
+                                      <ul class="dropdown-menu" role="menu">
+                                        <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['tranasactionID'])?>" onClick="return confirm('Want to change status success /fail!');"> <i class="fa fa-money-check"></i> Update status </a>
+                                       </ul>
+                                    </div>
+                                </td>
                               </tr>
                               <?php $j++; endforeach; else: ?>
                               <tr>
@@ -206,7 +215,6 @@ $(function(){
               </div>
             </div>
           </div>
-
 
       </div>
       <div class="modal-footer">

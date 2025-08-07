@@ -65,3 +65,4 @@ $lang['Product_not_found']	   				= 	"Product not found";
 $lang['ORDER_SUCCESS']	   					= 	"Your order placed successfully";
 $lang['PAYMENT_FAILED']						= 	'Payment failed. Please try again.';
 $lang['PAYMENT_CANCEL']						= 	'Please complete your Order.';
+$lang['VERIFY_OTP']                         = 'Please verify the OTP sent to your email or mobile.';

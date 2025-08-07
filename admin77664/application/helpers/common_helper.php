@@ -328,3 +328,17 @@ if (!function_exists('getDateDifference')) {
 			}
 	}
 }  
+
+if (!function_exists('formatNumberShort')) {
+    function formatNumberShort($num) {
+        $num = (float)$num;
+        if ($num >= 10000000) {
+            return round($num / 10000000, 1) . 'Cr';
+        } elseif ($num >= 100000) {
+            return round($num / 100000, 1) . 'L';
+        } elseif ($num >= 1000) {
+            return round($num / 1000, 1) . 'K';
+        }
+        return (string)$num;
+    }
+}

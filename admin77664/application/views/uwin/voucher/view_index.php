@@ -66,7 +66,7 @@ $(function(){
               <div class="card-body">
                 <div class="row">
                     <div class="col-sm-12 col-md-12 col-lg-12">
-                      <form class="" action="<?=getCurrentControllerPath('checkpreview');?>" method="post" enctype="multipart/form-data" >
+                      <form class="" action="<?=getCurrentControllerPath('checkpreview');?>" method="GET" enctype="multipart/form-data" >
                         <div class="row">
                           <div class="col-sm-12 col-md-12 col-lg-12">
                             <fieldset>
@@ -74,7 +74,8 @@ $(function(){
                                 <div class="upload-btn-wrapper">
                                   
                                   <a href="javascript:void(0)" class="btn btn-sm btn-primary pull-right" id="delete-selected-orders" style="margin-left: 5px;">Delete Seleted Orders</a>
-                                  <a href="javascript:void(0)" class="btn btn-sm btn-primary pull-right" id="inactive-selected-orders" style="margin-left: 5px;">Inactive Seleted Orders</a>
+                                  <a href="javascript:void(0)" class="btn btn-sm btn-primary pull-right" id="inactive-selected-orders" style="margin-left: 5px;" onclick="multipleChangeStatus(0)">Inactive Seleted Orders</a>
+                                  <a href="javascript:void(0)" class="btn btn-sm btn-primary pull-right" id="active-selected-orders" style="margin-left: 5px;" onclick="multipleChangeStatus(1)">Active Seleted Orders</a>
                                   <a href="javascript:void(0)" class="btn btn-sm btn-primary pull-right" id="batch-selected-orders" style="margin-left: 5px;">Delete Complate Uploaded batch</a>
                                 </div>
 
@@ -110,11 +111,26 @@ $(function(){
                     </div>
                 </div>
 
-                <form id="Data_Form" name="Data_Form" method="POST" action="<?=$forAction;?>">
+                <form id="Data_Form" name="Data_Form" method="GET" action="<?=$forAction;?>">
                   <div class="dt-responsive table-responsive">
                     <div id="simpletable_wrapper" class="dataTables_wrapper dt-bootstrap4">
                       
                      <div class="row">
+                              <div class="col-sm-3 col-md-3">
+                                <div class="dataTables_length" id="simpletable_length">
+                                  <label>Show 
+                                    <select name="showLength" id="showLength" class="custom-select custom-select-sm form-control form-control-sm">
+                                      <option value="2" <?php if($perpage == '2')echo 'selected="selected"'; ?>>2</option>
+                                      <option value="10" <?php if($perpage == '10')echo 'selected="selected"'; ?>>10</option>
+                                      <option value="25" <?php if($perpage == '25')echo 'selected="selected"'; ?>>25</option>
+                                      <option value="50" <?php if($perpage == '50')echo 'selected="selected"'; ?>>50</option>
+                                      <option value="100" <?php if($perpage == '100')echo 'selected="selected"'; ?>>100</option>
+                                      <option value="All" <?php if($perpage == 'All')echo 'selected="selected"'; ?>>All</option>
+                                    </select>
+                                    entries
+                                  </label>
+                                </div>
+                              </div>
                               <div class="col-sm-3 col-md-3">
                                   <select name="searchField" id="searchField" class="custom-select custom-select-sm form-control form-control-sm">
                                     <option value="">Select Field</option>
@@ -176,7 +192,7 @@ $(function(){
 
                                   <?php $sNO = $i++;  ?>
 
-                                  <td style="text-align: center;">  <?= $sNO+1; ?></td>
+                                  <td style="text-align: center;">  <?= $sNO; ?></td>
                                   <td>
                                     <input type="checkbox" name="delete"  class="delete" value="<?=$ALLDATAINFO['voucher_id'];?>">
                                     <input type="text" name="batch_id" class="batch_id d-none" value="<?=$ALLDATAINFO['batch_id'];?>">
@@ -237,7 +253,7 @@ $(function(){
                           </div>
                         </div>
                       </div>
-                      <!-- <div class="row">
+                      <div class="row">
                         <div class="col-sm-12 col-md-5">
                           <div class="dataTables_info" role="status" aria-live="polite"><?php echo $noOfContent; ?></div>
                         </div>
@@ -246,7 +262,7 @@ $(function(){
                             <?php echo $PAGINATION; ?>
                           </div>
                         </div>
-                      </div> -->
+                      </div>
                     </div>
                   </div>
                 </form>
@@ -316,35 +332,103 @@ $(function(){
     }
 });
 
-$('#inactive-selected-orders').on('click', function(){
-    if(confirm('Do you Want to Change status ?')){
-        var checkedCheckboxes = $('.delete:checked');
-        if(checkedCheckboxes.length > 0){
-            showLoadingOverlay();
-            checkedCheckboxes.each(function(){
-                var voucher_id = $(this).val();
-                $.ajax({
-                  url: '<?= base_url('uwin/voucher/changestatus/') ?>'+voucher_id,
-                  type: 'GET',
-                  success: function(response) {
-                      // All data uploaded, hide loading overlay
-                      hideLoadingOverlay();
-                      // Show success alert and redirect
-                      window.location.href = '<?= base_url('uwin/voucher/addeditdata/'.$ALLDATAINFO['batch_id']) ?>'; // Replace with your redirect URL
-                  },
-                  error: function() {
-                    console.error('Failed to upload data for row ');
-                    // Hide loading overlay in case of error
-                    hideLoadingOverlay();
-                  }
-                });
-                $(this).closest('tr').remove();
-            });
-        } else {
-            alert('Please select which row(s) you want to delete.');
+
+// function multipleChangeStatus(status=0){
+//   if (confirm('Do you Want to Change status ?')) {
+//         var checkedCheckboxes = $('.delete:checked');
+//         if (checkedCheckboxes.length > 0) {
+//             showLoadingOverlay();
+//             const data = [];
+
+//             checkedCheckboxes.each(function () {
+//                 data.push({
+//                     'voucher_id': $(this).val(),
+//                     'status': status
+//                 });
+//             });
+
+//             $.ajax({
+//                 url: '<?= base_url('uwin/voucher/multiplechangestatus') ?>', // Assume batch update endpoint
+//                 type: 'POST',
+//                 contentType: 'application/json',
+//                 data: JSON.stringify(data),
+//                 success: function (response) {
+//                     hideLoadingOverlay();
+//                     alertMessageModelPopup('<?php echo $this->session->flashdata('alert_success'); ?>','success');
+//                     window.location.reload();
+                    
+
+                    
+//                 },
+//                 error: function () {
+//                     console.error('Failed to update status.');
+//                     hideLoadingOverlay();
+//                 }
+//             });
+//         } else {
+//             alert('Please select which row(s) you want to update.');
+//         }
+//     }
+// }
+// $('#inactive-selected-orders').on('click', function () {
+    
+// });
+
+function multipleChangeStatus(status = 0) {
+    if (confirm('Do you want to change the status?')) {
+        const checkedCheckboxes = $('.delete:checked');
+
+        if (checkedCheckboxes.length === 0) {
+            alert('Please select which row(s) you want to update.');
+            return;
         }
+
+        showLoadingOverlay();
+
+        const data = [];
+        checkedCheckboxes.each(function () {
+            data.push({
+                voucher_id: $(this).val(),
+                status: status
+            });
+        });
+
+        // Disable button to prevent multiple clicks
+        $('#inactive-selected-orders').prop('disabled', true);
+
+        $.ajax({
+            url: '<?= base_url('uwin/voucher/multiplechangestatus') ?>',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (response) {
+                hideLoadingOverlay();
+                // $('#inactive-selected-orders').prop('disabled', false);
+
+                // Parse JSON if it's not already an object
+                if (typeof response === 'string') {
+                    response = JSON.parse(response);
+                }
+
+                if (response.status === 'success') {
+                    alertMessageModelPopup('Status updated for selected vouchers','success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                    // window.location.reload();
+                } else {
+                    alert('Something went wrong!');
+                }
+            },
+            error: function () {
+                hideLoadingOverlay();
+                $('#inactive-selected-orders').prop('disabled', false);
+                alert('Failed to update status.');
+            }
+        });
     }
-});
+}
+
 
 
  $('#batch-selected-orders').on('click', function(){

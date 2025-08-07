@@ -14,26 +14,596 @@ class Account extends CI_Controller {
 
 	/* * *********************************************************************
 	 * * Function name : maindashboard
-	 * * Developed By : DIlip Halder
+	 * * Developed By : Ashif HaldIqbaler
 	 * * Purpose  : This function used for main dashboard
-	 * * Date : 06 FEBRUARY 2024
+	 * * Date : 28 June 2025
 	 * * **********************************************************************/
 	public function maindashboard()
 	{	
+		
+		$request = $_GET;
+		$type = 'day';
+		$defaultDate = date('Y-m-d');
+		$rangeType = $request['rangeType'] ?? 'today';
+		$dateRange = trim($request['dateRange'] ?? '');
+		$data['type'] = $rangeType;
+		$data['dateRange'] = $dateRange;
+		if (in_array($rangeType, ['today', 'yesterday'])) {
+			$type = 'hour';
+			$date = $rangeType === 'yesterday' ? date('Y-m-d', strtotime('-1 day')) : $defaultDate;
+			$start_date = $date . ' 00:00:00';
+			$end_date   = $date . ' 23:59:59';
+		} elseif (in_array($rangeType, ['last7', 'last30', 'thisMonth', 'lastMonth', 'custom'])) {
+			$exp = explode('to', $dateRange);
+			$start_date = trim($exp[0]) . ' 00:00:00';
+			$end_date   = trim($exp[1]) . ' 23:59:59';
+		} else {
+			// Fallback to today
+			$type = 'hour';
+			$start_date = $defaultDate . ' 00:00:00';
+			$end_date   = $defaultDate . ' 23:59:59';
+		}
 		$this->admin_model->authCheck();
 		$data['error'] 						= 	'';
 		$data['activeMenu'] 				= 	'';
 		$data['activeSubMenu'] 				= 	'';
 		$data['orderTargetData'] 			= 	array();
 		$data['ordersponsoredData'] 		= 	array();
-
-		$data['moduleData']					=	$this->admin_model->getMenuModule('main'); 
+		$baseUrl 							= 	getCurrentControllerPath('maindashboard');
+		$data['forAction'] 					= 	$baseUrl; 
+		$data['moduleData']					=	$this->admin_model->getMenuModule('main');
+		$data['chartData'] = $this->GetWinnerWeeklyData();
+		//Signups Users
+		$users = $this->GetTotalSignups($type, $start_date, $end_date);
+		$data['btc_user'] = $users['btc_data'];
+		$data['btb_user'] = $users['btb_data'];
+		$data['user_hour'] = $users['hours'];
+		$data['total_btc_user'] = $users['total_btc_ticket'];
+		$data['total_btb_user'] = $users['total_btb_ticket'];
+		// Referal Signups
+		$referalusers =$this->GetTotalReferalSignups($type, $start_date, $end_date);
+		$data['btc_refuser'] = $referalusers['btc_data'];
+		$data['btb_refuser'] = $referalusers['btb_data'];
+		$data['refuser_hour'] = $referalusers['hours'];
+		$data['total_btc_refuser'] = $referalusers['total_btc_ticket'];
+		$data['total_btb_refuser'] = $referalusers['total_btb_ticket'];
+		// dd($data);
+		// B2B to B2C Upoints
+		$b2btob2cupoints = $this->GetB2BtoB2CUpoint($type, $start_date, $end_date);
+		$data['rechargecoupon'] = $b2btob2cupoints['rechargecoupon'];
+		$data['movedwinningprize'] = $b2btob2cupoints['movedwinningprize'];
+		$data['transfer_hour'] = $b2btob2cupoints['transfer_hour'];
+		$data['total_rechargecoupon'] = $b2btob2cupoints['total_rechargecoupon'];
+		$data['total_movedwinningprize'] = $b2btob2cupoints['total_movedwinningprize'];
+		$data['total_rechargecoupon_amount'] = $b2btob2cupoints['total_rechargecoupon_amount'];
+		$data['total_movedwinningprize_amount'] =$b2btob2cupoints['total_movedwinningprize_amount'];
+		// Online Purchase
+		$onlineRecharge = $this->GetOnlinePurchase($type, $start_date, $end_date);
+		$data['stripe'] = $onlineRecharge['stripe'];
+		$data['ccavenue'] = $onlineRecharge['ccavenue'];
+		$data['payment_hour'] = $onlineRecharge['payment_hour'];
+		$data['total_stripe'] = $onlineRecharge['total_stripe'];
+		$data['total_ccavenue'] = $onlineRecharge['total_ccavenue'];
+		$data['total_stripe_amount'] = $onlineRecharge['total_stripe_amount'];
+		$data['total_ccavenue_amount'] =$onlineRecharge['total_ccavenue_amount'];
+		// Ticket Section
+		$ticketData = $this->GetSalesTicket($type,$start_date,$end_date);
 		$this->session->unset_userdata('ALLTICKETSDATA');
+		$data['ticket_btc_data'] = $ticketData['btc_data'];
+		$data['ticket_btb_data'] = $ticketData['btb_data'];
+		$data['ticket_hours']	  =$ticketData['hours'];
+		$data['ticket_total_btb'] = $ticketData['total_btb_ticket'];
+		$data['ticket_total_btc'] = $ticketData['total_btc_ticket'];
+		$data['ticket_total_btb_amount']	  =$ticketData['total_btb_amount'];
+		$data['ticket_total_btc_amount']	  =$ticketData['total_btc_amount'];
+		// Winner Section
+		$winnerdata = $this->GetPrizeRedeemed($type, $start_date, $end_date);
+		$data['winner_btc_data'] = $winnerdata['btc_data'];
+		$data['winner_btb_data'] = $winnerdata['btb_data'];
+		$data['winner_hours']	  =$winnerdata['hours'];
+		$data['winner_total_btb_voucher'] = $winnerdata['total_btb_ticket'];
+		$data['winner_total_btc_voucher'] = $winnerdata['total_btc_ticket'];
+		$data['winner_total_btb_amount']	  =$winnerdata['total_btb_amount'];
+		$data['winner_total_btc_amount']	  =$winnerdata['total_btc_amount'];
 
 		$this->layouts->set_title('Dashboard | Admin | UWINN');
 		$this->layouts->admin_view('account/maindashboard',array(),$data);
 
 	}	// END OF FUNCTION
+
+
+	/* * *********************************************************************
+	 * * Function name : GetTotalSignups
+	 * * Developed By : Ashif Iqbal
+	 * * Purpose  : This function used for get total signups
+	 * * Date : 30 June 2025
+	 * * **********************************************************************/
+	public function GetTotalSignups($type, $start_date, $end_date) {
+		try {
+			$pipeline = [
+				[
+					'$match' => [
+						'status' => 'A',
+						'created_at' => ['$gte' => $start_date, '$lte' => $end_date]
+					]
+				],
+				[
+					'$project' => [
+						'created_at' => 1,
+						'user_type' => '$users_type', // aliasing here
+						'product_qty'  => ['$literal' => 1]  // add static field
+					]
+				]
+			];
+
+			$userdata = $this->mongo_db->aggregate('uw_users', $pipeline, ['batchSize' => 4]);
+			return $this->prepareSalesData($userdata, $type, $start_date, $end_date);
+
+		} catch (Exception $error) {
+			echo 'Caught exception: ', $error->getMessage();
+		}
+	}
+
+	/* * *********************************************************************
+	 * * Function name : GetTotalSignups
+	 * * Developed By : Ashif Iqbal
+	 * * Purpose  : This function used for get total signups
+	 * * Date : 30 June 2025
+	 * * **********************************************************************/
+	public function GetTotalReferalSignups($type, $start_date, $end_date) {
+		try {
+			$pipeline = [
+				[
+					'$match' => [
+						'status' => 'A',
+						'referred_by' => ['$exists' => true, '$ne' => null],
+						'created_at' => ['$gte' => $start_date, '$lte' => $end_date]
+					]
+				],
+				[
+					'$lookup' => [
+						'from' => 'uw_users',
+						'localField' => 'referred_by',
+						'foreignField' => '_id',
+						'as' => 'ref_user'
+					]
+				],
+				[
+					'$unwind' => '$ref_user'
+				],
+				[
+					'$addFields' => [
+						'referrer_type' => [
+							'$cond' => [
+								'if' => ['$eq' => ['$ref_user.users_type', 'Users']],
+								'then' => 'Users',
+								'else' => 'Retailers'
+							]
+						],
+						'created_date' => [
+							'$dateToString' => [
+								'format' => '%Y-%m-%d %H:%M:%S',
+								'date' => ['$toDate' => '$created_at']  // Cast string to Date if needed
+							]
+						],
+						'product_qty' => 1
+					]
+				],
+				[
+					'$project' => [
+						'_id' => 0,
+						'created_at' => '$created_date',
+						'user_type' => '$referrer_type',
+						'product_qty' => 1
+					]
+				],
+				[
+					'$sort' => ['created_date' => 1]
+				]
+			];
+
+			$userdata = $this->mongo_db->aggregate('uw_users', $pipeline, ['batchSize' => 4]);
+			return $this->prepareSalesData($userdata, $type, $start_date, $end_date);
+
+		} catch (Exception $error) {
+			echo 'Caught exception: ', $error->getMessage();
+		}
+	}
+	/* * *********************************************************************
+	 * * Function name : GetSalesTicket
+	 * * Developed By : Ashif Iqbal
+	 * * Purpose  : This function used for get btb and btc ticket
+	 * * Date : 28 June 2025
+	 * * **********************************************************************/
+	public function GetSalesTicket($type, $start_date, $end_date) {
+		try {
+			$filter = [
+				'status' => 'A',
+				'created_at' => ['$gte' => $start_date, '$lte' => $end_date]
+			];
+
+			$lottodata = $this->mongo_db
+    		->where($filter)
+    		->select(['created_at', 'product_qty', 'user_type', 'total_price'])  // only required fields
+    		->get('uw_lotto_orders');
+
+			return $this->prepareSalesData($lottodata, $type, $start_date, $end_date);
+
+		} catch (Exception $error) {
+			echo 'Caught exception: ', $error->getMessage();
+		}
+	}
+
+	/* * *********************************************************************
+	 * * Function name : GetOnlinePurchase
+	 * * Developed By : Ashif Iqbal
+	 * * Purpose  : This function used for get purchse count according to m=payment method
+	 * * Date : 30 June 2025
+	 * * **********************************************************************/
+	public function GetOnlinePurchase($type, $start_date, $end_date) {
+		try {
+			$filter = [
+				'status' => 'A',
+				'created_at' => ['$gte' => $start_date, '$lte' => $end_date],
+				'narration'=>'Online recharge',
+				'record_type'=>'Credit'
+			];
+
+			$purchacesdata = $this->mongo_db
+    		->where($filter)
+    		->select(['created_at', 'payment_mode', 'upoints'])  // only required fields
+    		->get('uw_loadBalance');
+			
+			$lodbalancedata = [];
+			foreach ($purchacesdata as $key => $value) {
+				$lodbalancedata[]=[
+					'created_at'=>$value['created_at'],
+					'user_type'=>$value['payment_mode'] == 'CCAvenue' ? 'Retailors' : 'Users',
+					'product_qty'=>1,
+					'total_price'=>$value['upoints'],
+				];
+			}
+			
+			$pdata =  $this->prepareSalesData($lodbalancedata, $type, $start_date, $end_date);
+			$data['stripe'] = $pdata['btc_data'];
+			$data['ccavenue'] = $pdata['btb_data'];
+			$data['payment_hour'] = $pdata['hours'];
+			$data['total_stripe'] = $pdata['total_btc_ticket'];
+			$data['total_ccavenue'] = $pdata['total_btb_ticket'];
+			$data['total_stripe_amount'] = $pdata['total_btc_amount'];
+			$data['total_ccavenue_amount'] =$pdata['total_btb_amount'];
+			return $data;
+		} catch (Exception $error) {
+			echo 'Caught exception: ', $error->getMessage();
+		}
+	}
+
+	/* * *********************************************************************
+	 * * Function name : GetB2BtoB2CUpoint
+	 * * Developed By : Ashif Iqbal
+	 * * Purpose  : This function used for get B2B to B2C Upoint
+	 * * Date : 30 June 2025
+	 * * **********************************************************************/
+	public function GetB2BtoB2CUpoint($type, $start_date, $end_date) {
+		try {
+			$filter = [
+				'status' => 'A',
+				'created_at' => ['$gte' => $start_date, '$lte' => $end_date],
+				'narration' => ['$in' => ['Recharge Coupon', 'Moved winning Prize']],
+				'record_type'=>'Credit'
+			];
+
+			$purchacesdata = $this->mongo_db
+    		->where($filter)
+    		->select(['created_at', 'narration', 'upoints'])  // only required fields
+    		->get('uw_loadBalance');
+			
+			$lodbalancedata = [];
+			foreach ($purchacesdata as $key => $value) {
+				$lodbalancedata[]=[
+					'created_at'=>$value['created_at'],
+					'user_type'=>$value['narration'] == 'Recharge Coupon' ? 'Users' : 'Retailors',
+					'product_qty'=>1,
+					'total_price'=>$value['upoints'],
+				];
+			}
+			
+			$pdata =  $this->prepareSalesData($lodbalancedata, $type, $start_date, $end_date);
+			
+			$data['rechargecoupon'] = $pdata['btc_data'];
+			$data['movedwinningprize'] = $pdata['btb_data'];
+			$data['transfer_hour'] = $pdata['hours'];
+			$data['total_rechargecoupon'] = $pdata['total_btc_ticket'];
+			$data['total_movedwinningprize'] = $pdata['total_btb_ticket'];
+			$data['total_rechargecoupon_amount'] = $pdata['total_btc_amount'];
+			$data['total_movedwinningprize_amount'] =$pdata['total_btb_amount'];
+			return $data;
+		} catch (Exception $error) {
+			echo 'Caught exception: ', $error->getMessage();
+		}
+	}
+	/* * *********************************************************************
+	 * * Function name : GetPrizeRedeemed
+	 * * Developed By : Ashif Iqbal
+	 * * Purpose  : This function used for get btb and btc prize redeemd list
+	 * * Date : 30 June 2025
+	 * * **********************************************************************/
+	public function GetPrizeRedeemed($type, $start_date, $end_date) {
+		try {
+			
+			
+			$pipeline = [
+			[
+				'$match' => [
+					'status' => 1,
+					'redeem_status' => 'paid', // 👈 Added filter
+					'modified_at' => [
+						'$gte' => $start_date,
+						'$lte' => $end_date
+					]
+				]
+			],
+			[
+				'$lookup' => [
+					'from' => 'uw_lotto_orders',
+					'localField' => 'order_id',
+					'foreignField' => 'order_id',
+					'as' => 'order_info'
+				]
+			],
+			[
+				'$unwind' => '$order_info'
+			],
+			[
+				'$project' => [
+					'_id' => 0,
+					'product_qty'  => '$order_info.product_qty',
+					'total_price'  => '$amount',
+					'created_at'   => '$modified_at',
+					'user_type'    => '$order_info.user_type',
+				]
+			]
+		];
+
+		$winnersWithOrder = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, ['batchSize' => 4]);
+		return $this->prepareSalesData($winnersWithOrder, $type, $start_date, $end_date);
+
+		} catch (Exception $error) {
+			echo 'Caught exception: ', $error->getMessage(); die();
+		}
+	}
+	/* * *********************************************************************
+	 * * Function name : prepareSalesData
+	 * * Developed By : Ashif Iqbal
+	 * * Purpose  : This function used for prepare graph data 
+	 * * Date : 30 June 2025
+	 * * **********************************************************************/
+	private function prepareSalesData($lottodata, $type, $start_date, $end_date) {
+		$btc_data = [];
+		$btb_data = [];
+		$labels = [];
+
+		$total_btb_ticket = 0; 
+		$total_btb_amount = 0;
+		$total_btc_ticket = 0;
+		$total_btc_amount = 0;
+
+		if ($type === 'hour') {
+			$btc_hourly = array_fill(0, 24, 0);
+			$btb_hourly = array_fill(0, 24, 0);
+
+			foreach ($lottodata as $doc) {
+				if (!isset($doc['created_at'])) continue;
+
+				$hour = (int) date('G', strtotime($doc['created_at']));
+				$qty = (int) !isset($doc['product_qty']) ? 1 : $doc['product_qty'];
+				$user_type = $doc['user_type'] ?? '';
+
+				if ($user_type === 'Users') {
+					$btc_hourly[$hour] += $qty;
+					$total_btc_ticket  += $qty;
+					$total_btc_amount  += $doc['total_price'];
+				} else {
+					$btb_hourly[$hour] += $qty;
+					$total_btb_ticket  += $qty;
+					$total_btb_amount  += $doc['total_price'];
+				}
+			}
+
+			$btc_data = $btc_hourly;
+			$btb_data = $btb_hourly;
+			$labels = array_map(fn($h) => $h . 'h', range(0, 23));
+		}
+
+		if ($type === 'day') {
+			$btc_daily = [];
+			$btb_daily = [];
+
+			$period = new DatePeriod(
+				new DateTime($start_date),
+				new DateInterval('P1D'),
+				(new DateTime($end_date))->modify('+1 day')
+			);
+
+			foreach ($period as $date) {
+				$d = $date->format('Y-m-d');
+				$btc_daily[$d] = 0;
+				$btb_daily[$d] = 0;
+			}
+
+			foreach ($lottodata as $doc) {
+				if (!isset($doc['created_at']) || !isset($doc['product_qty'])) continue;
+
+				$day = date('Y-m-d', strtotime($doc['created_at']));
+				$qty = (int) $doc['product_qty'];
+				$user_type = $doc['user_type'] ?? '';
+
+				if ($user_type === 'Users') {
+					$btc_daily[$day] += $qty;
+					$total_btc_ticket  += $qty;
+					$total_btc_amount  += $doc['total_price'];
+				} else {
+					$btb_daily[$day] += $qty;
+					$total_btb_ticket  += $qty;
+					$total_btb_amount  += $doc['total_price'];
+				}
+			}
+
+			$labels = array_keys($btc_daily);
+			foreach ($labels as $date) {
+				$btc_data[] = $btc_daily[$date];
+				$btb_data[] = $btb_daily[$date];
+			}
+		}
+
+		return [
+			'btc_data' => array_values($btc_data),
+			'btb_data' => array_values($btb_data),
+			'hours'    => array_values($labels),
+			'total_btb_ticket' => $total_btb_ticket,
+			'total_btc_ticket' => $total_btc_ticket,
+			'total_btb_amount' => $total_btb_amount,
+			'total_btc_amount' => $total_btc_amount,
+		];
+	}
+/* * *********************************************************************
+	 * * Function name : GetWinnerWeeklyData
+	 * * Developed By : Ashif Iqbal
+	 * * Purpose  : This function used for get winner weekly data
+	 * * Date : 02 July 2025
+* * **********************************************************************/
+private function GetWinnerWeeklyData(){
+	try {
+		$curentweek = $this->getCurrentWeekDates();
+		$start = $curentweek[0];
+		$end = $curentweek[6];
+
+		$startTime = $start . ' 00:00:00';
+		$endTime = $end . ' 23:59:59';
+		// echo $startTime.'--'.$endTime;die();
+		// 1. Get winners
+		$winnerList = $this->mongo_db
+			->where([
+				'status' => 1,
+				'created_at' => ['$gte' => $startTime, '$lte' => $endTime]
+			])
+			->get('uw_uwin_winner');
+
+		// 2. Get order IDs
+		$orderIds = array_filter(array_column($winnerList, 'order_id'), function($id) {
+			return !empty($id) && is_string($id);
+		});
+		$orderIds = array_values(array_unique($orderIds));
+
+		$orderMap = [];
+		$productIds = [];
+		if (!empty($orderIds)) {
+			$orders = $this->mongo_db
+				->where_in('order_id', $orderIds)
+				->where(['status' => 'A'])
+				->get('uw_lotto_orders');
+
+			foreach ($orders as $order) {
+				$orderMap[$order['order_id']] = $order;
+				if (isset($order['product_id'])) {
+					$productIds[] = (int)$order['product_id'];
+				}
+			}
+		}
+
+		$productIds = array_values(array_unique(array_filter($productIds, 'is_numeric')));
+
+		// 3. Get product names
+		$productMap = [];
+		if (!empty($productIds)) {
+			$products = $this->mongo_db
+				->where_in('products_id', $productIds)
+				->where(['status' => 'A'])
+				->get('uw_products');
+
+			foreach ($products as $p) {
+				$productMap[(int)$p['products_id']] = $p['title'];
+			}
+		}
+
+		// 🔥 Get all products (even if not in result)
+		$allProducts = $this->mongo_db->where(['status' => 'A'])->get('uw_products');
+		$allProductTitles = [];
+		foreach ($allProducts as $p) {
+			$allProductTitles[] = $p['title'];
+		}
+
+		// 4. Generate all dates
+		$allDates = [];
+		$startDate = new DateTime($start);
+		$endDate = new DateTime($end);
+		while ($startDate <= $endDate) {
+			$allDates[] = $startDate->format('Y-m-d');
+			$startDate->modify('+1 day');
+		}
+
+		// 5. Initialize result with 0 for all combinations
+		$final = [];
+		foreach ($allDates as $date) {
+			foreach ($allProductTitles as $product) {
+				$final[$date][$product] = [
+					'winner_count' => 0,
+					'total_amount' => 0
+				];
+			}
+		}
+
+		// 6. Merge actual winner data
+		foreach ($winnerList as $winner) {
+			$order_id = $winner['order_id'];
+			if (!isset($orderMap[$order_id])) continue;
+
+			$order = $orderMap[$order_id];
+			$product_id = (int)$order['product_id'];
+			$product_name = $productMap[$product_id] ?? 'Unknown';
+
+			$date = date('Y-m-d', strtotime($winner['created_at']));
+			$amount = isset($winner['amount']) && is_numeric($winner['amount']) ? (float)$winner['amount'] : 0;
+
+			$final[$date][$product_name]['winner_count'] += 1;
+			$final[$date][$product_name]['total_amount'] += $amount;
+		}
+
+		// 7. Format output
+		$chartData = [];
+		foreach ($final as $date => $products) {
+			foreach ($products as $product => $data) {
+				$chartData[$date][$product] = [
+					'date' => $date,
+					'product' => $product,
+					'winner_count' => $data['winner_count'],
+					'total_amount' => $data['total_amount']
+				];
+			}
+		}
+
+		return $chartData;
+		// dd($chartData);
+
+	} catch (Exception $error) {
+		echo 'Caught exception: ', $error->getMessage(); die();
+	}
+}
+
+public function getCurrentWeekDates() {
+    $today = new DateTime();
+    // Set to Monday of this week
+    $monday = clone $today->modify('Monday this week');
+    $dates = [];
+
+    for ($i = 0; $i < 7; $i++) {
+        $day = clone $monday;
+        $day->modify("+$i days");
+        $dates[] = $day->format('Y-m-d'); // Change format as needed
+    }
+
+    return $dates;
+}
 
 	/* * *********************************************************************
 	 * * Function name : profile

@@ -2291,6 +2291,8 @@ public function getDataByParticularField($tableName='',$fieldName='',$fieldValue
 		$UserID 	   = $this->input->get('users_id');
 		$from 	   	   = $this->input->get('from');
 		$to 	   	   = $this->input->get('to');
+		$report_type   = $this->input->get('report_type');
+
 		$SelectFields  = array(
   	 	   	"_id"              => 1,
 		    "order_id"         => 1,
@@ -2307,10 +2309,17 @@ public function getDataByParticularField($tableName='',$fieldName='',$fieldValue
 	        $to = date('Y-m-d H:i',strtotime($to));
 	        $whereCon['where']['modified_at']['$lte'] = $to;
 	    endif;
-		$whereCon['where']['status']         = (int)'1';
-		$whereCon['where']['redeem_by_mode'] = 'cash';
-		$whereCon['where']['redeem_status']  = 'paid';
-		$whereCon['where']['seller_id']  	 = (int)$UserID;
+		$whereCon['where']['status']          =  (int)'1';
+		$whereCon['where']['redeem_by_mode']  = 'cash';
+		$whereCon['where']['redeem_status']   = 'paid';
+		$whereCon['where']['seller_id']  	  = (int)$UserID;
+		if(!empty($report_type)):
+			$whereCon['where']['user_type']   = $report_type;
+		else:
+			$whereCon['where']['user_type']   = array('$ne'=> 'Users');
+		endif;
+
+
 		$whereCondition = $whereCon['where'];
 		 
  		$tblName      = 'uw_uwin_winner';
@@ -2900,6 +2909,136 @@ public function getDataByParticularField($tableName='',$fieldName='',$fieldValue
 	    $WinnerData   = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind);
 
 	    return $WinnerData;
+	    die();
+	}
+
+	/***********************************************************************
+	** Function name : getOrderHistory
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used to show show winning orders list.
+	** Date          : 20 May 2025
+	************************************************************************/
+	public function getOrderHistory($whereCon='')
+	{
+		
+		$lookup  = array( 
+			array(
+				'from'=>'uw_raffle_winner',
+				'localField'=>'order_id',
+				'foreignField'=>'order_id',
+				'pipeline' => array(
+				 	array(
+				 		'$project' => array(
+				 			'_id' 	     => 0,  
+	                        'amount' 	 => 1,  
+	                        'store_name' => 1,  
+	                        'redeem_status' => 1,  
+				 		)
+				 	)
+				 ),
+				'as'=>'raffleOrderData'
+			),
+			 array(
+			    'from' => 'uw_uwin_winner',
+			    'localField' => 'order_id',
+			    'foreignField' => 'order_id',
+			    'pipeline' => array(
+			    	  array(
+				            '$addFields' => array(
+			                	'amount_numeric' => array('$toDouble' => '$amount')  
+				            )
+				        ),
+			        array(
+			            '$group' => array(
+			                '_id' => null, // Group all records together
+			                'redeem_status' => array(
+					            '$push' => array(
+					                '$cond' => array(
+					                    'if' => array('$in' => array('$redeem_status', array('paid','pending'))),
+					                    'then' => '$redeem_status', // Add 0 if redeem_status is "paid"
+					                    'else' => 'unpaid' // Otherwise, add the numeric amount
+					                )
+					            )
+					        ),
+			                'total_amount' => array(
+					            '$sum' => array(
+					                '$cond' => array(
+					                    'if' => array('$in' => array('$redeem_status', array('paid','pending'))),
+					                    'then' => 0, // Add 0 if redeem_status is "paid"
+					                    'else' => '$amount_numeric' // Otherwise, add the numeric amount
+					                )
+					            )
+					        ),
+			                'store_names' => array('$first' => '$store_name'), // To retain store names if needed
+			                
+			                // 'redeem_status' => array('$push' => '$redeem_status') // To retain store names if needed
+			            )
+			        ),
+			        array(
+			            '$project' => array(
+			                '_id' 			=> '$total_amount',  // Exclude `_id`
+			                'total_amount'  => 1,
+			                'store_names'   => 1, // Optional, remove if not needed
+	                        'redeem_status' => 1,  
+			            )
+			        )
+			    ),
+			    'as' => 'lottoOrderData'
+			),
+		);
+
+    	$sortBy       = array('section_id' => 1);
+    	$SelectFields = array(
+			'_id' 	          => false,  
+			'order_id'        => true, 
+			'created_at'      => true, 
+			'redeem_status'   => array(
+				    '$ifNull' => array(
+				        array('$arrayElemAt' => array('$lottoOrderData.redeem_status', 0)), 
+				        array('$arrayElemAt' => array('$raffleOrderData.redeem_status', 0))
+				    )
+			),
+			'store_names' => array(
+				    '$ifNull' => array(
+				        array('$arrayElemAt' => array('$lottoOrderData.store_names', 0)), 
+				        array('$arrayElemAt' => array('$raffleOrderData.store_names', 0))
+				    )
+			),
+			'total_amount' => array(
+				    '$ifNull' => array(
+				        array('$arrayElemAt' => array('$lottoOrderData.total_amount', 0)), 
+				        array('$arrayElemAt' => array('$raffleOrderData.total_amount', 0))
+				    )
+			)
+
+			,
+			// 'lottoOrderData' => '$lottoOrderData',
+			// 'raffleOrderData' => '$raffleOrderData',
+		);
+
+		if($whereCon['where']):
+			$whereCondition = $whereCon['where'];
+		endif;
+
+		// $unwind       = array('$unwind' => '$lottoOrderData');
+
+		
+		$tblName      = "uw_uwin_winner";
+	    $WinnerData   = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind);
+
+	    if($WinnerData):
+
+	    	$filtered_data = [];
+			$order_ids = [];
+
+			foreach ($WinnerData as $entry) {
+			    if (!in_array($entry['order_id'], $order_ids)) {
+			        $filtered_data[] = $entry;
+			        $order_ids[] = $entry['order_id'];
+			    }
+			}
+	    endif;
+	    return $filtered_data;
 	    die();
 	}
 

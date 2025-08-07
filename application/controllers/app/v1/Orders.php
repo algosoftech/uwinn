@@ -24,11 +24,14 @@ class Orders extends CI_Controller {
 		$this->load->library('generatelogs',array('type'=>'common'));
 	} 
 
+ 
 	/* * *********************************************************************
 	 * * Function name  : initilize
 	 * * Developed By 	: Dilip Halder
 	 * * Purpose  		: This function to initialize orders.
 	 * * Date 			: 08 February 2024
+	 * * Updated By   	: Dilip Halder
+	 * * Updated Date 	: 05 June 2025
 	 * * **********************************************************************/
 	public function initialize_order()
 	{	
@@ -36,121 +39,152 @@ class Orders extends CI_Controller {
 		$this->generatelogs->putLog('APP',logOutPut($_POST));
 		$result 							= 	array();	
 		if(requestAuthenticate(APIKEY,'POST')):
-			
-			$user_id 				 	 = $this->input->post('user_id');
-			$products_id 				 = $this->input->post('products_id');
-			$quantity 	 				 = $this->input->post('quantity');
-			$prize_title 	     		 = $this->input->post('prize_title');
-			$straight_add_on_amount 	 = $this->input->post('straight_add_on_amount');
-			$rumble_add_on_amount 	 	 = $this->input->post('rumble_add_on_amount');
-			$reverse_add_on_amount 	     = $this->input->post('reverse_add_on_amount');
-			$selection_values 	     	 = $this->input->post('selection_values');
-			$vat_amount 	     		 = $this->input->post('vat_amount');
-			$subtotal 	     		 	 = $this->input->post('subtotal');
-			$total_price 	     		 = $this->input->post('total_price');
-			$draw_date 	     		 	 = $this->input->post('draw_date');
-			$draw_time 	     		 	 = $this->input->post('draw_time');
-			$lotto_type 	     		 = $this->input->post('lotto_type');
-			$users_email 	     		 = $this->input->post('users_email');
-			$country_code 	     		 = $this->input->post('country_code');
-			$users_mobile 	     		 = $this->input->post('users_mobile');
-			$device_type 	     		 = $this->input->post('device_type');
-			$app_name 	     		 	 = $this->input->post('app_name');
-			$app_version 	     		 = $this->input->post('app_version');
-			$ticket 	     		 	 = $this->input->post('ticket');
-			$payment_mode 	     		 = $this->input->post('payment_mode');
-			$pickup_point 	     	     = $this->input->post('pickup_point');
-			$delivery_address 	     	 = $this->input->post('delivery_address');
-			$delivery_charge 	     	 = $this->input->post('delivery_charge');
-			$users_lat  				 = $this->input->post('users_lat');
-			$users_long  				 = $this->input->post('users_long');
-			$users_address 	 			 = $this->input->post('users_address');
-			$raffle_mode 	 			 = $this->input->post('raffle_mode');
 
-			if(empty($user_id)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
-			elseif(empty($products_id)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('PRODUCT_ID_EMPTY'),$result);die();
-            elseif(empty($quantity)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_PRODUCT_QTY'),$result);die();
-            elseif(empty($straight_add_on_amount) && empty($rumble_add_on_amount) && empty($reverse_add_on_amount) || empty($selection_values) ):
-                  echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_GAME_MODE'),$result);die();
-           	// elseif(empty($vat_amount)):
-            //     echo outPut(0,lang('SUCCESS_CODE'),lang('VAT_AMOUNT_EMPTY'),$result);die();
-         	elseif(empty($subtotal)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('SUBTOTAL_EMPTY'),$result);die();
-            elseif(empty($total_price)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('CAPTURE_AMOUNT_EMPTY'),$result);die();
-            elseif(empty($draw_date)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_DRAW_DATE'),$result);die();
-            elseif(empty($draw_time)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_DRAW_TIME'),$result);die();
-            elseif(empty($lotto_type)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_LOTTO_TYPE'),$result);die();
-         	elseif(empty($users_mobile)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_USERMOBILE'),$result);die();
-            elseif(empty($device_type)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_DEVICE_TYPE'),$result);die();
-            elseif(empty($app_name)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_APPNAME'),$result);die();
-            elseif(empty($app_version)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_APP_VERSION'),$result);die();
-            elseif(empty($ticket)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_TICKET'),$result);die();
-            elseif(empty($payment_mode)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_PAYMENT_MODE'),$result);die();
-            else:
-            	if($payment_mode == "UPoints"):
-            		$accesstype     = "";
-					$balance = $this->common_model->checkBalance($accesstype,$user_id,$total_price);
+			try {
+
+				$userId 				 	 = $this->input->post('user_id');
+				$productsId 				 = $this->input->post('products_id');
+				$quantity 	 				 = $this->input->post('quantity');
+				$prizeTitle 	     		 = $this->input->post('prize_title');
+				$straight_add_on_amount 	 = $this->input->post('straight_add_on_amount');
+				$rumble_add_on_amount 	 	 = $this->input->post('rumble_add_on_amount');
+				$reverse_add_on_amount 	     = $this->input->post('reverse_add_on_amount');
+				$selection_values 	     	 = $this->input->post('selection_values');
+				$vat_amount 	     		 = $this->input->post('vat_amount');
+				$subtotal 	     		 	 = $this->input->post('subtotal');
+				$totalPrice 	     		 = $this->input->post('total_price');
+				$drawDate 	     		 	 = $this->input->post('draw_date');
+				$drawTime 	     		 	 = $this->input->post('draw_time');
+				$lottoType 	     		 	 = $this->input->post('lotto_type');
+				$usersEmail 	     		 = $this->input->post('users_email');
+				$countryCode 	     		 = $this->input->post('country_code');
+				$usersMobile 	     		 = $this->input->post('users_mobile');
+				$deviceType 	     		 = $this->input->post('device_type');
+				$appName 	     		 	 = $this->input->post('app_name');
+				$appVersion 	     		 = $this->input->post('app_version');
+				$ticket 	     		 	 = $this->input->post('ticket');
+				$paymentMode 	     		 = $this->input->post('payment_mode');
+				$pickupPoint 	     	     = $this->input->post('pickup_point');
+				$deliveryAddress 	     	 = $this->input->post('delivery_address');
+				$deliveryCharge 	     	 = $this->input->post('delivery_charge');
+				$usersLat  				 	= $this->input->post('users_lat');
+				$usersLong  				 = $this->input->post('users_long');
+				$usersAddress 	 			 = $this->input->post('users_address');
+				$raffleMode 	 			 = $this->input->post('raffle_mode');
+
+				if(empty($userId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($productsId)):
+					throw new Exception(lang('PRODUCT_ID_EMPTY'), 1);
+				elseif(empty($quantity)):
+					throw new Exception(lang('EMPTY_PRODUCT_QTY'), 1);
+				elseif(empty($straight_add_on_amount) && empty($rumble_add_on_amount) && empty($reverse_add_on_amount) || empty($selection_values) ):
+					throw new Exception(lang('EMPTY_GAME_MODE'), 1);
+				elseif(empty($subtotal)):
+					throw new Exception(lang('SUBTOTAL_EMPTY'), 1);
+				elseif(empty($totalPrice)):
+					throw new Exception(lang('CAPTURE_AMOUNT_EMPTY'), 1);
+				elseif(empty($drawDate)):
+					throw new Exception(lang('EMPTY_DRAW_DATE'), 1);
+				elseif(empty($drawTime)):
+					throw new Exception(lang('EMPTY_DRAW_TIME'), 1);
+				elseif(empty($lottoType)):
+					throw new Exception(lang('EMPTY_LOTTO_TYPE'), 1);
+				elseif(empty($countryCode)):
+					throw new Exception(lang('EMPTY_COUNTRYCODE'), 1);
+				elseif(empty($usersMobile)):
+					throw new Exception(lang('EMPTY_USERMOBILE'), 1);
+				elseif(empty($deviceType)):
+					throw new Exception(lang('EMPTY_DEVICE_TYPE'), 1);
+				elseif(empty($appName)):
+					throw new Exception(lang('EMPTY_APPNAME'), 1);
+				elseif(empty($appVersion)):
+					throw new Exception(lang('EMPTY_APP_VERSION'), 1);
+				elseif(empty($ticket)):
+					throw new Exception(lang('EMPTY_TICKET'), 1);
+				elseif(empty($paymentMode)):
+					throw new Exception(lang('EMPTY_PAYMENT_MODE'), 1);
+				else:
+
+					if($paymentMode == "UPoints"):
+	            		$accesstype = "";
+						$balance    = $this->common_model->checkBalance($accesstype,$userId,$totalPrice);
+					endif;
+
+					//Draw date validation
+					$fields 	   = array('draw_date','draw_time','status');
+					$tableName     = 'uw_products';
+					$wcon['where'] = array('products_id' => (int)$productsId);
+					$productDATA   = $this->common_model->getParticularFieldByMultipleCondition($fields,$tableName,$wcon);
+
+					$currentDat    = strtotime(date('Y-m-d H:i'));
+					$drawDateTime  = strtotime(date('Y-m-d H:i',strtotime('-5 mins',strtotime($productDATA['draw_date'].' '.$productDATA['draw_time']))));
+
+					// Cheking product current availability... 
+					if(!empty($productDATA)  && $productDATA['status'] == 'A' &&  $currentDat <= $drawDateTime):
+						
+						// Getting users detail start here ..
+						$FieldList   		= array('users_name','last_name','pos_number','status'); 
+						$tableName          = 'uw_users';
+					    $whereCon['where']  = array('users_id' => (int)$userId );
+						$userDetails 		= $this->common_model->getParticularFieldByMultipleCondition($FieldList,$tableName,$whereCon);
+						
+						// user's related validation start here..
+						if(!empty($userDetails) && $userDetails['status'] == 'A' ):
+							$firstName  = $userDetails['users_name'];
+							$lastName   = $userDetails['last_name'];
+							$posNumber  = $userDetails['pos_number'];
+
+							if(empty($pickupPoint) && empty($deliveryAddress)):
+								$pickupPoint = "Pick Up From Office";
+							endif;
+							
+							// inserting initialize order - start here ..
+							$orderInsertID = $this->common_model->order_initialize($userId,$productsId,$quantity,$straight_add_on_amount,$rumble_add_on_amount,$reverse_add_on_amount,$selection_values,$subtotal,$totalPrice,$drawDate,$drawTime,$lottoType,$countryCode,$usersMobile,$usersEmail,$deviceType,$appName,$appVersion,$ticket,$paymentMode,$prizeTitle,$pickupPoint,$deliveryAddress,$deliveryCharge,$firstName,$lastName,$usersLat,$usersLong,$usersAddress,$posNumber,$raffleMode);
+
+						  	if(!empty($orderInsertID)):
+						    	$result = $orderInsertID;
+			                	echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_INITIALIZED'),$result);die();
+						    else:
+								throw new Exception(lang('TRY_AGAIN'), 1);
+						    endif;
+							// inserting initialize order - end here ..
+
+						elseif( !empty($userDetails) && $userDetails['status'] == 'I' ):
+							throw new Exception(lang('ACCOUNT_INACIVE'), 1);
+						elseif( !empty($userDetails) && $userDetails['status'] == 'B' ):
+							throw new Exception(lang('ACCOUNT_BLOCKED'), 1);
+						elseif( !empty($userDetails) && $userDetails['status'] == 'D' ):
+							throw new Exception(lang('ACCOUNT_DELETED'), 1);
+						else:
+							throw new Exception(lang('USER_ID_INCORRECT'), 1);
+						endif;
+						// user's related validation end here..
+
+					elseif(!empty($productDATA)  && $productDATA['status'] == 'I'):
+						throw new Exception(lang('PRODUCT_OUT_OF_STOCK'), 1);
+					elseif(!empty($productDATA)  && $productDATA['status'] == 'A' && $currentDat > $drawDateTime):
+						throw new Exception(lang('INVALID_DRAWDATE'), 1);
+					else:
+						throw new Exception(lang('PRODUCT_NOT_FOUND'), 1);
+					endif;
 				endif;
-
-				//Draw date validation
-				$fields = array('draw_date','draw_time');
-				$tableName     = 'uw_products';
-				$wcon['where'] = array('products_id' => (int)$products_id);
-				$ProductDATA   = $this->common_model->getParticularFieldByMultipleCondition($fields,$tableName,$wcon);
-				$DrawDateTime = date('Y-m-d H:i',strtotime($draw_date.' '.$draw_time));
-				$TableaDrawDateTime = date('Y-m-d H:i',strtotime($ProductDATA['draw_date'].' '.$ProductDATA['draw_time']));
-
-				if($DrawDateTime  != $TableaDrawDateTime):
-					echo outPut(0,lang('FORBIDDEN_CODE'),lang('INVALID_DRAWDATE'),$result);die();
-				endif;
-
-				if(empty($pickup_point) && empty($delivery_address)):
-					$pickup_point = "Pick Up From Office";
-				endif;
-
-				// Getting users detail start here ..
-				$FieldList   		= array('users_name','last_name','pos_number'); 
-				$tableName          = 'uw_users';
-			    $whereCon['where']  = array('users_id' => (int)$user_id );
-				$userDetails 		= $this->common_model->getParticularFieldByMultipleCondition($FieldList,$tableName,$whereCon);
-				$first_name 		= $userDetails['users_name'];
-				$last_name  		= $userDetails['last_name'];
-				$pos_number  		= $userDetails['pos_number'];
-				// Getting users detail end here ..
-				$orderInsertID = $this->common_model->order_initialize($user_id,$products_id,$quantity,$straight_add_on_amount,$rumble_add_on_amount,$reverse_add_on_amount,$selection_values,$subtotal,$total_price,$draw_date,$draw_time,$lotto_type,$country_code,$users_mobile,$users_email,$device_type,$app_name,$app_version,$ticket,$payment_mode,$prize_title,$pickup_point,$delivery_address,$delivery_charge,$first_name,$last_name,$users_lat,$users_long,$users_address,$pos_number,$raffle_mode);
-
-			    if(!empty($orderInsertID)):
-			    	$result = $orderInsertID;
-                	echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_INITIALIZED'),$result);die();
-			    else:
-					echo outPut(0,lang('FORBIDDEN_CODE'),lang('TRY_AGAIN'),$result);die();
-			    endif;
-
-			endif;
-			echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
+				
+			} catch (Exception $e) {
+                echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+			}
+ 
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
-	}	
+	}		
 
 	/* * *********************************************************************
 	 * * Function name  : paymentCapture
 	 * * Developed By 	: Dilip Halder
 	 * * Purpose  		: This function used for get Country Code
-	 * * Date 			: 08 February 2024
+	 * * Updated By		: Dilip Kumar Halder
+	 * * Updated Date 	: 05 June 2025
 	 * * **********************************************************************/
 	public function paymentCapture()
 	{
@@ -158,40 +192,45 @@ class Orders extends CI_Controller {
 		$this->generatelogs->putLog('APP',logOutPut($_POST));
 		$result 			= 	array();	
 		if(requestAuthenticate(APIKEY,'POST')):
+			
+			try {
 
-			$users_id 			= $this->input->post('user_id');
-			$order_id 			= $this->input->post('order_id');
-			$payment_mode 		= $this->input->post('payment_mode');
-			$transaction_id 	= $this->input->post('transaction_id');
-			$status 			= $this->input->post('status');
+				$userId 		= $this->input->post('user_id');
+				$orderId 		= $this->input->post('order_id');
+				$paymentMode 	= $this->input->post('payment_mode');
+				$transactionId 	= $this->input->post('transaction_id');
+				$status 		= $this->input->post('status');
 
-			if(empty($users_id)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
-            elseif(empty($order_id)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);die();
-            elseif(empty($payment_mode)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_PAYMENT_MODE'),$result);die();
-            elseif(empty($transaction_id)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_TRANSACTION_ID'),$result);die();
-            elseif(empty($status)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_ORDER_STATUS'),$result);die();
-            else:
+				if(empty($userId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($orderId)):
+					throw new Exception(lang('ORDER_ID_EMPTY'), 1);
+				elseif(empty($paymentMode)):
+					throw new Exception(lang('EMPTY_PAYMENT_MODE'), 1);
+				elseif(empty($transactionId)):
+					throw new Exception(lang('EMPTY_TRANSACTION_ID'), 1);
+				elseif(empty($status)):
+					throw new Exception(lang('EMPTY_ORDER_STATUS'), 1);
+				else:
 
-        		$accesstype = '';
-            	if($payment_mode == "UPoints"):
-					$balance   = $this->common_model->checkBalance($accesstype,$users_id,$total_price);
+					$accesstype = '';
+	            	if($payment_mode == "UPoints"):
+						$balance   = $this->common_model->checkBalance($accesstype,$users_id,$total_price);
+					endif;
+
+            		$orderInsertID = $this->common_model->paymentCapture($accesstype,$userId,$orderId,$paymentMode,$transactionId,$status);
+            		if(!empty($orderInsertID)):
+				    	$result = $orderInsertID;
+						echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_SUCCESS'),$result);
+				    else:
+						throw new Exception(lang('TRY_AGAIN'), 1);
+				    endif;
+
 				endif;
-            	$orderInsertID = $this->common_model->paymentCapture($accesstype,$users_id,$order_id,$payment_mode,$transaction_id,$status);
-
-			    if(!empty($orderInsertID)):
-			    	$result = $orderInsertID;
-                	echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_SUCCESS'),$result);die();
-			    else:
-					echo outPut(0,lang('FORBIDDEN_CODE'),lang('TRY_AGAIN'),$result);die();
-			    endif;
-
-			endif;
-			echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
+					
+			} catch (Exception $e) {
+                echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+			}
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
@@ -203,7 +242,7 @@ class Orders extends CI_Controller {
 	 * * Purpose  	   : This function used to update order details.
 	 * * Date 		   : 30 November 2024
 	 * * **********************************************************************/
-	public function updateOrder()
+	 public function updateOrder()
 	{
 		$apiHeaderData 		=	getApiHeaderData();
 		$this->generatelogs->putLog('APP',logOutPut($_GET));
@@ -211,38 +250,54 @@ class Orders extends CI_Controller {
 
 		if(requestAuthenticate(APIKEY,'POST')):
 
-			$order_id = $this->input->post('order_id');
-			$user_id  = $this->input->post('user_id');
-			if(empty($user_id)):
-				echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
-			elseif(empty($order_id)):
-				echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);die();
-			else:
-				//getting variable from post data.
-				$tblName  		   = 'uw_lotto_orders';
-				$whereCon['where'] = array('order_id' => $order_id , 'user_id' => (int)$user_id );
-				$orderData         = $this->common_model->getData('count',$tblName , $whereCon);
-				if($orderData == 1):
-				 	$updateParams["ticket"] 				 = $this->input->post('ticket');
-			        $updateParams["straight_add_on_amount"]  = (float)$this->input->post('straight_add_on_amount');
-			        $updateParams["rumble_add_on_amount"]    = (float)$this->input->post('rumble_add_on_amount');
-			        $updateParams["reverse_add_on_amount"]   = (float)$this->input->post('reverse_add_on_amount');
-					$updateParams["selection_values"] 		 = $this->input->post('selection_values');
-					$updateParams["vat_amount"] 		     = (float)$this->input->post('vat_amount');
-					$updateParams["total_price"] 		     = (float)$this->input->post('total_price');
-					$updateParams["ticket_updated_at"] 		 = date('Y-m-d H:i');
-					$this->common_model->editData($tblName , $updateParams, 'order_id', $order_id);
+			try {
 
-					$tblName  		   = 'uw_lotto_orders';
-					$whereCon['where'] = array('order_id' => $order_id , 'user_id' => (int)$user_id );
-					$results         = $this->common_model->getData('single',$tblName , $whereCon);
-
-		 			echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_SUCCESS'),$results);	
+				$orderId = $this->input->post('order_id');
+				$userId  = $this->input->post('user_id');
+				$ticket  = $this->input->post('ticket');
+				if(empty($userId)):
+				 	throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($orderId)):
+				 	throw new Exception(lang('ORDER_ID_EMPTY'), 1);
 				else:
-		 			echo outPut(0,lang('SUCCESS_CODE'),lang('DATA_NOT_FOUND'),$results);	
-				endif;
 
-			endif;
+					//getting variable from post data.
+					$tblName  		   = 'uw_lotto_orders';
+					$whereCon['where'] = array('order_id' => $orderId , 'user_id' => (int)$userId );
+					$orderData         = $this->common_model->getOrderDetail($whereCon);
+					
+					if(!empty($orderData)):
+						 
+						$currentDateTime = strtotime(date('Y-m-d H:i'));
+						$DrawDateTime    = strtotime('-5 mins', strtotime($orderData['draw_dateTime']));
+
+						if($currentDateTime > $DrawDateTime):
+							echo outPut(0,lang('FORBIDDEN_CODE'),lang('INVALID_DRAWDATE'),$result);die();
+						else:
+
+							$updateParams["ticket"] 				 = $ticket;
+					        $updateParams["straight_add_on_amount"]  = (float)$this->input->post('straight_add_on_amount');
+					        $updateParams["rumble_add_on_amount"]    = (float)$this->input->post('rumble_add_on_amount');
+					        $updateParams["reverse_add_on_amount"]   = (float)$this->input->post('reverse_add_on_amount');
+							$updateParams["selection_values"] 		 = $this->input->post('selection_values');
+							$updateParams["vat_amount"] 		     = (float)$this->input->post('vat_amount');
+							$updateParams["total_price"] 		     = (float)$this->input->post('total_price');
+							$updateParams["ticket_updated_at"] 	     = date('Y-m-d H:i');
+							$this->common_model->editData($tblName , $updateParams, 'order_id', $orderId);
+
+							// Getting order details...
+							$results         = $this->common_model->getData('single',$tblName , $whereCon);
+				 			echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_SUCCESS'),$results);	
+						endif;
+					else:
+				 		throw new Exception(lang('ORDET_ID_INVALID'), 1);
+					endif;
+				endif;
+				
+			} catch (Exception $e) {
+				echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+			}
+			
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;

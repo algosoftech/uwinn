@@ -1,13 +1,26 @@
+<style>
+.coupon-container{
+    display: inline-flex;
+}
+.coupon-code-circle {
+    border: 1px solid #40ABA8;
+    color: #0E4391;
+    border-radius: 50%;
+    padding: 12px;
+    font-weight: 900;
+}
+
+</style>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script>
-$(function(){
-   // $("#fromDate").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
-   // $("#toDate").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
+// $(function(){
+//    $("#fromDate").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
+//    $("#toDate").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
 
-   // $("#fromDate1").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
-   // $("#toDate1").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
-});
+//    $("#fromDate1").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
+//    $("#toDate1").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
+// });
 </script>
 <div class="pcoded-main-container">
     <div class="pcoded-content">
@@ -17,7 +30,6 @@ $(function(){
             <div class="row align-items-center">
                 <div class="col-md-12">
                     <div class="page-header-title">
-                        <?php /* ?><h5 class="m-b-10">Welcome <?=sessionData('HCAP_ADMIN_FIRST_NAME')?></h5><?php */ ?>
                     </div>
                     <ul class="breadcrumb">
                         <li class="breadcrumb-item"><a href="<?php echo getCurrentDashboardPath('dashboard/index'); ?>"><i class="feather icon-home"></i></a></li>
@@ -58,7 +70,6 @@ $(function(){
                               </div>
                               <div class="col-sm-3 col-md-3">
                                   <select name="searchField" id="searchField" class="custom-select custom-select-sm form-control form-control-sm">
-                                    <option value="">Select Field</option>
                                     <option value="order_id" <?php if($searchField == 'order_id')echo 'selected="selected"'; ?>>Ticket ID</option>
                                     <option value="ticket" <?php if($searchField == 'ticket')echo 'selected="selected"'; ?>>Coupon Search</option>
                                     <option value="created_at" <?php if($searchField == 'created_at')echo 'selected="selected"'; ?>>Purchase Date</option>
@@ -69,6 +80,7 @@ $(function(){
                                     <option value="status" <?php if($searchField == 'status')echo 'selected="selected"'; ?>>Order Status (CL) </option>
                                     <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS No. </option>
                                     <option value="order_code" <?php if($searchField == 'order_code')echo 'selected="selected"'; ?>>Verification Code </option>
+                                    <option value="is_printed" <?php if($searchField == 'is_printed')echo 'selected="selected"'; ?>>Auto Print (Y/N)</option>
                                   </select>
                               </div>
                               <div class="col-sm-3 col-md-3">
@@ -90,7 +102,48 @@ $(function(){
                           </div>
                       </div>
                     </div>
+                     
+
+                      <?php if($result): ?>
                       <div class="row">
+                        <div class="col-sm-12">
+                          <div class="table-responsive">
+                            <table id="simpletable" class="table table-striped table-bordered nowrap dataTable" role="grid" aria-describedby="simpletable_info">
+                              <thead style="text-align: center;">
+                                <tr role="row">
+                                  <th width="5%">S.No.</th>
+                                  <th width="20%">Available Coupons</th>
+                                </tr>
+                              </thead>
+                              <tbody style="text-align: center;">
+                                <?php if($result['unique_coupons'] <> ""): $i=$first; $j=0; foreach($result['unique_coupons'] as $couponList): 
+                                if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
+                                ?>
+                                <tr role="row" class="<?php echo $rowClass; ?>">
+                                  <td><?=$i++?></td>
+                                  <td>
+                                    <?php foreach ($couponList as $cpnkey => $coupons): ?>
+                                      <div class="coupon-container">
+                                          <span class="coupon-code-circle"><?=$coupons;?></span> 
+                                      </div>
+                                      <!-- <?=$coupons;?> -->
+                                    <?php  endforeach; ?>
+
+                                  </td>
+                                </tr>
+                                <?php $j++; endforeach; else: ?>
+                                <tr>
+                                  <td colspan="2" style="text-align:center;">No Data Available In Table</td>
+                                </tr>
+                                <?php endif; ?>
+                              </tbody>
+                              </table>
+                          </div>
+                        </div>
+                      </div>
+
+                    <?php else: ?>
+                       <div class="row">
                         <div class="col-sm-12">
                           <div class="table-responsive">
                             <table id="simpletable" class="table table-striped table-bordered nowrap dataTable" role="grid" aria-describedby="simpletable_info">
@@ -98,7 +151,7 @@ $(function(){
                                 <tr role="row">
                                 <th width="5%">S.No.</th>
                                 <th width="20%">POS No.</th>
-                                <th width="20%">Order Details</th>
+                                <th width="20%">Order Id.</th>
                                 <th width="20%">Product</th>
                                 <th width="10%">Seller Details</th>
                                 <th width="10%">Bind With</th>
@@ -113,54 +166,107 @@ $(function(){
                               <tbody style="text-align: center;">
                                 <?php if($ALLDATA <> ""): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
                                 if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
+
+                                 $seller_details = json_decode($ALLDATAINFO['seller_details']);
+                                  
+                                 $words = explode(' ', $seller_details->Country);
+                                 $initials = '';
+                                 $countryPrefrx = '';
+                                 foreach ($words as $word):
+                                  $countryPrefrx .= $word[0];
+                                 endforeach;
+
+                                 $Seller_POS = isset($seller_details->posid) ? $countryPrefrx.'_'.$seller_details->posid : (isset($ALLDATAINFO['pos_number']) ? $ALLDATAINFO['pos_number'] : 'N/A');
+
                                 ?>
                                 <tr role="row" class="<?php echo $rowClass; ?>">
                                   <td><?=$i++?></td>
-                                  <td><?=stripslashes($ALLDATAINFO['pos_number']?$ALLDATAINFO['pos_number']:'N/A')?></td>
-
+                                  <td><?=stripslashes($Seller_POS)?></td>
                                   <td>
                                      Order ID : <?=stripslashes($ALLDATAINFO['order_id'])?>
                                        <br>verification Code : <?=stripslashes(base64_decode($ALLDATAINFO['order_code']))?>
                                   </td>
-
                                   <td>
-                                    <?php  echo stripslashes($ALLDATAINFO['product_name']). ' * '.$ALLDATAINFO['product_qty'].'<br>';  ?>
+                                    <?php  echo stripslashes($ALLDATAINFO['product_title']). ' * '.$ALLDATAINFO['product_qty'].'<br>';  ?>
                                   </td>
+                                  
+                                 <!--  <td>
+                                    <?php if(!empty($ALLDATAINFO['order_first_name'])  && !empty($ALLDATAINFO['order_first_name'])): ?>
+                                      Name : <?=stripslashes($ALLDATAINFO['order_first_name'].' '.$ALLDATAINFO['order_last_name'])?><br>
+                                      Mobile : <?=stripslashes($ALLDATAINFO['user_phone'])?><br>
+                                      <?php if($ALLDATAINFO['order_users_email']): ?>
+                                        Email : <?=stripslashes($ALLDATAINFO['order_users_email'])?>
+                                      <?php endif ?>
+                                    <?php else: ?>  -- <?php endif;?>
+                                  </td> -->
 
                                   <td>
-                                      Name : <?=stripslashes($ALLDATAINFO['users_name']?$ALLDATAINFO['users_name']:'N/A')?>
-                                      <br/>Type : <?=stripslashes($ALLDATAINFO['users_type']?$ALLDATAINFO['users_type']:'N/A')?>
+                                    <?php 
+
+                                      $wcon['where'] = array('users_id'=> $ALLDATAINFO['user_id'] );
+                                      $sellersDetails = $this->common_model->getData('single','uw_users',$wcon);
+
+                                      $sellers_Name = isset($seller_details->Name) ? $seller_details->Name : (isset($sellersDetails['users_name']) ? $sellersDetails['users_name'] : 'N/A');
+
+                                      $sellers_Mobile = isset($seller_details->mobile) ? $seller_details->mobile : (isset($sellersDetails['users_mobile']) ? $sellersDetails['users_mobile'] : 'N/A');
+                                    ?>
+                                      Name : <?=stripslashes($sellers_Name)?>
+                                      <br/>Type : <?=stripslashes($sellersDetails['users_type']?$sellersDetails['users_type']:'N/A')?>
                                      
-                                     <?php if($ALLDATAINFO['users_email']): ?>
-                                        <br/>Email : <?=stripslashes($ALLDATAINFO['users_email']?$ALLDATAINFO['users_email']:'N/A')?>
+                                     <?php if($sellersDetails['users_email']): ?>
+                                        <br/>Email : <?=stripslashes($sellersDetails['users_email']?$sellersDetails['users_email']:'N/A')?>
                                      <?php endif; ?> 
 
-                                      <?php if($ALLDATAINFO['user_phone']): ?>
-                                        <br/>Mobile : <?=stripslashes($ALLDATAINFO['user_phone']?$ALLDATAINFO['user_phone']:'N/A')?>
+                                      <?php if($sellersDetails['users_mobile']): ?>
+                                        <br/>Mobile : <?=stripslashes($sellers_Mobile);?>
                                      <?php endif; ?> 
                                   </td>
 
                                   <td>
-                                    <?php if(!empty($ALLDATAINFO['users_type']) && $ALLDATAINFO['users_type'] == "Users" ): ?>
-                                        Name : Admin </br>
-                                        Type : Admin
-                                    <?php else:  ?>
-                                      <?php if(!empty($ALLDATAINFO['bindwith_first_name']) ): ?>
-                                         
-                                          Name : <?=stripslashes($ALLDATAINFO['bindwith_first_name'])?>
-                                          <br/>Type : <?=stripslashes($ALLDATAINFO['bindwith_users_type'])?>
-                                         <?php if($ALLDATAINFO['bindwith_email']): ?>
-                                            <br/>Email : <?=stripslashes($ALLDATAINFO['bindwith_email'])?>
-                                         <?php endif; ?> 
+                                    <?php if(!empty($ALLDATAINFO['user_type']) && $ALLDATAINFO['user_type'] == "Users" ): ?>
+                                          Name : Admin </br>
+                                          Type : Admin
+                                      <?php else:  ?>
 
-                                          <?php if($ALLDATAINFO['bindwith_mobile']): ?>
-                                            <br/>Mobile : <?=stripslashes($ALLDATAINFO['bindwith_mobile'])?>
-                                         <?php endif; ?> 
+                                       <?php 
+                                       $bindwithName = $seller_details->FoName;
+                                      if($sellersDetails['bind_user_type'] == "Admin"):
+                                        $wcon['where'] = array('admin_id'=> (int)$sellersDetails['bind_person_id'] );
+                                        $bindWITH = $this->common_model->getData('single','uw_admin',$wcon);
+
+                                        $bindWITH['users_name']   =  $bindWITH['admin_first_name'];
+                                        $bindWITH['users_type']   =  $sellersDetails['bind_user_type'];
+                                        $bindWITH['users_email']  =  $bindWITH['admin_email'];
+                                        $bindWITH['users_mobile'] =  $bindWITH['admin_phone'];
+                                      else:
+                                        $wcon['where'] = array('users_id'=> (int)$sellersDetails['bind_person_id'] );
+                                        $bindWITH = $this->common_model->getData('single','uw_users',$wcon);
+                                      endif;
+                                      ?>
+
+                                      <?php if($bindWITH || $bindwithName): ?>
+
+                                         Name : <?=stripslashes($bindWITH['users_name']?$bindWITH['users_name']:$bindwithName)?>
+                                         <?php if($bindWITH['users_type']): ?>
+                                          <br/>Type : <?=stripslashes($bindWITH['users_type'])?>
+                                        <?php endif;?>
+
+                                        <?php if($bindWITH['users_email']): ?>
+                                          <br/>Email : <?=stripslashes($bindWITH['users_email'])?>
+                                        <?php endif; ?> 
+
+                                        <?php if($bindWITH['users_mobile']): ?>
+                                          <br/>Mobile : <?=stripslashes($bindWITH['users_mobile'])?>
+                                        <?php endif; ?> 
                                       <?php else: ?>
-                                        --
+                                          --
                                       <?php endif; ?>
                                     <?php endif; ?>
                                   </td>
+
+                                   
+ 
+                                 
                                   <!-- <td><?php echo $ALLDATAINFO['product_is_donate']=='Y'?'Yes':'No'; ?></td> -->
                                   <td><?=date('d M Y h:i:s A', strtotime($ALLDATAINFO['created_at']))?></td>
                                   <td>AED <?=number_format($ALLDATAINFO['total_price'],2)?></td>
@@ -203,13 +309,7 @@ $(function(){
                                     <ul class="dropdown-menu" role="menu">
                                     <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['order_id'])?>"><i class="far fa-eye"></i> View Details</a></li>
                                     <?php if($ALLDATAINFO['status'] != "CL"):  ?>
-                                      <!-- <li><a href="<?php echo getCurrentControllerPath('cancelationorder/'.$ALLDATAINFO['order_id'])?>" onClick='return confirm("<?=$drawDates;?> Do you want to Cancel!");' ><i class="fa fa-times-circle"></i>Order Cancelation</a></li> -->
-                                      <li id="order-cancel" class="order-cancel">
-                                        <a href="<?php echo getCurrentControllerPath('cancelationorder/'.$ALLDATAINFO['_id']->{'$id'})?>" 
-                                           onClick='return confirmAndHide("<?=$drawDates;?> Do you want to Cancel!");'>
-                                          <i class="fa fa-times-circle"></i>Order Cancelation
-                                        </a>
-                                      </li>
+                                      <li><a href="<?=getCurrentControllerPath('cancelationorder/'.$ALLDATAINFO['_id']->{'$id'})?>" onClick='return confirm("<?=$drawDates;?> Do you want to Cancel!");' ><i class="fa fa-times-circle"></i>Order Cancelation</a></li>
                                     <?php endif;  ?>
                                      </ul>
                                   </div>
@@ -225,6 +325,7 @@ $(function(){
                           </div>
                         </div>
                       </div>
+                    <?php endif; ?>
                       <div class="row">
                         <div class="col-sm-12 col-md-5">
                           <div class="dataTables_info" role="status" aria-live="polite"><?php echo $noOfContent; ?></div>
@@ -257,14 +358,14 @@ $(function(){
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="<?=getCurrentControllerPath('exportexcel');?>" method="post" autocomplete="off">
+      <form action="<?=getCurrentControllerPath('exportexcel')?>" method="post" autocomplete="off">
       <div class="modal-body">
         <div class="row">
           <div class="col-sm-12 col-md-6">
-            <label for="recipient-name" class="col-form-label">Form :</label>
+            <label for="recipient-name" class="col-form-label">Form:</label>
           </div>
           <div class="col-sm-12 col-md-6">
-            <label for="recipient-name" class="col-form-label">To :</label>
+            <label for="recipient-name" class="col-form-label">To:</label>
           </div>
           <div class="col-sm-12 col-md-6">
             <input type="datetime-local" name="fromDate" id="fromDate1" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
@@ -277,16 +378,17 @@ $(function(){
           <div class="col-sm-12 col-md-6">
             <select name="searchField" id="searchField" class="custom-select custom-select-sm form-control form-control-sm">
               <option value="">Select Field</option>
-              <option value="order_id" <?php if($searchField == 'order_id')echo 'selected="selected"'; ?>>Ticket ID</option>
-              <option value="ticket" <?php if($searchField == 'ticket')echo 'selected="selected"'; ?>>Coupon Search</option>
-              <option value="created_at" <?php if($searchField == 'created_at')echo 'selected="selected"'; ?>>Purchase Date</option>
-              <option value="product_id" <?php if($searchField == 'product_id')echo 'selected="selected"'; ?>>Campaign ID </option>
-              <option value="product_title" <?php if($searchField == 'product_title')echo 'selected="selected"'; ?>>Campaign Name </option>
-              <option value="user_email" <?php if($searchField == 'user_email')echo 'selected="selected"'; ?>>Seller Email</option>
-              <option value="user_phone" <?php if($searchField == 'user_phone')echo 'selected="selected"'; ?>>Seller Mobile</option>
-              <option value="status" <?php if($searchField == 'status')echo 'selected="selected"'; ?>>Order Status (CL) </option>
-              <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS No. </option>
-              <option value="order_code" <?php if($searchField == 'order_code')echo 'selected="selected"'; ?>>Verification Code </option>
+                <option value="order_id" <?php if($searchField == 'order_id')echo 'selected="selected"'; ?>>Ticket ID</option>
+                <option value="ticket" <?php if($searchField == 'ticket')echo 'selected="selected"'; ?>>Coupon Search</option>
+                <option value="created_at" <?php if($searchField == 'created_at')echo 'selected="selected"'; ?>>Purchase Date</option>
+                <option value="product_id" <?php if($searchField == 'product_id')echo 'selected="selected"'; ?>>Campaign ID </option>
+                <option value="product_title" <?php if($searchField == 'product_title')echo 'selected="selected"'; ?>>Campaign Name </option>
+                <option value="user_email" <?php if($searchField == 'user_email')echo 'selected="selected"'; ?>>Seller Email</option>
+                <option value="user_phone" <?php if($searchField == 'user_phone')echo 'selected="selected"'; ?>>Seller Mobile</option>
+                <option value="status" <?php if($searchField == 'status')echo 'selected="selected"'; ?>>Order Status (CL) </option>
+                <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS No. </option>
+                <option value="order_code" <?php if($searchField == 'order_code')echo 'selected="selected"'; ?>>Verification Code </option>
+                <option value="is_printed" <?php if($searchField == 'is_printed')echo 'selected="selected"'; ?>>Auto Print (Y/N)</option>
             </select>
           </div>
           <div class="col-sm-12 col-md-6">
@@ -310,13 +412,3 @@ $(function(){
     </div>
   </div>
 </div>
-
-<script>
-function confirmAndHide(message) {
-  if (confirm(message)) {
-    document.getElementById('order-cancel').style.display = 'none';
-    return true;
-  }
-  return false;
-}
-</script>

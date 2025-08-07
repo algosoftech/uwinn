@@ -214,22 +214,22 @@ class Common extends CI_Controller {
 		$result 			= 	array();	
 		if(requestAuthenticate(APIKEY,'POST')):
 			
-			$users_id    = $this->input->post('users_id');
-			$order_id    = $this->input->post('order_id');
-			$first_name  = $this->input->post('first_name');
-			$last_name   = $this->input->post('last_name');
-			$email   	 = $this->input->post('email');
-			$mobile   	 = $this->input->post('mobile');
-			$subject   	 = $this->input->post('subject');
-			$message   	 = $this->input->post('message');
+			$usersID   = $this->input->post('users_id');
+			$orderID   = $this->input->post('order_id');
+			$firstName = $this->input->post('first_name');
+			$lastName  = $this->input->post('last_name');
+			$email     = $this->input->post('email');
+			$mobile    = $this->input->post('mobile');
+			$subject   = $this->input->post('subject');
+			$message   = $this->input->post('message');
 
-			if(empty($users_id)):
+			if(empty($usersID)):
                 echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
-            elseif(empty($order_id)):
+            elseif(empty($orderID)):
                 echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);die();
-            elseif(empty($first_name)):
+            elseif(empty($firstName)):
                 echo outPut(0,lang('SUCCESS_CODE'),lang('EMPRT_FIRST_NAME'),$result);die();
-            elseif(empty($last_name)):
+            elseif(empty($lastName)):
                 echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_LAST_NAME'),$result);die();
             elseif(empty($email)):
                 echo outPut(0,lang('SUCCESS_CODE'),lang('EMAIL_EMPTY'),$result);die();
@@ -242,12 +242,13 @@ class Common extends CI_Controller {
             else:
 				
 			    $param['id']         = (int)$this->geneal_model->getNextSequence('da_contact');
-			    $param['first_name'] = htmlspecialchars($this->input->post('first_name'), ENT_QUOTES, 'UTF-8');
-			    $param['last_name']  = htmlspecialchars($this->input->post('last_name'), ENT_QUOTES, 'UTF-8');
-			    $param['email']      = htmlspecialchars($this->input->post('email'), ENT_QUOTES, 'UTF-8');
-			    $param['mobile']     = (int)$this->input->post('mobile');
-			    $param['subject']    = htmlspecialchars($this->input->post('subject'), ENT_QUOTES, 'UTF-8');
-			    $param['message']    = htmlspecialchars($this->input->post('message'), ENT_QUOTES, 'UTF-8');
+			    $param['first_name'] = htmlspecialchars($firstName, ENT_QUOTES, 'UTF-8');
+			    $param['last_name']  = htmlspecialchars($lastName, ENT_QUOTES, 'UTF-8');
+			    $param['email']      = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+			    $param['mobile']     = (int)$mobile;
+			    $param['subject']    = htmlspecialchars($subject, ENT_QUOTES, 'UTF-8');
+			    $param['message']    = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
+			    $param['order_id']   = htmlspecialchars($orderID, ENT_QUOTES, 'UTF-8');
 			    $param['created_at'] = date('Y-m-d H:i');
 				$data = $this->geneal_model->addData('uw_contacts', $param);
 
@@ -629,7 +630,7 @@ class Common extends CI_Controller {
 			    $whereCon['where']  = array('users_id' => (int)$usersID );
 				$userDetails 		= $this->common_model->getParticularFieldByMultipleCondition($FieldList,$tableName,$whereCon);
 				// echo "<pre>";print_r($userDetails);die();
-			 	if($userDetails['status'] == 'A' && $userDetails['is_verify'] == "Y"):
+			 	if($userDetails['status'] == 'A' && ( $userDetails['is_verify'] == "Y" || $userDetails['is_varified'] == "Y") ):
 			     	$param['status']     	= "D";
 			     	$param['delete_reason'] = $reason;
 					$param['update_date'] 	= date('Y-m-d H:i:s');

@@ -1,0 +1,1993 @@
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "lulunoc1@gmail.com",
+        "userPassword": "504771024",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749358722
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 08:59:18",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000008,
+    "loggedIn_Email": "lulunoc1@gmail.com",
+    "loggedIn_MOBILE": 504771024,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "9940",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749358722,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000008,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "jojo",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "jojo",
+        "UW_ADMIN_EMAIL": "lulunoc1@gmail.com",
+        "UW_ADMIN_MOBILE": 504771024,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749203187 (172.68.186.131)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 08:59:57",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login-verify-otp"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "sanoojproductiongcc@gmail.com",
+        "userPassword": "p0dapattY",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749370038
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 12:08:23",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000100001,
+    "loggedIn_Email": "sanoojproductiongcc@gmail.com",
+    "loggedIn_MOBILE": 509446382,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "2193",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749370038,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000100001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Sanooj",
+        "UW_ADMIN_MIDDLE_NAME": "M",
+        "UW_ADMIN_LAST_NAME": "K",
+        "UW_ADMIN_EMAIL": "sanoojproductiongcc@gmail.com",
+        "UW_ADMIN_MOBILE": 509446382,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749318803 (104.23.175.72)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 12:08:39",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login-verify-otp"
+}
+
+{
+    "loggedIn_userID": 100000000100001,
+    "loggedIn_Email": "sanoojproductiongcc@gmail.com",
+    "loggedIn_MOBILE": 509446382,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025\/06\/06 12:08",
+        "toDate": "2025\/06\/08 12:08",
+        "searchField": "",
+        "searchValue": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749370038,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000100001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Sanooj",
+        "UW_ADMIN_MIDDLE_NAME": "M",
+        "UW_ADMIN_LAST_NAME": "K",
+        "UW_ADMIN_EMAIL": "sanoojproductiongcc@gmail.com",
+        "UW_ADMIN_MOBILE": 509446382,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749318803 (104.23.175.72)",
+        "ALLRECHARGEDATA": "https:\/\/2021upos.com\/admin77664\/recharge\/allrecharge\/index?showLength=10&searchField=&searchValue=&fromDate=2025%2F06%2F06+12%3A08&toDate=2025%2F06%2F08+12%3A08&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 12:09:01",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/recharge\/allrecharge\/exportexcel",
+    "referer": "https:\/\/2021upos.com\/admin77664\/recharge\/allrecharge\/index?showLength=10&searchField=&searchValue=&fromDate=2025%2F06%2F06+12%3A08&toDate=2025%2F06%2F08+12%3A08&Search=Search"
+}
+
+{
+    "loggedIn_userID": 100000000100001,
+    "loggedIn_Email": "sanoojproductiongcc@gmail.com",
+    "loggedIn_MOBILE": 509446382,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025-06-06 12:11",
+        "toDate": "2025-06-08 12:11",
+        "searchField": "",
+        "searchValue": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749370038,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000100001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Sanooj",
+        "UW_ADMIN_MIDDLE_NAME": "M",
+        "UW_ADMIN_LAST_NAME": "K",
+        "UW_ADMIN_EMAIL": "sanoojproductiongcc@gmail.com",
+        "UW_ADMIN_MOBILE": 509446382,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749318803 (104.23.175.72)",
+        "ALLRECHARGEDATA": "https:\/\/2021upos.com\/admin77664\/recharge\/allrecharge\/index?showLength=10&searchField=&searchValue=&fromDate=2025%2F06%2F06+12%3A08&toDate=2025%2F06%2F08+12%3A08&Search=Search",
+        "ALLCOUPONSDATA": "https:\/\/2021upos.com\/admin77664\/recharge\/allrechargecoupons\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-06+12%3A11&toDate=2025-06-08+12%3A11&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 12:11:55",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/recharge\/allrechargecoupons\/exportexcel",
+    "referer": "https:\/\/2021upos.com\/admin77664\/recharge\/allrechargecoupons\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-06+12%3A11&toDate=2025-06-08+12%3A11&Search=Search"
+}
+
+{
+    "loggedIn_userID": 100000000100001,
+    "loggedIn_Email": "sanoojproductiongcc@gmail.com",
+    "loggedIn_MOBILE": 509446382,
+    "access_method": "POST",
+    "requested_data": {
+        "pageno": "1",
+        "searchField": "",
+        "searchValue": "",
+        "fromDate": "2025\/06\/06 12:13",
+        "toDate": "2025\/06\/08 12:13",
+        "bindWithAdmin": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749370423,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000100001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Sanooj",
+        "UW_ADMIN_MIDDLE_NAME": "M",
+        "UW_ADMIN_LAST_NAME": "K",
+        "UW_ADMIN_EMAIL": "sanoojproductiongcc@gmail.com",
+        "UW_ADMIN_MOBILE": 509446382,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749318803 (104.23.175.72)",
+        "ALLRECHARGEDATA": "https:\/\/2021upos.com\/admin77664\/recharge\/allrecharge\/index?showLength=10&searchField=&searchValue=&fromDate=2025%2F06%2F06+12%3A08&toDate=2025%2F06%2F08+12%3A08&Search=Search",
+        "ALLCOUPONSDATA": "https:\/\/2021upos.com\/admin77664\/recharge\/allrechargecoupons\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-06+12%3A11&toDate=2025-06-08+12%3A11&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 12:13:58",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/recharge\/allonlinerecharges\/exportexcelApi",
+    "referer": "https:\/\/2021upos.com\/admin77664\/recharge\/allonlinerecharges\/exportexcel"
+}
+
+{
+    "loggedIn_userID": 100000000100001,
+    "loggedIn_Email": "sanoojproductiongcc@gmail.com",
+    "loggedIn_MOBILE": 509446382,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "",
+        "toDate": "",
+        "searchField": "",
+        "searchValue": "",
+        "searchField1": "",
+        "searchValue2": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749370423,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000100001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Sanooj",
+        "UW_ADMIN_MIDDLE_NAME": "M",
+        "UW_ADMIN_LAST_NAME": "K",
+        "UW_ADMIN_EMAIL": "sanoojproductiongcc@gmail.com",
+        "UW_ADMIN_MOBILE": 509446382,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749318803 (104.23.175.72)",
+        "ALLRECHARGEDATA": "https:\/\/2021upos.com\/admin77664\/recharge\/allrecharge\/index?showLength=10&searchField=&searchValue=&fromDate=2025%2F06%2F06+12%3A08&toDate=2025%2F06%2F08+12%3A08&Search=Search",
+        "ALLCOUPONSDATA": "https:\/\/2021upos.com\/admin77664\/recharge\/allrechargecoupons\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-06+12%3A11&toDate=2025-06-08+12%3A11&Search=Search",
+        "ALLUSERSDATA": "https:\/\/2021upos.com\/admin77664\/users\/allbtcusers\/index"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 12:15:40",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/users\/allbtcusers\/exportexcel",
+    "referer": "https:\/\/2021upos.com\/admin77664\/users\/allbtcusers\/index"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "zameelpaykart@gmail.com",
+        "userPassword": "971507065664",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749376693
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "SH",
+        "regionName": "Sharjah",
+        "city": "Sharjah",
+        "zip": "",
+        "lat": 25.3412,
+        "lon": 55.4224,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1dc8:cca2:2199:bdd7:7ad:67c9"
+    },
+    "timestamp": "2025-06-08 13:58:21",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/136.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000011,
+    "loggedIn_Email": "zameelpaykart@gmail.com",
+    "loggedIn_MOBILE": 507065664,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "9764",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749376693,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000011,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "zameel",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "zameel",
+        "UW_ADMIN_EMAIL": "zameelpaykart@gmail.com",
+        "UW_ADMIN_MOBILE": 507065664,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/u-winn.net\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749321683 (104.23.166.53)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "SH",
+        "regionName": "Sharjah",
+        "city": "Sharjah",
+        "zip": "",
+        "lat": 25.3412,
+        "lon": 55.4224,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1dc8:cca2:2199:bdd7:7ad:67c9"
+    },
+    "timestamp": "2025-06-08 13:58:31",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/136.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login-verify-otp"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "issathbronet@gmail.com",
+        "userPassword": "505614515",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749384987
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "217.165.157.95"
+    },
+    "timestamp": "2025-06-08 16:16:27",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000018,
+    "loggedIn_Email": "issathbronet@gmail.com",
+    "loggedIn_MOBILE": 505614515,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "4472",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749384987,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000018,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Issath",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jahan",
+        "UW_ADMIN_EMAIL": "issathbronet@gmail.com",
+        "UW_ADMIN_MOBILE": 505614515,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "a",
+        "UW_ADMIN_CITY": "a",
+        "UW_ADMIN_STATE": "a",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/u-winn.net\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749125047 (172.68.242.9)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "217.165.157.95"
+    },
+    "timestamp": "2025-06-08 16:17:09",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login-verify-otp"
+}
+
+{
+    "loggedIn_userID": 100000000000018,
+    "loggedIn_Email": "issathbronet@gmail.com",
+    "loggedIn_MOBILE": 505614515,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025\/05\/01 16:18",
+        "toDate": "2025\/06\/08 16:19",
+        "searchField": "users_mobile",
+        "searchValue": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749384987,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000018,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Issath",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jahan",
+        "UW_ADMIN_EMAIL": "issathbronet@gmail.com",
+        "UW_ADMIN_MOBILE": 505614515,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "a",
+        "UW_ADMIN_CITY": "a",
+        "UW_ADMIN_STATE": "a",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/u-winn.net\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749125047 (172.68.242.9)",
+        "ALLWALLETSTATEMENTDATA": "https:\/\/u-winn.net\/admin77664\/wallet\/wallet_statements\/index",
+        "ALLUSERSDATA": "https:\/\/u-winn.net\/admin77664\/users\/allusers\/index?showLength=100&searchField=pos_number&searchValue=2596"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "217.165.157.95"
+    },
+    "timestamp": "2025-06-08 16:19:24",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/wallet\/wallet_statements\/exportexcel",
+    "referer": "https:\/\/u-winn.net\/admin77664\/wallet\/wallet_statements\/index"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "issathbronet@gmail.com",
+        "userPassword": "505614515",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749385573,
+        "ALLWALLETSTATEMENTDATA": "https:\/\/u-winn.net\/admin77664\/wallet\/wallet_statements\/index",
+        "ALLUSERSDATA": "https:\/\/u-winn.net\/admin77664\/users\/allusers\/index?showLength=100&searchField=pos_number&searchValue=2596"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "217.165.157.95"
+    },
+    "timestamp": "2025-06-08 16:26:41",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000018,
+    "loggedIn_Email": "issathbronet@gmail.com",
+    "loggedIn_MOBILE": 505614515,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "9157",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749385573,
+        "ALLWALLETSTATEMENTDATA": "https:\/\/u-winn.net\/admin77664\/wallet\/wallet_statements\/index",
+        "ALLUSERSDATA": "https:\/\/u-winn.net\/admin77664\/users\/allusers\/index?showLength=100&searchField=pos_number&searchValue=2596",
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000018,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Issath",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jahan",
+        "UW_ADMIN_EMAIL": "issathbronet@gmail.com",
+        "UW_ADMIN_MOBILE": 505614515,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "a",
+        "UW_ADMIN_CITY": "a",
+        "UW_ADMIN_STATE": "a",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/u-winn.net\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749385029 (172.70.208.160)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "217.165.157.95"
+    },
+    "timestamp": "2025-06-08 16:26:55",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login-verify-otp"
+}
+
+{
+    "loggedIn_userID": 100000000000018,
+    "loggedIn_Email": "issathbronet@gmail.com",
+    "loggedIn_MOBILE": 505614515,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025-05-22 22:31",
+        "toDate": "2025-06-05 22:30",
+        "searchField": "users_mobile",
+        "searchValue": "509543916"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749385573,
+        "ALLWALLETSTATEMENTDATA": "https:\/\/u-winn.net\/admin77664\/wallet\/wallet_statements\/index?showLength=100&searchField=users_mobile&searchValue=509543916&fromDate=2025%2F05%2F22+22%3A31&toDate=2025%2F06%2F05+22%3A30&Search=Search",
+        "ALLUSERSDATA": "https:\/\/u-winn.net\/admin77664\/users\/allusers\/index?showLength=100&searchField=pos_number&searchValue=2596",
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000018,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Issath",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jahan",
+        "UW_ADMIN_EMAIL": "issathbronet@gmail.com",
+        "UW_ADMIN_MOBILE": 505614515,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "a",
+        "UW_ADMIN_CITY": "a",
+        "UW_ADMIN_STATE": "a",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/u-winn.net\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749385029 (172.70.208.160)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "217.165.157.95"
+    },
+    "timestamp": "2025-06-08 16:28:33",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/wallet\/wallet_statements\/exportexcel",
+    "referer": "https:\/\/u-winn.net\/admin77664\/wallet\/wallet_statements\/index?showLength=100&searchField=users_mobile&searchValue=509543916&fromDate=2025%2F05%2F22+22%3A31&toDate=2025%2F06%2F05+22%3A30&Search=Search"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "princeellirickal@gmail.com",
+        "userPassword": "Prince2457",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749385813
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:d9aa:39c8:a23a:7093"
+    },
+    "timestamp": "2025-06-08 16:30:39",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000009,
+    "loggedIn_Email": "princeellirickal@gmail.com",
+    "loggedIn_MOBILE": 551852696,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "7787",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749385813,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000009,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "prince",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "prince",
+        "UW_ADMIN_EMAIL": "princeellirickal@gmail.com",
+        "UW_ADMIN_MOBILE": 551852696,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/u-winn.net\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749200514 (162.158.114.2)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:d9aa:39c8:a23a:7093"
+    },
+    "timestamp": "2025-06-08 16:30:57",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login-verify-otp"
+}
+
+{
+    "loggedIn_userID": 100000000000018,
+    "loggedIn_Email": "issathbronet@gmail.com",
+    "loggedIn_MOBILE": 505614515,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025-05-15 22:31",
+        "toDate": "2025-05-22 22:30",
+        "searchField": "users_mobile",
+        "searchValue": "562018240"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749385900,
+        "ALLWALLETSTATEMENTDATA": "https:\/\/u-winn.net\/admin77664\/wallet\/wallet_statements\/index?showLength=50&searchField=users_mobile&searchValue=562018240&fromDate=2025%2F05%2F15+22%3A31&toDate=2025%2F05%2F22+22%3A30&Search=Search",
+        "ALLUSERSDATA": "https:\/\/u-winn.net\/admin77664\/users\/allusers\/index?showLength=25&searchField=pos_number&searchValue=3100",
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000018,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Issath",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jahan",
+        "UW_ADMIN_EMAIL": "issathbronet@gmail.com",
+        "UW_ADMIN_MOBILE": 505614515,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "a",
+        "UW_ADMIN_CITY": "a",
+        "UW_ADMIN_STATE": "a",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/u-winn.net\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749385029 (172.70.208.160)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "217.165.157.95"
+    },
+    "timestamp": "2025-06-08 16:35:43",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/wallet\/wallet_statements\/exportexcel",
+    "referer": "https:\/\/u-winn.net\/admin77664\/wallet\/wallet_statements\/index?showLength=50&searchField=users_mobile&searchValue=562018240&fromDate=2025%2F05%2F15+22%3A31&toDate=2025%2F05%2F22+22%3A30&Search=Search"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "lulunoc1@gmail.com",
+        "userPassword": "504771024",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749392549
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:f95a:124e:5520:5ad3"
+    },
+    "timestamp": "2025-06-08 18:22:36",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000008,
+    "loggedIn_Email": "lulunoc1@gmail.com",
+    "loggedIn_MOBILE": 504771024,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "6034",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749392549,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000008,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "jojo",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "jojo",
+        "UW_ADMIN_EMAIL": "lulunoc1@gmail.com",
+        "UW_ADMIN_MOBILE": 504771024,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749358797 (172.70.162.124)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:f95a:124e:5520:5ad3"
+    },
+    "timestamp": "2025-06-08 18:22:44",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login-verify-otp"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "accounts@dealzarabia.com",
+        "userPassword": "971504109630",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749403105
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2.50.56.64"
+    },
+    "timestamp": "2025-06-08 21:19:13",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000012,
+    "loggedIn_Email": "accounts@dealzarabia.com",
+    "loggedIn_MOBILE": 504109630,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "7498",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749403105,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000012,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Jithin",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jithin",
+        "UW_ADMIN_EMAIL": "accounts@dealzarabia.com",
+        "UW_ADMIN_MOBILE": 504109630,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749316970 (172.71.81.226)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2.50.56.64"
+    },
+    "timestamp": "2025-06-08 21:19:31",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login-verify-otp"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "ugesh@debross.com",
+        "userPassword": "ad@irmin#4234@",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749405498,
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=order_code&searchValue=6435&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00",
+        "ALLUSERSDATA": "https:\/\/2021upos.com\/admin77664\/users\/allusers\/index",
+        "ALLLOTOPRODUCTSDATA": "https:\/\/2021upos.com\/admin77664\/products\/alluwinnproducts\/index",
+        "TGPNOTIFICATIONDATA": "https:\/\/2021upos.com\/admin77664\/cms\/notifications\/index"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:f95a:124e:5520:5ad3"
+    },
+    "timestamp": "2025-06-08 21:58:22",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000001,
+    "loggedIn_Email": "ugesh@debross.com",
+    "loggedIn_MOBILE": 501292591,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "9344",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749405498,
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=order_code&searchValue=6435&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00",
+        "ALLUSERSDATA": "https:\/\/2021upos.com\/admin77664\/users\/allusers\/index",
+        "ALLLOTOPRODUCTSDATA": "https:\/\/2021upos.com\/admin77664\/products\/alluwinnproducts\/index",
+        "TGPNOTIFICATIONDATA": "https:\/\/2021upos.com\/admin77664\/cms\/notifications\/index",
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Uwinn",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Admin",
+        "UW_ADMIN_EMAIL": "ugesh@debross.com",
+        "UW_ADMIN_MOBILE": 501292591,
+        "UW_ADMIN_IMAGE": "",
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": "India",
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Super Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749186284 (172.69.118.106)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:f95a:124e:5520:5ad3"
+    },
+    "timestamp": "2025-06-08 21:58:58",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login-verify-otp"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "sanoojproductiongcc@gmail.com",
+        "userPassword": "p0dapattY",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749405540
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "AZ",
+        "regionName": "Abu Dhabi",
+        "city": "Abu Dhabi",
+        "zip": "",
+        "lat": 24.4542,
+        "lon": 54.406,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "5.38.4.59"
+    },
+    "timestamp": "2025-06-08 21:59:04",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000100001,
+    "loggedIn_Email": "sanoojproductiongcc@gmail.com",
+    "loggedIn_MOBILE": 509446382,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "4694",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749405540,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000100001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Sanooj",
+        "UW_ADMIN_MIDDLE_NAME": "M",
+        "UW_ADMIN_LAST_NAME": "K",
+        "UW_ADMIN_EMAIL": "sanoojproductiongcc@gmail.com",
+        "UW_ADMIN_MOBILE": 509446382,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749370119 (172.68.186.131)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "AZ",
+        "regionName": "Abu Dhabi",
+        "city": "Abu Dhabi",
+        "zip": "",
+        "lat": 24.4542,
+        "lon": 54.406,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "5.38.4.59"
+    },
+    "timestamp": "2025-06-08 21:59:13",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login-verify-otp"
+}
+
+{
+    "loggedIn_userID": 100000000000001,
+    "loggedIn_Email": "ugesh@debross.com",
+    "loggedIn_MOBILE": 501292591,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025-06-07T22:01",
+        "toDate": "2025-06-08T22:00",
+        "searchField": "",
+        "searchValue": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749405498,
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/uwin\/alllottoorders\/index",
+        "ALLUSERSDATA": "https:\/\/2021upos.com\/admin77664\/users\/allusers\/index",
+        "ALLLOTOPRODUCTSDATA": "https:\/\/2021upos.com\/admin77664\/products\/alluwinnproducts\/index",
+        "TGPNOTIFICATIONDATA": "https:\/\/2021upos.com\/admin77664\/cms\/notifications\/index",
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Uwinn",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Admin",
+        "UW_ADMIN_EMAIL": "ugesh@debross.com",
+        "UW_ADMIN_MOBILE": 501292591,
+        "UW_ADMIN_IMAGE": "",
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": "India",
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Super Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749186284 (172.69.118.106)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:f95a:124e:5520:5ad3"
+    },
+    "timestamp": "2025-06-08 22:00:31",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/uwin\/alllottoorders\/exportexcel",
+    "referer": "https:\/\/2021upos.com\/admin77664\/uwin\/alllottoorders\/index"
+}
+
+{
+    "loggedIn_userID": 100000000000012,
+    "loggedIn_Email": "accounts@dealzarabia.com",
+    "loggedIn_MOBILE": 504109630,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025-06-07T22:01",
+        "toDate": "2025-06-08T22:00",
+        "searchField": "",
+        "searchValue": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749405620,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000012,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Jithin",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jithin",
+        "UW_ADMIN_EMAIL": "accounts@dealzarabia.com",
+        "UW_ADMIN_MOBILE": 504109630,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749316970 (172.71.81.226)",
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2.50.56.64"
+    },
+    "timestamp": "2025-06-08 22:00:51",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/orders\/allorders\/exportexcel",
+    "referer": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search"
+}
+
+{
+    "loggedIn_userID": 100000000100001,
+    "loggedIn_Email": "sanoojproductiongcc@gmail.com",
+    "loggedIn_MOBILE": 509446382,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025-06-07T22:01",
+        "toDate": "2025-06-08T22:00",
+        "searchField": "",
+        "searchValue": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749405540,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000100001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Sanooj",
+        "UW_ADMIN_MIDDLE_NAME": "M",
+        "UW_ADMIN_LAST_NAME": "K",
+        "UW_ADMIN_EMAIL": "sanoojproductiongcc@gmail.com",
+        "UW_ADMIN_MOBILE": 509446382,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749370119 (172.68.186.131)",
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "AZ",
+        "regionName": "Abu Dhabi",
+        "city": "Abu Dhabi",
+        "zip": "",
+        "lat": 24.4542,
+        "lon": 54.406,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "5.38.4.59"
+    },
+    "timestamp": "2025-06-08 22:01:00",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/orders\/allorders\/exportexcel",
+    "referer": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search"
+}
+
+{
+    "loggedIn_userID": 100000000100001,
+    "loggedIn_Email": "sanoojproductiongcc@gmail.com",
+    "loggedIn_MOBILE": 509446382,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "",
+        "toDate": "",
+        "searchField": "",
+        "searchValue": "",
+        "searchField1": "",
+        "searchValue2": ""
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749405994,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000100001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Sanooj",
+        "UW_ADMIN_MIDDLE_NAME": "M",
+        "UW_ADMIN_LAST_NAME": "K",
+        "UW_ADMIN_EMAIL": "sanoojproductiongcc@gmail.com",
+        "UW_ADMIN_MOBILE": 509446382,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749370119 (172.68.186.131)",
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search",
+        "ALLUSERSDATA": "https:\/\/2021upos.com\/admin77664\/users\/allusers\/index"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "AZ",
+        "regionName": "Abu Dhabi",
+        "city": "Abu Dhabi",
+        "zip": "",
+        "lat": 24.4542,
+        "lon": 54.406,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "5.38.4.59"
+    },
+    "timestamp": "2025-06-08 22:06:37",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/users\/allusers\/exportexcel",
+    "referer": "https:\/\/2021upos.com\/admin77664\/users\/allusers\/index"
+}
+
+{
+    "loggedIn_userID": 100000000000012,
+    "loggedIn_Email": "accounts@dealzarabia.com",
+    "loggedIn_MOBILE": 504109630,
+    "access_method": "POST",
+    "requested_data": {
+        "fromDate": "2025-06-07 22:01",
+        "toDate": "2025-06-08 22:00",
+        "searchField": "redeem_status",
+        "searchValue": "paid"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749406813,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000012,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Jithin",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jithin",
+        "UW_ADMIN_EMAIL": "accounts@dealzarabia.com",
+        "UW_ADMIN_MOBILE": 504109630,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749316970 (172.71.81.226)",
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search",
+        "CMSTESTIMONIALS": "https:\/\/2021upos.com\/admin77664\/uwin\/offline_draw\/index?showLength=10&searchField=redeem_status&searchValue=paid&fromDate=2025-06-07+22%3A01&toDate=2025-06-08+22%3A00&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2.50.56.64"
+    },
+    "timestamp": "2025-06-08 22:20:31",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/uwin\/offline_draw\/exportexcel",
+    "referer": "https:\/\/2021upos.com\/admin77664\/uwin\/offline_draw\/index?showLength=10&searchField=redeem_status&searchValue=paid&fromDate=2025-06-07+22%3A01&toDate=2025-06-08+22%3A00&Search=Search"
+}
+
+{
+    "loggedIn_userID": 100000000000012,
+    "loggedIn_Email": "accounts@dealzarabia.com",
+    "loggedIn_MOBILE": 504109630,
+    "access_method": "POST",
+    "requested_data": {
+        "pageno": "1",
+        "searchField": "redeem_status",
+        "searchValue": "paid",
+        "fromDate": "2025-06-07 22:01",
+        "toDate": "2025-06-08 22:00"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749406813,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000012,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Jithin",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jithin",
+        "UW_ADMIN_EMAIL": "accounts@dealzarabia.com",
+        "UW_ADMIN_MOBILE": 504109630,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749316970 (172.71.81.226)",
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search",
+        "CMSTESTIMONIALS": "https:\/\/2021upos.com\/admin77664\/uwin\/offline_draw\/index?showLength=10&searchField=redeem_status&searchValue=paid&fromDate=2025-06-07+22%3A01&toDate=2025-06-08+22%3A00&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2.50.56.64"
+    },
+    "timestamp": "2025-06-08 22:20:37",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/uwin\/offline_draw\/exportexcelApi",
+    "referer": "https:\/\/2021upos.com\/admin77664\/uwin\/offline_draw\/exportexcel"
+}
+
+{
+    "loggedIn_userID": 100000000000012,
+    "loggedIn_Email": "accounts@dealzarabia.com",
+    "loggedIn_MOBILE": 504109630,
+    "access_method": "POST",
+    "requested_data": {
+        "pageno": "2",
+        "searchField": "redeem_status",
+        "searchValue": "paid",
+        "fromDate": "2025-06-07 22:01",
+        "toDate": "2025-06-08 22:00"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749406813,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000012,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Jithin",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jithin",
+        "UW_ADMIN_EMAIL": "accounts@dealzarabia.com",
+        "UW_ADMIN_MOBILE": 504109630,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749316970 (172.71.81.226)",
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search",
+        "CMSTESTIMONIALS": "https:\/\/2021upos.com\/admin77664\/uwin\/offline_draw\/index?showLength=10&searchField=redeem_status&searchValue=paid&fromDate=2025-06-07+22%3A01&toDate=2025-06-08+22%3A00&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2.50.56.64"
+    },
+    "timestamp": "2025-06-08 22:20:44",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/uwin\/offline_draw\/exportexcelApi",
+    "referer": "https:\/\/2021upos.com\/admin77664\/uwin\/offline_draw\/exportexcel"
+}
+
+{
+    "loggedIn_userID": 100000000000012,
+    "loggedIn_Email": "accounts@dealzarabia.com",
+    "loggedIn_MOBILE": 504109630,
+    "access_method": "POST",
+    "requested_data": {
+        "pageno": "3",
+        "searchField": "redeem_status",
+        "searchValue": "paid",
+        "fromDate": "2025-06-07 22:01",
+        "toDate": "2025-06-08 22:00"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749406813,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000012,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Jithin",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "Jithin",
+        "UW_ADMIN_EMAIL": "accounts@dealzarabia.com",
+        "UW_ADMIN_MOBILE": 504109630,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749316970 (172.71.81.226)",
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/orders\/allorders\/index?showLength=10&searchField=&searchValue=&fromDate=2025-06-07T22%3A01&toDate=2025-06-08T22%3A00&Search=Search",
+        "CMSTESTIMONIALS": "https:\/\/2021upos.com\/admin77664\/uwin\/offline_draw\/index?showLength=10&searchField=redeem_status&searchValue=paid&fromDate=2025-06-07+22%3A01&toDate=2025-06-08+22%3A00&Search=Search"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "org": "Emirates Telecommunications Corporation",
+        "as": "AS5384 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2.50.56.64"
+    },
+    "timestamp": "2025-06-08 22:20:50",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/uwin\/offline_draw\/exportexcelApi",
+    "referer": "https:\/\/2021upos.com\/admin77664\/uwin\/offline_draw\/exportexcel"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "lulunoc1@gmail.com",
+        "userPassword": "504771024",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749406815,
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/uwin\/alllottoorders\/index",
+        "ALLUSERSDATA": "https:\/\/2021upos.com\/admin77664\/users\/allusers\/index",
+        "ALLLOTOPRODUCTSDATA": "https:\/\/2021upos.com\/admin77664\/products\/alluwinnproducts\/index",
+        "TGPNOTIFICATIONDATA": "https:\/\/2021upos.com\/admin77664\/cms\/notifications\/index",
+        "ALLLOTTOPRIZEDATA": "https:\/\/2021upos.com\/admin77664\/products\/alluwinnproducts\/prizeList\/MTAwMDAwMDAwMDAwMDE1",
+        "productID4Prize": "100000000000015",
+        "CMSCONTENTS": "https:\/\/2021upos.com\/admin77664\/uwin\/allcontents\/index"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 22:25:05",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000008,
+    "loggedIn_Email": "lulunoc1@gmail.com",
+    "loggedIn_MOBILE": 504771024,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "6789",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749406815,
+        "ALLORDERSDATA": "https:\/\/2021upos.com\/admin77664\/uwin\/alllottoorders\/index",
+        "ALLUSERSDATA": "https:\/\/2021upos.com\/admin77664\/users\/allusers\/index",
+        "ALLLOTOPRODUCTSDATA": "https:\/\/2021upos.com\/admin77664\/products\/alluwinnproducts\/index",
+        "TGPNOTIFICATIONDATA": "https:\/\/2021upos.com\/admin77664\/cms\/notifications\/index",
+        "ALLLOTTOPRIZEDATA": "https:\/\/2021upos.com\/admin77664\/products\/alluwinnproducts\/prizeList\/MTAwMDAwMDAwMDAwMDE1",
+        "productID4Prize": "100000000000015",
+        "CMSCONTENTS": "https:\/\/2021upos.com\/admin77664\/uwin\/allcontents\/index",
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000008,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "jojo",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "jojo",
+        "UW_ADMIN_EMAIL": "lulunoc1@gmail.com",
+        "UW_ADMIN_MOBILE": 504771024,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749392564 (172.71.118.203)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 22:25:14",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login-verify-otp"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "lulunoc1@gmail.com",
+        "userPassword": "504771024",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749407468
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 22:31:22",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000008,
+    "loggedIn_Email": "lulunoc1@gmail.com",
+    "loggedIn_MOBILE": 504771024,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "7145",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749407468,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000008,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "jojo",
+        "UW_ADMIN_MIDDLE_NAME": "",
+        "UW_ADMIN_LAST_NAME": "jojo",
+        "UW_ADMIN_EMAIL": "lulunoc1@gmail.com",
+        "UW_ADMIN_MOBILE": 504771024,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/2021upos.com\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749407114 (141.101.98.102)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Kingdom",
+        "countryCode": "GB",
+        "region": "ENG",
+        "regionName": "England",
+        "city": "Enfield",
+        "zip": "EN3",
+        "lat": 51.6521,
+        "lon": -0.0550832,
+        "timezone": "Europe\/London",
+        "isp": "Coreix Limited",
+        "org": "Coreix Limited",
+        "as": "AS31708 Coreix Ltd",
+        "query": "83.142.26.20"
+    },
+    "timestamp": "2025-06-08 22:31:30",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko\/20100101 Firefox\/139.0",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/2021upos.com\/admin77664\/login-verify-otp"
+}
+
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "support@dialglobe.us",
+        "userPassword": "563420630",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749407514
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:fc7e:b72c:2206:dd7f"
+    },
+    "timestamp": "2025-06-08 22:31:57",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000007,
+    "loggedIn_Email": "support@dialglobe.us",
+    "loggedIn_MOBILE": 563420630,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "6657",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1749407514,
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000007,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "shabeeb",
+        "UW_ADMIN_MIDDLE_NAME": "shabeeb",
+        "UW_ADMIN_LAST_NAME": "shabeeb",
+        "UW_ADMIN_EMAIL": "support@dialglobe.us",
+        "UW_ADMIN_MOBILE": 563420630,
+        "UW_ADMIN_IMAGE": null,
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": null,
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Sub Admin",
+        "UW_ADMIN_CURRENT_PATH": "https:\/\/u-winn.net\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1749308971 (172.70.86.76)"
+    },
+    "ip_address": {
+        "status": "success",
+        "country": "United Arab Emirates",
+        "countryCode": "AE",
+        "region": "DU",
+        "regionName": "Dubai",
+        "city": "Dubai",
+        "zip": "",
+        "lat": 25.0734,
+        "lon": 55.2979,
+        "timezone": "Asia\/Dubai",
+        "isp": "Emirates Telecommunications Corporation",
+        "org": "EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "as": "AS8966 EMIRATES TELECOMMUNICATIONS GROUP COMPANY (ETISALAT GROUP) PJSC",
+        "query": "2001:8f8:1735:3d2e:fc7e:b72c:2206:dd7f"
+    },
+    "timestamp": "2025-06-08 22:32:22",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+    "requested_url": "\/admin77664\/login-verify-otp",
+    "referer": "https:\/\/u-winn.net\/admin77664\/login-verify-otp"
+}
+

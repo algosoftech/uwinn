@@ -71,6 +71,8 @@ $(function(){
                               <option value="type" <?php if($searchField == 'type')echo 'selected="selected"'; ?>>Request Type</option>
                               <option value="status" <?php if($searchField == 'status')echo 'selected="selected"'; ?>>Status</option>
                               <option value="amount" <?php if($searchField == 'amount')echo 'selected="selected"'; ?>>Amount</option>
+                              <option value="orderIds" <?php if($searchField == 'orderIds')echo 'selected="selected"'; ?>>Order id</option>
+                              <option value="user_mobile" <?php if($searchField == 'user_mobile')echo 'selected="selected"'; ?>>Mobile No.</option>
                             </select>
                           </div>
                           <div class="col-sm-3 col-md-3">
@@ -103,7 +105,8 @@ $(function(){
                                 <th width="15%">Request ID</th>
                                 <th width="20%">Request Type</th>
                                 <th width="20%">Amount</th>
-                                <th width="20%">Details</th>
+                                <th width="20%">Account Details</th>
+                                <th width="20%">Winning Details</th>
                                 <th width="20%">User's Details</th>
                                 <th width="25%">Request Date</th>
                                 <th width="10%" style="text-align: right;">Status</th>
@@ -119,7 +122,7 @@ $(function(){
                                   <td><?=substr($ALLDATAINFO['request_id'],8)?></td>
                                   <td><?=stripslashes($ALLDATAINFO['type'])?></td>
                                   <td>AED <?=number_format($ALLDATAINFO['amount'],2)?></td>
-                                  <?php if($ALLDATAINFO['type'] === 'Bank'): ?>
+                                  <?php if($ALLDATAINFO['type'] === 'Bank' || $ALLDATAINFO['type'] === 'Bank Transfer'): ?>
                                     <td>
                                       <span>Name : <?=stripslashes($ALLDATAINFO['account_holder_name'])?></span> <br/>
                                       <span class='show-account'>
@@ -128,11 +131,26 @@ $(function(){
                                         <span class='decrypted' style='display:none;'><?=base64_decode($ALLDATAINFO['account_no'])?></span> 
                                         <i class='fa fa-eye'></i> 
                                       </span> <br/>
-                                      <span>Bank Name : <?=$ALLDATAINFO['bank_name']?></span> <br/>
-                                      <span>IFSC : <?=$ALLDATAINFO['ifsc_code']?></span>
+
+                                      <?php if($ALLDATAINFO['bank_name']): ?>
+                                          <span>Bank Name : <?=$ALLDATAINFO['bank_name'];?></span> <br/>
+                                      <?php endif; ?>
+
+                                      <?php if($ALLDATAINFO['ifsc_code']): ?>
+                                          <span>IFSC : <?=$ALLDATAINFO['ifsc_code']?></span> <br/>
+                                      <?php endif; ?>
+
+                                      <?php if($ALLDATAINFO['swiftBicCode']): ?>
+                                          <span>Swift/Bic Code : <?=base64_decode($ALLDATAINFO['swiftBicCode'])?></span> <br/>
+                                      <?php endif; ?>
+
+                                      <?php if($ALLDATAINFO['iben']): ?>
+                                          <span>IBEN : <?=$ALLDATAINFO['iben']?></span> <br/>
+                                      <?php endif; ?>
+
                                     </td>
-                                  <?php elseif($ALLDATAINFO['type'] === 'Cripto') : ?>
-                                    <td><span>Cripto ID : <?=$ALLDATAINFO['cripto_id']?></span></td>
+                                  <?php elseif($ALLDATAINFO['type'] === 'Cripto' || $ALLDATAINFO['type'] === 'Cryto Transfer') : ?>
+                                    <td><span>Cripto ID : <?=base64_decode($ALLDATAINFO['cryto_account_id']);?></span></td>
                                   <?php else: ?>
                                     <td>
                                       <span>Name : <?=stripslashes($ALLDATAINFO['full_name'])?></span> <br/>
@@ -140,6 +158,19 @@ $(function(){
                                       <span>City : <?=stripslashes($ALLDATAINFO['city'])?></span> <br/>
                                     </td>
                                   <?php endif; ?>
+
+                                  <td>
+
+                                     <?php if(!empty($ALLDATAINFO['orderData']->order_id)): 
+                                        $loopCount = count($ALLDATAINFO['orderData']->order_id);
+                                        for ($i=0; $i<$loopCount; $i++): ?>
+                                            <?=$ALLDATAINFO['orderData']->order_id[$i];?>  : <?=$ALLDATAINFO['orderData']->total_amount[$i];?> <br>
+                                         <?php endfor; ?>
+                                            <strong>Total:</strong> : <?=$ALLDATAINFO['amount'];?>
+                                    <?php endif; ?>
+
+                                  </td>
+
                                   <td>
                                     <span>Name  : <?=stripslashes($ALLDATAINFO['users_name'].' '.$ALLDATAINFO['last_name'] )?></span><br/>
                                     <span>Phone : <?=stripslashes($ALLDATAINFO['user_mobile'])?></span> <br/>
@@ -153,14 +184,24 @@ $(function(){
                                     <div class="btn-group">
                                       <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><?=$ALLDATAINFO['status'] == 'P'?'Action':'Details'?></button>
                                       <ul class="dropdown-menu" role="menu">
+
+                                         <?php /* <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['_id']->{'$id'})?>"><i class="fas fa-eye"></i> View</a></li> */?>
+
+
                                         <?php if($ALLDATAINFO['status'] == 'C'): ?>
-                                          <li><span>Date : <?=date('d-M-y h:i A',strtotime($ALLDATAINFO['completed_at']))?></span></li>
+                                          <li><span>Date : <?=date('d-M-y h:i A',strtotime($ALLDATAINFO['updated_at']))?></span></li>
                                         <?php elseif($ALLDATAINFO['status'] == 'P'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['request_id'].'/C')?>"><i class="fas fa-thumbs-up"></i> Mark as Completed</a></li>
+                                          <li>
+                                            <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['request_id'].'/C')?>" onClick="return confirm(' Do you want to continue?');">
+                                              <i class="fas fa-thumbs-up"></i> Mark as Completed
+                                            </a>
+                                          </li>
+
                                           <li><a href="javaScript:void(0)" data-toggle="modal" data-target="#rejectModal" data-req_id='<?=$ALLDATAINFO['request_id']?>'><i class="fas fa-times"></i> Reject</a></li>
+                                          
                                         <?php elseif($ALLDATAINFO['status'] == 'R'): ?>
                                           <li>
-                                            <span>Reject At : <?=date('d-M-y h:i A',strtotime($ALLDATAINFO['reject_at']))?></span><br/>
+                                            <span>Reject At : <?=date('d-M-y h:i A',strtotime($ALLDATAINFO['updated_at']))?></span><br/>
                                             <span>Reason : <?=$ALLDATAINFO['reason'];?></span>
                                           </li>
                                         <?php endif; ?>
@@ -232,6 +273,8 @@ $(function(){
                   <option value="type" <?php if($searchField == 'type')echo 'selected="selected"'; ?>>Request Type</option>
                   <option value="status" <?php if($searchField == 'status')echo 'selected="selected"'; ?>>Status</option>
                   <option value="amount" <?php if($searchField == 'amount')echo 'selected="selected"'; ?>>Amount</option>
+                  <option value="orderIds" <?php if($searchField == 'orderIds')echo 'selected="selected"'; ?>>Order id</option>
+                  <option value="user_mobile" <?php if($searchField == 'user_mobile')echo 'selected="selected"'; ?>>Mobile No.</option>
                 </select>
             </div>
             <div class="col-sm-12 col-md-6">

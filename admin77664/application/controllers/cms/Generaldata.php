@@ -140,6 +140,17 @@ class Generaldata extends CI_Controller {
 			$this->form_validation->set_rules('show_merchant_name', 'Show Merchant Name', 'trim|required');
 			$this->form_validation->set_rules('show_merchant_id', 'Show Merchant Id', 'trim|required');
 
+			$this->form_validation->set_rules('show_bank_widhdrawal', 'Show B2C bank withdrawal', 'trim|required');
+			$this->form_validation->set_rules('btc_bank_withdrawal', 'B2C bank withdrawal ', 'trim|required');
+			$this->form_validation->set_rules('show_crypto', 'Show Crypto withdrawal ', 'trim|required');
+			$this->form_validation->set_rules('btc_crypto_limit', 'B2C Crypto withdrawal ', 'trim|required');
+			$this->form_validation->set_rules('summary_time', 'Summary Time', 'trim|required');
+			$this->form_validation->set_rules('global_freezing', 'Global Freezing', 'trim|required');
+			$this->form_validation->set_rules('recharge_topup_btn', 'Recharge Topup Btn', 'trim|required');
+			$this->form_validation->set_rules('recharge_topup_start_time', 'Recharge Topup End Time', 'trim|required');
+			$this->form_validation->set_rules('recharge_topup_end_time', 'Recharge Topup End Time', 'trim|required');
+			$this->form_validation->set_rules('recharge_topup_msg', 'Recharge Topup Message', 'trim|required');
+
 			if($this->form_validation->run() && $error == 'NO'): 
 
 				if($_FILES['image']['name']):
@@ -182,6 +193,18 @@ class Generaldata extends CI_Controller {
 				$param['show_merchant_id'] 	 		 = 	stripslashes($this->input->post('show_merchant_id'));
 				$param['show_merchant_name'] 	 	 = 	stripslashes($this->input->post('show_merchant_name'));
 
+				$param['btc_bank_withdrawal'] 	 	 = 	(float)$this->input->post('btc_bank_withdrawal');
+				$param['show_bank_widhdrawal'] 	 	 = 	stripslashes($this->input->post('show_bank_widhdrawal'));
+				$param['global_freezing'] 	 	     = 	$this->input->post('global_freezing');
+				$param['summary_time'] 	 	 		 = 	$this->input->post('summary_time');
+				$param['btc_crypto_limit'] 	 	 	 = 	(float)$this->input->post('btc_crypto_limit');
+				$param['show_crypto'] 	 	 		 = 	stripslashes($this->input->post('show_crypto'));
+				$param['recharge_topup_btn'] 	 	 = $this->input->post('recharge_topup_btn');
+				$param['recharge_topup_start_time']  = $this->input->post('recharge_topup_start_time');
+				$param['recharge_topup_end_time'] 	 = $this->input->post('recharge_topup_end_time');
+				$param['recharge_topup_msg'] 	     = $this->input->post('recharge_topup_msg');
+				
+				
 				if($this->input->post('CurrentDataID') ==''):
 						$param['general_data_id']		=	(int)$this->common_model->getNextSequence('uw_general_data');
 						$param['creation_ip']			=	currentIp();

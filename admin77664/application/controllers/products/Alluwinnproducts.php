@@ -202,6 +202,10 @@ class Alluwinnproducts extends CI_Controller {
 			$this->form_validation->set_rules('ticket_count_per_campaign', 'ticket count per campaign', 'trim');
 			$this->form_validation->set_rules('enable_ticket_for_campaign', 'Enable Tickect for campaign', 'trim|required');
 			$this->form_validation->set_rules('show_on[]', 'Show On', 'trim|required');
+			$this->form_validation->set_rules('enable_super_ball', 'Enable Super Ball', 'trim');
+			$this->form_validation->set_rules('super_ball_type'  , 'Super Ball Type', 'trim');
+			$this->form_validation->set_rules('superbal_range_start' , 'Number Range Start', 'trim');
+			$this->form_validation->set_rules('superbal_range_end' , 'Number Range End', 'trim');
 			$this->form_validation->set_rules('SaveChanges', 'SaveChanges', 'trim|required');
 			
 			if($this->form_validation->run() && $error == 'NO'):
@@ -340,6 +344,11 @@ class Alluwinnproducts extends CI_Controller {
 				$param['text_field_1']				=	$this->input->post('text_field_1');
 				$param['text_field_2']				=	$this->input->post('text_field_2');
 				$param['text_field_3']				=	$this->input->post('text_field_3');
+				
+				$param['enable_super_ball']	   		=   $this->input->post('enable_super_ball');
+				$param['super_ball_type']	   		=   $this->input->post('super_ball_type');
+				$param['superbal_range_start'] 		=   $this->input->post('superbal_range_start');
+				$param['superbal_range_end']   		=   $this->input->post('superbal_range_end');
 
 				if($this->input->post('CurrentDataID') ==''):
 					$param['status']			=	'A';
@@ -905,8 +914,8 @@ class Alluwinnproducts extends CI_Controller {
 	 + + Updated Date  : 06 May 2024
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-	public function addprize($editId='')
-	{		
+ 	 public function addprize($editId='')
+	 {		
 	    
 		$data['error'] 						= 	'';
 		$data['activeMenu'] 				= 	'products';
@@ -920,14 +929,27 @@ class Alluwinnproducts extends CI_Controller {
 			$this->admin_model->authCheck('add_data');
 		endif;
 
-		if($this->input->post('SaveChanges')):
-			$error					=	'NO';
+		$productDetails 	= $this->common_model->getDataByParticularField('uw_products','products_id',(int)$this->session->userdata('productID4Prize'));
+		// echo '<pre>';print_r($productDetails);die;
+		if( $productDetails['straight_settings'] == 'Disable'  && $productDetails['rumble_settings'] == 'Disable' && $productDetails['reverse_settings'] == 'Disable'  ):
+			$productDetailsGolobal = $this->common_model->getSingleDataByParticularField('','uw_settings');
 
-			$productDetails 	=	$this->common_model->getDataByParticularField('uw_products','products_id',(int)(int)$this->session->userdata('productID4Prize'));
-			$data['lotto_type'] 		= $productDetails['lotto_type'];
-			$data['straight_settings']  = $productDetails['straight_settings'];
-			$data['reverse_settings']   = $productDetails['reverse_settings'];
-			$data['rumble_settings']    = $productDetails['rumble_settings'];
+			$productDetails['straight_settings']   = "Enable";
+			$productDetails['reverse_settings']    = $productDetailsGolobal['reverse_settings'];
+			$productDetails['rumble_settings']     = $productDetailsGolobal['rumble_settings'];
+
+		endif;
+
+		$data['lotto_type'] 		= $productDetails['lotto_type'];
+		$data['straight_settings']  = $productDetails['straight_settings'];
+		$data['reverse_settings']   = $productDetails['reverse_settings'];
+		$data['rumble_settings']    = $productDetails['rumble_settings'];
+		$data['enable_super_ball']  = $productDetails['enable_super_ball'];
+		$data['super_ball_type']    = $productDetails['super_ball_type'];
+
+		if($this->input->post('SaveChanges')):
+
+			$error					=	'NO';
 
 			$this->form_validation->set_rules('title', 'Title', 'trim');
 			$this->form_validation->set_rules('description', 'Description', 'trim');
@@ -938,15 +960,25 @@ class Alluwinnproducts extends CI_Controller {
 			$lotto_type = $this->input->post('lotto_type');
 
 			// Stright Prize Validation.. 
-			$this->form_validation->set_rules('stright_prize_heading', 'Stright Prize Heading', 'trim|required');
-			$this->form_validation->set_rules('stright_prize_type[]', 'Stright Prize Type', 'trim');
+			if($productDetails['straight_settings'] == 'Enable'):
 
-			for($i=1; $i <$lotto_type ; $i++):   
-				$this->form_validation->set_rules('stright_prize'.$i, 'Stright Prize '.$i, 'trim|required');
-            endfor; 
+				if($productDetails['enable_super_ball'] == 'Y'):
+					$this->form_validation->set_rules('straight_super_prize', 'Stright Super Prize', 'trim|required');
+				endif;
+
+				$this->form_validation->set_rules('stright_prize_heading', 'Stright Prize Heading', 'trim|required');
+				$this->form_validation->set_rules('stright_prize_type[]', 'Stright Prize Type', 'trim');
+				for($i=1; $i <$lotto_type ; $i++):   
+					$this->form_validation->set_rules('stright_prize'.$i, 'Stright Prize '.$i, 'trim|required');
+	            endfor; 
+	        endif;
             
             if($productDetails['rumble_settings'] == 'Enable'):
 				// Rumble Mix Prize Validation.. 
+				if($productDetails['enable_super_ball'] == 'Y'):
+					$this->form_validation->set_rules('rumble_super_prize', 'Rumble Super Prize', 'trim|required');
+				endif;
+
 				$this->form_validation->set_rules('rumble_mix_prize_heading', 'Rumble Mix Prize Heading', 'trim|required');
 				$this->form_validation->set_rules('rumble_mix_prize_type[]', 'Rumble Mix Prize Type', 'trim');
 				for($i=1; $i <$lotto_type ; $i++):   
@@ -954,14 +986,18 @@ class Alluwinnproducts extends CI_Controller {
 	            endfor; 
 			endif;
 
-            if($productDetails['rumble_settings'] == 'Enable'):
+            if($productDetails['reverse_settings'] == 'Enable'):
 				// Reverse Prize Validation.. 
+				if($productDetails['enable_super_ball'] == 'Y'):
+					$this->form_validation->set_rules('chance_super_prize', 'Chance Super Prize', 'trim|required');
+				endif;
 				$this->form_validation->set_rules('reverse_prize_heading', 'Rumble Mix Prize Heading', 'trim|required');
 				$this->form_validation->set_rules('reverse_prize_type[]', 'Rumble Mix Prize Type', 'trim');
 				for($i=1; $i <$lotto_type ; $i++):   
 					$this->form_validation->set_rules('reverse_prize'.$i, 'Rumble Mix Prize '.$i, 'trim|required');
 	            endfor;
 			endif;
+
 
 			if($this->form_validation->run() && $error == 'NO'): 
 				
@@ -971,13 +1007,20 @@ class Alluwinnproducts extends CI_Controller {
 				$param['title_slug']		= 	url_title(strtolower($this->input->post('title')));
 				$param['description']		= 	addslashes($this->input->post('description'));
 				
-				//Stright param fields..
-				$param['enable_stright_prize_heading']	=  $this->input->post('enable_stright_prize_heading');
-				$param['stright_prize_heading']			=  $this->input->post('stright_prize_heading');
-				$param['stright_prize_type']	 		=  $this->input->post('stright_prize_type')?$this->input->post('stright_prize_type'):[];
-				for($i=1; $i <=$lotto_type ; $i++):   
-					$param['stright_prize'.$i]	  	    =  (int)addslashes($this->input->post('stright_prize'.$i));
-	            endfor;
+
+			 	if($productDetails['straight_settings'] == 'Enable'):
+					//Stright param fields..
+					$param['enable_stright_prize_heading']	=  $this->input->post('enable_stright_prize_heading');
+					$param['stright_prize_heading']			=  $this->input->post('stright_prize_heading');
+					$param['stright_prize_type']	 		=  $this->input->post('stright_prize_type')?$this->input->post('stright_prize_type'):[];
+					for($i=1; $i <=$lotto_type ; $i++):   
+						$param['stright_prize'.$i]	  	    =  (int)addslashes($this->input->post('stright_prize'.$i));
+		            endfor;
+		            if($productDetails['enable_super_ball'] == 'Y'):
+						$param['straight_super_prize'] =  $this->input->post('straight_super_prize');
+					endif;
+	            endif;
+
 
 	            if($productDetails['rumble_settings'] == 'Enable'):
 					//Rumble Mix param fields..
@@ -987,6 +1030,9 @@ class Alluwinnproducts extends CI_Controller {
 					for($i=1; $i <=$lotto_type ; $i++):   
 						$param['rumble_mix_prize'.$i]	 	  =  (int)addslashes($this->input->post('rumble_mix_prize'.$i));
 		            endfor;
+		            if($productDetails['enable_super_ball'] == 'Y'):
+						$param['rumble_super_prize'] =  $this->input->post('rumble_super_prize');
+					endif;
 	            endif;
 
 	            if($productDetails['reverse_settings'] == 'Enable'):
@@ -997,6 +1043,9 @@ class Alluwinnproducts extends CI_Controller {
 					for($i=1; $i <=$lotto_type ; $i++):   
 						$param['reverse_prize'.$i]	 =  (int)addslashes($this->input->post('reverse_prize'.$i));
 		            endfor;
+		            if($productDetails['enable_super_ball'] == 'Y'):
+						$param['chance_super_prize'] =  $this->input->post('chance_super_prize');
+					endif;
 	            endif;
 				
 				$param['lotto_type']	  	 =  (int)$this->input->post('lotto_type');
@@ -1023,6 +1072,7 @@ class Alluwinnproducts extends CI_Controller {
 				$param['prize_image_alt']	= addslashes($this->input->post('prize_image_alt'));
 				$param['btc_heading']	    = addslashes($this->input->post('btc_heading'));
 				$param['btc_prize_text']	= addslashes($this->input->post('btc_prize_text'));
+
 				if($this->input->post('CurrentDataID') ==''):
 					$param['prize_id']			=	(int)$this->common_model->getNextSequence('uw_prize');
 					$param['prize_seq_id']		=	$this->common_model->getNextIdSequence('prize_seq_id','prize');
@@ -1045,16 +1095,165 @@ class Alluwinnproducts extends CI_Controller {
 			endif;
 		endif;
 
-		
-		// echo '<pre>';print_r($data['productDetails']);die;
-		$productDetails 	=	$this->common_model->getDataByParticularField('uw_products','products_id',(int)(int)$this->session->userdata('productID4Prize'));
-		$data['lotto_type'] 		= $productDetails['lotto_type'];
-		$data['straight_settings']  = $productDetails['straight_settings'];
-		$data['reverse_settings']   = $productDetails['reverse_settings'];
-		$data['rumble_settings']    = $productDetails['rumble_settings'];
+		// echo '<pre>';
+		// print_r($data);
+		// die;
+
+
 		$this->layouts->set_title('Add/Edit Prize');
 		$this->layouts->admin_view('products/alllottoproducts/addprize',array(),$data);
-	}	// END OF FUNCTION	
+	 } // END OF FUNCTION	
+	 
+	// public function addprize($editId='')
+	// {		
+	    
+	// 	$data['error'] 						= 	'';
+	// 	$data['activeMenu'] 				= 	'products';
+	// 	$data['activeSubMenu'] 				= 	'alluwinnproducts';
+
+	// 	if($editId):
+	// 		$this->admin_model->authCheck('edit_data');
+	// 		$data['EDITDATA']				=	$this->common_model->getDataByParticularField('uw_prize','prize_id',(int)$editId);
+	// 		// echo '<pre>';print_r($data['EDITDATA']);die;
+	// 	else:
+	// 		$this->admin_model->authCheck('add_data');
+	// 	endif;
+
+	// 	if($this->input->post('SaveChanges')):
+	// 		$error					=	'NO';
+
+	// 		$productDetails 	=	$this->common_model->getDataByParticularField('uw_products','products_id',(int)(int)$this->session->userdata('productID4Prize'));
+	// 		$data['lotto_type'] 		= $productDetails['lotto_type'];
+	// 		$data['straight_settings']  = $productDetails['straight_settings'];
+	// 		$data['reverse_settings']   = $productDetails['reverse_settings'];
+	// 		$data['rumble_settings']    = $productDetails['rumble_settings'];
+
+	// 		$this->form_validation->set_rules('title', 'Title', 'trim');
+	// 		$this->form_validation->set_rules('description', 'Description', 'trim');
+	// 		//$this->form_validation->set_rules('image', 'Image', 'trim');
+	// 		$this->form_validation->set_rules('productID', 'Product', 'trim|required');
+
+	// 		// lotto_type to validate all prize stage.
+	// 		$lotto_type = $this->input->post('lotto_type');
+
+	// 		// Stright Prize Validation.. 
+	// 		$this->form_validation->set_rules('stright_prize_heading', 'Stright Prize Heading', 'trim|required');
+	// 		$this->form_validation->set_rules('stright_prize_type[]', 'Stright Prize Type', 'trim');
+
+	// 		for($i=1; $i <$lotto_type ; $i++):   
+	// 			$this->form_validation->set_rules('stright_prize'.$i, 'Stright Prize '.$i, 'trim|required');
+    //         endfor; 
+            
+    //         if($productDetails['rumble_settings'] == 'Enable'):
+	// 			// Rumble Mix Prize Validation.. 
+	// 			$this->form_validation->set_rules('rumble_mix_prize_heading', 'Rumble Mix Prize Heading', 'trim|required');
+	// 			$this->form_validation->set_rules('rumble_mix_prize_type[]', 'Rumble Mix Prize Type', 'trim');
+	// 			for($i=1; $i <$lotto_type ; $i++):   
+	// 				$this->form_validation->set_rules('rumble_mix_prize'.$i, 'Rumble Mix Prize '.$i, 'trim|required');
+	//             endfor; 
+	// 		endif;
+
+    //         if($productDetails['rumble_settings'] == 'Enable'):
+	// 			// Reverse Prize Validation.. 
+	// 			$this->form_validation->set_rules('reverse_prize_heading', 'Rumble Mix Prize Heading', 'trim|required');
+	// 			$this->form_validation->set_rules('reverse_prize_type[]', 'Rumble Mix Prize Type', 'trim');
+	// 			for($i=1; $i <$lotto_type ; $i++):   
+	// 				$this->form_validation->set_rules('reverse_prize'.$i, 'Rumble Mix Prize '.$i, 'trim|required');
+	//             endfor;
+	// 		endif;
+
+	// 		if($this->form_validation->run() && $error == 'NO'): 
+				
+	// 			$param['product_id']		= 	(int)$this->session->userdata('productID4Prize');
+	// 			$param['enable_title'] 		=  $this->input->post('enable_title');
+	// 			$param['title']				= 	addslashes($this->input->post('title'));
+	// 			$param['title_slug']		= 	url_title(strtolower($this->input->post('title')));
+	// 			$param['description']		= 	addslashes($this->input->post('description'));
+				
+	// 			//Stright param fields..
+	// 			$param['enable_stright_prize_heading']	=  $this->input->post('enable_stright_prize_heading');
+	// 			$param['stright_prize_heading']			=  $this->input->post('stright_prize_heading');
+	// 			$param['stright_prize_type']	 		=  $this->input->post('stright_prize_type')?$this->input->post('stright_prize_type'):[];
+	// 			for($i=1; $i <=$lotto_type ; $i++):   
+	// 				$param['stright_prize'.$i]	  	    =  (int)addslashes($this->input->post('stright_prize'.$i));
+	//             endfor;
+
+	//             if($productDetails['rumble_settings'] == 'Enable'):
+	// 				//Rumble Mix param fields..
+	// 				$param['enable_rumble_mix_prize_heading'] =  $this->input->post('enable_rumble_mix_prize_heading');
+	// 				$param['rumble_mix_prize_heading']	 	  =  $this->input->post('rumble_mix_prize_heading');
+	// 				$param['rumble_mix_prize_type']	     	  =  $this->input->post('rumble_mix_prize_type')?$this->input->post('rumble_mix_prize_type'):[];
+	// 				for($i=1; $i <=$lotto_type ; $i++):   
+	// 					$param['rumble_mix_prize'.$i]	 	  =  (int)addslashes($this->input->post('rumble_mix_prize'.$i));
+	// 	            endfor;
+	//             endif;
+
+	//             if($productDetails['reverse_settings'] == 'Enable'):
+	// 				//Reverse param fields..
+	// 				$param['enable_reverse_prize_heading'] =  $this->input->post('enable_reverse_prize_heading');
+	// 				$param['reverse_prize_heading']	       =  $this->input->post('reverse_prize_heading');
+	// 				$param['reverse_prize_type']	       =  $this->input->post('reverse_prize_type')?$this->input->post('reverse_prize_type'):[];
+	// 				for($i=1; $i <=$lotto_type ; $i++):   
+	// 					$param['reverse_prize'.$i]	 =  (int)addslashes($this->input->post('reverse_prize'.$i));
+	// 	            endfor;
+	//             endif;
+				
+	// 			$param['lotto_type']	  	 =  (int)$this->input->post('lotto_type');
+
+	// 			if($_FILES['prize_image']['name']):
+	// 				$ufileName						= 	$_FILES['prize_image']['name'];
+	// 				$utmpName						= 	$_FILES['prize_image']['tmp_name'];
+	// 				$ufileExt         				= 	pathinfo($ufileName);
+	// 				// $unewFileName 					= 	$this->common_model->microseconds().'.'.$ufileExt['extension'];
+
+	// 				$unewFileName 					= 	$_FILES['slider_image']['name'];
+	// 				$filePath =  fileFCPATH .'assets/prizeImage/'.$_FILES['slider_image']['name'];
+					 
+	// 				if(file_exists($filePath)):
+	// 					$unewFileName =	$ufileExt['filename'] .'_'.$this->common_model->random_strings(8).'.'.$ufileExt['extension'];
+	// 				endif;
+
+	// 				$this->load->library("upload_crop_img");
+	// 				$uimageLink						=	$this->upload_crop_img->_upload_image($ufileName,$utmpName,'lottoprizeImage',$unewFileName,'');
+	// 				if($uimageLink != 'UPLODEERROR'):
+	// 					$param['prize_image']		= 	$uimageLink;
+	// 				endif;
+	// 			endif;
+	// 			$param['prize_image_alt']	= addslashes($this->input->post('prize_image_alt'));
+	// 			$param['btc_heading']	    = addslashes($this->input->post('btc_heading'));
+	// 			$param['btc_prize_text']	= addslashes($this->input->post('btc_prize_text'));
+	// 			if($this->input->post('CurrentDataID') ==''):
+	// 				$param['prize_id']			=	(int)$this->common_model->getNextSequence('uw_prize');
+	// 				$param['prize_seq_id']		=	$this->common_model->getNextIdSequence('prize_seq_id','prize');
+	// 				$param['creation_ip']		=	currentIp();
+	// 				$param['creation_date']		=	date('Y-m-d H:i');
+	// 				$param['created_by']		=	(int)$this->session->userdata('UW_ADMIN_ID');
+	// 				$param['status']			=	'A';
+	// 				$alastInsertId				=	$this->common_model->addData('uw_prize',$param);
+	// 				$this->session->set_flashdata('alert_success',lang('addsuccess'));
+	// 			else:
+	// 				$CurrentDataID					=	$this->input->post('CurrentDataID');
+	// 				$param['update_ip']			=	currentIp();
+	// 				$param['update_date']		=	(int)$this->timezone->utc_time();//currentDateTime();
+	// 				$param['updated_by']		=	(int)$this->session->userdata('UW_ADMIN_ID');
+	// 				$this->common_model->editData('uw_prize',$param,'prize_id',(int)$CurrentDataID);
+	// 				$this->session->set_flashdata('alert_success',lang('updatesuccess'));
+	// 			endif;	
+				
+	// 			redirect('products/alluwinnproducts/prizeList/'.base64_encode($param['product_id']));
+	// 		endif;
+	// 	endif;
+
+		
+	// 	// echo '<pre>';print_r($data['productDetails']);die;
+	// 	$productDetails 	=	$this->common_model->getDataByParticularField('uw_products','products_id',(int)(int)$this->session->userdata('productID4Prize'));
+	// 	$data['lotto_type'] 		= $productDetails['lotto_type'];
+	// 	$data['straight_settings']  = $productDetails['straight_settings'];
+	// 	$data['reverse_settings']   = $productDetails['reverse_settings'];
+	// 	$data['rumble_settings']    = $productDetails['rumble_settings'];
+	// 	$this->layouts->set_title('Add/Edit Prize');
+	// 	$this->layouts->admin_view('products/alllottoproducts/addprize',array(),$data);
+	// }	// END OF FUNCTION	
 
 	/***********************************************************************
 	** Function name 	: deletePrize
@@ -1262,11 +1461,14 @@ class Alluwinnproducts extends CI_Controller {
 			$this->form_validation->set_rules('rumble_settings_default_check', 'Rumble Checkbox', 'trim|required');
 			$this->form_validation->set_rules('reverse_settings_default_check', 'Reverse Checkbox', 'trim|required');
 			$this->form_validation->set_rules('campaign_auto_freezing_mode', 'Campaign Auto Freezing Mode', 'trim|required');
-			$this->form_validation->set_rules('campaign_freezing_start_time', 'Campaign Freezing Start Time', 'trim|required');
-			$this->form_validation->set_rules('campaign_freezing_end_time', 'Campaign Freezing End Time', 'trim|required');
 			$this->form_validation->set_rules('game_description', 'Game Description', 'trim|required');
-			$this->form_validation->set_rules('reffle_prefix', 'Reffle Prefix', 'trim');
-			$this->form_validation->set_rules('reffle_length', 'Reffle length', 'trim');
+
+			$campaignFreezingParameters = $this->input->post('campaign_auto_freezing_mode')== 'Enable' ? 'trim|required' : 'trim';
+			$this->form_validation->set_rules('campaign_freezing_start_time', 'Campaign Freezing Start Time', $campaignFreezingParameters);
+			$this->form_validation->set_rules('campaign_freezing_end_time', 'Campaign Freezing End Time'    , $campaignFreezingParameters);
+			$raffleParameters = $this->input->post('enable_raffle_ticket')== 'Enable' ? 'trim|required' : 'trim';
+			$this->form_validation->set_rules('reffle_prefix', 'Reffle Prefix', $raffleParameters);
+			$this->form_validation->set_rules('reffle_length', 'Reffle length', $raffleParameters);
 			$this->form_validation->set_rules('SaveChanges', 'SaveChanges', 'trim|required');
 
 			if($this->form_validation->run() && $error == 'NO'):
@@ -1337,4 +1539,67 @@ class Alluwinnproducts extends CI_Controller {
 	 }
 	 // END OF FUNCTION		
 
+	 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 + + Function name : updateDraw
+	 + + Developed By  : Dilip Halder
+	 + + Purpose  	   : This function used to update draw.
+	 + + Date 		   : 27 May 2025
+	 + + Updated By    :   
+	 + + Updated Date  : 
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+	 public function updateDraw($pid='')
+	 {
+	 	$tblName  		 = 'uw_products';
+		$where['where']  =  array('products_id' =>(int)$pid );
+		$ProductData	 =	$this->common_model->getData('single',$tblName,$where);
+
+		if(!empty($ProductData)):
+			// Draw Date Validations...
+			
+			$NewDrawDate     = date('Y-m-d', strtotime(date('Y-m-d').'+1 days' ));
+			$NewDrawTime     = $ProductData['draw_time'];
+
+			$DrawDateTime    = strtotime($ProductData['draw_date'].' '.$NewDrawTime); 
+			$NewDrawDateTime = strtotime($NewDrawDate.' '.$NewDrawTime); 
+
+			/// Storing Draw Date in Data in  uw_products_draw_records..
+			if($DrawDateTime != $NewDrawDateTime ):
+				//Added Draw date and time entry in draw collection.
+				$DrawParam['draw_id']  	    =  $param['draw_id']?(int)$param['draw_id']:(int)$this->common_model->getNextSequence('uw_products_draw_records');
+				$DrawParam['products_id']	=  (int)$ProductData['products_id'];
+				$DrawParam['products_oid']	=  new MongoDB\BSON\ObjectId($ProductData['_id']->{'$id'});
+				$DrawParam['draw_date']		=  $NewDrawDate;
+				$DrawParam['draw_time']		=  $NewDrawTime;
+				$DrawParam['creation_ip']	=  currentIp();
+				$DrawParam['creation_date']	=  (int)$this->timezone->utc_time();//currentDateTime();
+				$DrawParam['created_by']	=  (int)$this->session->userdata('UW_ADMIN_ID');
+				$DrawInsertId				=  $this->common_model->addData('uw_products_draw_records',$DrawParam);
+
+				if(!empty($DrawInsertId)):
+					// Updating present draw ID 
+					$draw_id   = $DrawInsertId['draw_id'];
+					$draw_oid  = $DrawInsertId['_id']->{'$id'};
+					$ProductParam['draw_id']		 = (int)$draw_id;
+					$ProductParam['draw_date']		 = $NewDrawDate;
+					$ProductParam['validuptodate']   = $NewDrawDate;
+					$ProductParam['draw_oid']		 = new MongoDB\BSON\ObjectId($draw_oid);
+					$ProductParam['target_stock']	 = (int)addslashes($this->input->post('target_stock'));
+					$ProductParam['update_ip']		 = currentIp();
+					$ProductParam['update_date']	 = (int)$this->timezone->utc_time();//currentDateTime();
+					$ProductParam['updated_by']		 = (int)$this->session->userdata('UW_ADMIN_ID');
+					// echo "<pre>";print_r($DrawInsertId);die();
+					$this->common_model->editData('uw_products',$ProductParam,'products_id',(int)$pid);
+					$this->session->set_flashdata('alert_success',lang('updatesuccess'));
+				else:
+					$this->session->set_flashdata('alert_error',lang('updateerror'));
+				endif;
+			else:
+				$this->session->set_flashdata('alert_error','Already Updated.');
+			endif;
+				redirect('products/alluwinnproducts/index');
+		endif;
+	 	die();
+	 }
 }

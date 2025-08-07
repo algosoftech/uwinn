@@ -248,7 +248,7 @@ class Wallets extends CI_Controller {
                 echo outPut(0,lang('FORBIDDEN_CODE'),lang('WITHDRAW_TYPE'),$result);
             else:
                 if(requestAuthenticate(APIKEY,'POST')):
-                    
+                    echo outPut(0,lang('FORBIDDEN_CODE'),lang('WITHDRAWAL_DISABLED'),$result);die();  
                     $USERID         = (int)$this->input->post('user_id');
 
                     $tableName   = "uw_users";
@@ -391,6 +391,8 @@ class Wallets extends CI_Controller {
         $result                             =   array();    
         if(requestAuthenticate(APIKEY,'POST')):
             
+            echo outPut(0,lang('SUCCESS_CODE'),"new version available ,please update from store",$result);die();
+
             $USERID          = $this->input->post('user_id');
             $winning_amount  = $this->input->post('winning_amount');
 

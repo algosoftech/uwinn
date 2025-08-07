@@ -41,7 +41,7 @@ class Allcashvoucher extends CI_Controller {
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 	public function index()
 	{	
-		$this->admin_model->authCheck();
+		$this->admin_model->authCheck('view_data');
 		$data['error'] 					= 	'';
 		$data['activeMenu'] 			= 	'cashvoucher';
 		$data['activeSubMenu'] 			= 	'allcashvoucher';
@@ -158,7 +158,7 @@ class Allcashvoucher extends CI_Controller {
 	function changestatus($changeStatusId='',$statusType='')
 	{  
 
-		$this->admin_model->authCheck();
+		$this->admin_model->authCheck('edit_data');
 		$data['error'] 					= 	'';
 		$data['activeMenu'] 			= 	'cashvoucher';
 		$data['activeSubMenu'] 			= 	'allcashvoucher';
@@ -183,7 +183,7 @@ class Allcashvoucher extends CI_Controller {
 	************************************************************************/
 	function exportexcel()
 	{  
-		$this->admin_model->authCheck('admin_view');
+		$this->admin_model->authCheck('view_data');
 		//Generating Logs
 	    $this->common_model->generateLogs();
 	    
@@ -297,7 +297,7 @@ class Allcashvoucher extends CI_Controller {
 	************************************************************************/
 	function exportexcelApi(){
 
-		$this->admin_model->authCheck();
+		$this->admin_model->authCheck('view_data');
 		$data['error'] 					= 	'';
 		$data['activeMenu'] 			= 	'cashvoucher';
 		$data['activeSubMenu'] 			= 	'allcashvoucher';

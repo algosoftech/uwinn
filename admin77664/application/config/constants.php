@@ -131,3 +131,4 @@ defined('fileFCPATH')     				OR 	define('fileFCPATH',$fileFCPATH);
 /////////////// SMS Details ///////////////////
 defined('SMSCOUNTRYUSER')     			OR 	define('SMSCOUNTRYUSER','buy2day');
 defined('SMSCOUNTRYPASSWORD')     		OR 	define('SMSCOUNTRYPASSWORD','Buy2day@123');
+defined('MAILJET') OR define('MAILJET','OGIxYzEwMzRmYTUzZmRmMzAzZjBkOTRhOWQ0ZWNiMjg6M2E2OTNjMTIzNTExNjllZWYzMTQ2ZmFhZmYxMjMwN2Y=');

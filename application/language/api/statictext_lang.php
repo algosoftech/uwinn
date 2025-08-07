@@ -271,7 +271,10 @@ $lang['RECHARGE_SUCCESSFULLY']	   						= "You have successfully added ###AMOUNT
 $lang['DEMO_CAMPAIGN']									= 'This campaign is not availabe for purchase.';
 $lang['DRAW_ALERT']										= 'Draw scheduled for today will take place at 9:30 PM. Please check back after the draw for results';
 $lang['INVALID_USER']									= 'Invalid User Details!';
-$lang['INVALID_DRAWDATE']								= 'Invalid draw date and time!';
+
+// $lang['INVALID_DRAWDATE']								= 'Invalid draw date and time!';
+$lang['INVALID_DRAWDATE']								= 'This campaign has expired. please await the next one...';
+
 $lang['ALREADY_USED_EMAIL_&_MOBILE']					= 'Mobile/Email is not available.';
 $lang['EMPTY_PAGE_NAME']								= 'Page name is required.';
 $lang['EMPTY_Amount']									= 'Amount is required.';
@@ -329,3 +332,37 @@ $lang['TICKET_PRINTED_SUCCESSFULLY']					= 'Tickect printed successfully';
 $lang['TICKET_PRINTED_ALREADY']					        = 'Tickect is already printed.';
 $lang['STRIPE_AVAILABLE_ONLY_IN_APP']					= 'Stripe paymnet gateway only available in app.';
 $lang['SUCCESSFUL_TRANSACTION']					        = 'Payment Success!';
+$lang['BALANCE_TRANSERFER_EORROR']					    = 'Balance transer failed.';
+
+$lang['EMPTY_START_DATE']					    		= 'start date is empty.';
+$lang['EMPTY_END_DATE']					    			= 'end date is empty.';
+
+$lang['EMPTY_ACCOUNT_HOLDER_NAME']					    = 'Account holder name is required.';
+$lang['EMPTY_ORDERIDS']					    			= 'please select redeeming order ids.';
+$lang['EMPTY_BANK_NAME']					    		= 'Bank name is required.';
+$lang['EMPTY_ACCOUNT_NUMBER']					    	= 'Account number is required.';
+$lang['EMPTY_SWIFT_BIC_CODE']					    	= 'SWIFT/BIC code is required.';
+$lang['EMPTY_IBEN']					    				= 'Iben is required.';
+$lang['EMPTY_AMOUNT']					    			= 'Winning amount is required.';
+$lang['INVALID_AMOUNT']					    			= 'Invalid winning amount entered.';
+$lang['BANK_TRANSER_REQUEST']					    	= 'Bank transfer request sent successfully.';
+$lang['CRYTO_TRANSER_REQUEST']					    	= 'Cryto transfer request sent successfully.';
+$lang['WITHDRAWAL_DISABLED']					    	= 'Withdrawals are currently disabled.';
+$lang['DRAW_ONGOIN']					    			= 'The draw is ongoing. Please check again later.';
+$lang['RECHARGE_TOPUP_MSG']					    		= 'Please try after sometime';
+$lang['RAFFERALLED_LIMIT_REACHED']					    = 'Maximum rafferralled limit reached.';
+
+$lang['OTP_SENT_TO_EMAIL']					    		= 'Otp sent to email.';
+$lang['OTP_SENT_TO_MOBILE']					    		= 'Otp sent to mobile.';
+$lang['EMPTY_OTP']					    				= 'OTP is required.';
+$lang['EMPTY_MOBILE_EMAIL']					    		= 'Email or mobile number is required.';
+$lang['INVALID_COUNTRYCODE']					    	= 'Invalid country code.';
+$lang['INVALID_MOBILENUMBER']					    	= 'Invalid mobile number.';
+$lang['INVALID_EMAILID']					    	    = 'Invalid email id.';
+$lang['MOBILE_NUMBER_NOT_VERIFIED'] 					= 'Your mobile number has not been verified.';
+$lang['EMAIL_NOT_VERIFIED'] 							= 'Your email has not been verified.';
+$lang['MOBILE_EMAIL_NOT_VERIFIED'] 						= 'please verify email or mobile number.';
+$lang['USER_NOT_CREATED'] 								= 'User could not be created. Please try again.';
+$lang['SIGNUP_SUCCESFULLY'] 							= 'sign up success.';
+$lang['MOBILE_ALREADY_VERIFIED'] 						= 'Mobile number is already verified.';
+$lang['EMAIL_ALREADY_VERIFIED'] 						= 'Email is already verified.';

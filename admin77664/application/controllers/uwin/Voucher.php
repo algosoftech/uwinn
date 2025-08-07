@@ -114,7 +114,7 @@ class Voucher extends CI_Controller {
 		endif;
 
 		$uriSegment 						= 	getUrlSegment();
-	    $data['PAGINATION']					=	adminPagination($baseUrl,$suffix,$totalRows,$perPage,$uriSegment);
+		$data['PAGINATION']					=	adminPagination($baseUrl,$suffix,$totalRows,$perPage,$uriSegment);
 
        if($this->uri->segment(getUrlSegment())):
            $page = $this->uri->segment(getUrlSegment());
@@ -177,9 +177,9 @@ class Voucher extends CI_Controller {
 			redirect(correctLink('ALLUWINVOUCHERDATA',getCurrentControllerPath('index')));
 		endif;
 
-		if($this->input->post('searchField') && $this->input->post('searchValue')):
-			$sField							= $this->input->post('searchField');
-			$sValue							= $this->input->post('searchValue');
+		if($this->input->get('searchField') && $this->input->get('searchValue')):
+			$sField							= $this->input->get('searchField');
+			$sValue							= $this->input->get('searchValue');
 			$data['searchField'] 			= $sField;
 			$data['searchValue'] 			= $sValue;
 
@@ -201,8 +201,8 @@ class Voucher extends CI_Controller {
 
 		$whereCon['where']					= array('batch_id'=> (int)$bid);
 
-		if($this->input->post('fromDate')):
-			$data['fromDate'] 				=   date('Y-m-d 00:01', strtotime($this->input->post('fromDate')));  //2023-03-16 15:13
+		if($this->input->get('fromDate')):
+			$data['fromDate'] 				=   date('Y-m-d 00:01', strtotime($this->input->get('fromDate')));  //2023-03-16 15:13
 			$whereCon['where_gte'] 			= 	array(array("created_at",$data['fromDate']));
 		endif;
 
@@ -215,13 +215,49 @@ class Voucher extends CI_Controller {
 		$this->session->set_userdata('ALLUWINVOUCHERDATA',currentFullUrl());
 		$qStringdata						=	explode('?',currentFullUrl());
 		$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
-	  
+		$tblName 							= 	'uw_uwin_winner';
+		$resultType   = 'count';
+		$totalRows    = $this->common_model->getData('count',$tblName,$whereCon,$shortField,'0','0');
+		if($this->input->get('showLength') == 'All'):
+			$perPage	 					= 	$totalRows;
+			$data['perpage'] 				= 	$this->input->get('showLength');  
+		elseif($this->input->get('showLength')):
+			$perPage	 					= 	$this->input->get('showLength'); 
+			$data['perpage'] 				= 	$this->input->get('showLength'); 
+		else:
+			$perPage	 					= 	SHOW_NO_OF_DATA;
+			$data['perpage'] 				= 	SHOW_NO_OF_DATA; 
+		endif;
+		$uriSegment 						= 	5;
+		// echo $baseUrl.'------'.$suffix.'-----------------'.$totalRows.'------------'.$perPage.'---------------'.$uriSegment;die();
+	    $data['PAGINATION']					=	adminPagination($baseUrl,$suffix,$totalRows,$perPage,$uriSegment);
+
+       if($this->uri->segment(5)):
+           $page = $this->uri->segment(5);
+       else:
+           $page = 0;
+       endif;
+	//    $data['forAction'] 					= 	$baseUrl; 
+		if($totalRows):
+			$first							=	(int)($page)+1;
+			$data['first']					=	$first;
+			
+			if($data['perpage'] == 'All'):
+				$pageData 					=	$totalRows;
+			else:
+				$pageData 					=	$data['perpage'];
+			endif;
+			
+			$last							=	((int)($page)+$pageData)>$totalRows?$totalRows:((int)($page)+$pageData);
+			$data['noOfContent']			=	'Showing '.$first.'-'.$last.' of '.$totalRows.' items';
+		else:
+			$data['first']					=	1;
+			$data['noOfContent']			=	'';
+		endif;
 	    $data['forAction'] 					= 	getCurrentControllerPath('addeditdata').'/'.$bid; 
-	    
 	    $tblName 							= 	'uw_uwin_winner';
-	    $data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField);
-
-
+	    // $data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField);
+		$data['ALLDATA'] 					= $this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
 		$this->layouts->set_title('UWinn Winner Uplaoding | UWINN');
 		$this->layouts->admin_view('uwin/voucher/view_index',array(),$data);
 	}	// END OF FUNCTION
@@ -238,11 +274,48 @@ class Voucher extends CI_Controller {
 		$this->admin_model->authCheck('edit_data');
 	 	$param['status'] 	 = (int)$statusType;
 		//Updating status
-		$tblName1 			 = 'uw_uwin_winner';
-		$this->common_model->editData('uw_uwin_winner',$param,'voucher_id' , (int)$changeStatusId);
+		// $tblName1 			 = 'uw_uwin_winner';
+		// $this->common_model->editData('uw_uwin_winner',$param,'voucher_id' , (int)$changeStatusId);
+		$whereCon = array('voucher_id' => (int)$changeStatusId);
+		$this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner',$param,$whereCon);
 		$this->session->set_flashdata('alert_success',lang('statussuccess'));
 		redirect(correctLink('ALLUWINVOUCHERDATA',getCurrentControllerPath('index')));
 	}
+	public function multiplechangestatus()
+{
+    // Permission check
+    $this->admin_model->authCheck('edit_data');
+
+    // Read JSON input from frontend
+    $json = file_get_contents('php://input');
+    $voucherList = json_decode($json, true);
+
+    if (!is_array($voucherList) || empty($voucherList)) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid input']);
+        return;
+    }
+
+    // Extract all voucher_ids
+    $voucher_ids = array_column($voucherList, 'voucher_id');
+    $status = $voucherList[0]['status'] ?? null;
+
+    if (empty($voucher_ids) || $status === null) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Missing voucher_id or status']);
+        return;
+    }
+
+    // Define update and condition
+    $param = ['status' => (int)$status];
+    $whereCon = ['voucher_id' => ['$in' => array_map('intval', $voucher_ids)]];
+
+    // Use your existing reusable function
+    $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $param, $whereCon);
+
+    // Return response
+    echo json_encode(['status' => 'success', 'message' => 'Status updated for selected vouchers']);
+}
 
 
 	/***********************************************************************
@@ -376,8 +449,14 @@ class Voucher extends CI_Controller {
 					$param['order_id']		    	=	$itemArray[$orderIndex]?$itemArray[$orderIndex]:'N/A';
 					$param['csv_name'] 		     	=	$_FILES['csvFile']['name'];
 
-					$param['seller_first_name'] 	 =	$itemArray[$sellerFirstNameIndex]?$itemArray[$sellerFirstNameIndex]:'N/A';
-					$param['seller_last_name']  	 =	$itemArray[$sellerLastNameIndex]?$itemArray[$sellerLastNameIndex]:'N/A';
+					// $param['seller_first_name'] 	 =	$itemArray[$sellerFirstNameIndex]? $itemArray[$sellerFirstNameIndex] :'N/A';
+					// $param['seller_last_name']  	 =	$itemArray[$sellerLastNameIndex]?$itemArray[$sellerLastNameIndex]:'N/A';
+					$param['seller_first_name'] = isset($itemArray[$sellerFirstNameIndex])? mb_convert_encoding($itemArray[$sellerFirstNameIndex], 'UTF-8', 'UTF-8')
+						: 'N/A';
+
+					$param['seller_last_name'] = isset($itemArray[$sellerLastNameIndex]) ? mb_convert_encoding($itemArray[$sellerLastNameIndex], 'UTF-8', 'UTF-8')
+						: 'N/A';
+
 					$param['seller_mobile']  	 	 =	$itemArray[$sellerMobileIndex]?$itemArray[$sellerMobileIndex]:'';
 					$param['code']  	 	 		 =	$itemArray[$machingIndex]?$itemArray[$machingIndex]:'0';
 					$param['coupons'] 				 =	$COUPON;
@@ -405,7 +484,13 @@ class Voucher extends CI_Controller {
 		// echo '<pre>';
 		// print_r($result);
 		// die();
+		$datain = [
+			'status'=>false,
+			'data' => $result
+		];
+		$rr = $this->common_model->addData('temp_uw_uwin_winner', $datain);
 		$data['ALLDATA']  =  $result;
+		$data['temp_id']  = new MongoDB\BSON\ObjectId($rr['_id']->{'$id'});
 		$this->layouts->set_title('UWinn Winner Uplaoding | UWINN');
 		$this->layouts->admin_view('uwin/voucher/checkpreview',array(),$data);
 	}
@@ -472,7 +557,7 @@ class Voucher extends CI_Controller {
 			 // echo "<pre>";
 			 // 	print_r($result);
 			 // 	die();
- 
+		
 		 $data['ALLDATA']  =  $result;
 		 $this->layouts->set_title('UWinn Winner Uplaoding | UWINN');
 		 $this->layouts->admin_view('uwin/voucher/checkInactivePreview',array(),$data);
@@ -490,55 +575,161 @@ class Voucher extends CI_Controller {
  	public function uploadVoucher()
 	{
 	 	$this->admin_model->authCheck('add_data');
-		$batchData = $this->input->post('batch'); // Assuming 'batch' contains an array of data entries
-		$dataToInsert = [];
+		// $input = json_decode(trim(file_get_contents('php://input')), true);
+		// $batchData = isset($input['batch']) ? $input['batch'] : [];
+		$temp_id =  new \MongoDB\BSON\ObjectId($this->input->post('temp_id')); // Assuming 'batch' contains an array of data entries
+		$whereCon['where'] = array('_id'=> $temp_id);
+		$tempdata = $this->common_model->getParticularFieldByMultipleCondition($fields, 'temp_uw_uwin_winner', $whereCon);
+		// print_r($tempdata);
+		$this->common_model->deleteData('temp_uw_uwin_winner','_id',$temp_id);
+		$batchData =$tempdata['data'];
+		// print_r($batchData);
+		// die(); 
+		// $dataToInsert = [];
 		
-		foreach ($batchData as $data) {
-			// $order_id = $data['order_id'];
-			// $fields = 'created_at';
-			// $tableName = 'uw_lotto_orders';
-			// $OrderDate = $this->common_model->getPaticularFieldByFields($fields, $tableName, 'order_id', $order_id);
-			// $timestamp = strtotime(str_replace('/', '-', $OrderDate));
-			// $formatted_date = date('d M Y h:i A', $timestamp);
+		// foreach ($batchData as $data) {
+		// 	// $order_id = $data['order_id'];
+		// 	// $fields = 'created_at';
+		// 	// $tableName = 'uw_lotto_orders';
+		// 	// $OrderDate = $this->common_model->getPaticularFieldByFields($fields, $tableName, 'order_id', $order_id);
+		// 	// $timestamp = strtotime(str_replace('/', '-', $OrderDate));
+		// 	// $formatted_date = date('d M Y h:i A', $timestamp);
 
+		// 	$order_id = $data['order_id'];
+		// 	$fields = array('created_at', 'store_name','user_id');
+		// 	$tableName = 'uw_lotto_orders';
+		// 	$whereCon['where'] = array('order_id'=> $order_id);
+		// 	$OrderData = $this->common_model->getParticularFieldByMultipleCondition($fields, $tableName, $whereCon);
+
+		// 	$ufields = array('users_type');
+		// 	$utableName = 'uw_users';
+		// 	$uwhereCon['where'] = array('users_id'=> $OrderData['user_id']);
+		// 	$UsersData = $this->common_model->getParticularFieldByMultipleCondition($ufields, $utableName, $uwhereCon);
+
+
+		// 	$timestamp = strtotime(str_replace('/', '-', $OrderData['created_at']));
+		// 	$formatted_date = date('d M Y h:i A', $timestamp);
+
+		// 	// Prepare the data array for insertion
+		// 	$param['voucher_id'] = (int)$this->common_model->getNextSequence('uw_uwin_winner');
+		// 	$param['batch_id'] = (int)$data['batch_id'];
+		// 	$param['csv_name'] = $data['csv_name'];
+		// 	$param['order_id'] = $data['order_id'];
+		// 	$param['seller_first_name'] = $data['seller_first_name'];
+		// 	$param['seller_last_name'] = $data['seller_last_name'];
+		// 	$param['store_name'] = $OrderData['store_name']?$OrderData['store_name']:$data['seller_first_name'];
+		// 	$param['code'] = $data['code'];
+		// 	$param['coupons'] = $data['coupons'];
+		// 	$param['amount'] = $data['amount'];
+		// 	$param["order_date"]  = $formatted_date;
+		// 	$param["winner_type"] = $data['winner_type'];
+		// 	$param['products_id'] = (int)$data['products_id'];
+		// 	$param["status"] = (int)1;
+		// 	$param["created_at"] = date('Y-m-d H:i:s');
+		// 	$param["created_by"] = "Admin";
+		// 	$param["modified_at"] = date('Y-m-d H:i:s');
+		// 	$param["modified_by"] = "";
+		// 	$param["creation_ip"] = $this->input->ip_address();
+		// 	$param['soft_delete'] = (int)0;
+
+		// 	$dataToInsert[] = $param;
+		// 	if($UsersData['users_type'] == 'Users'){
+		// 		$title = 'Congratulations';
+		// 		$message = "Congratulations! You have won ".$data['amount']." AED prize for your order: ".$data['order_id'];
+		// 		$this->common_model->saveNotifications($OrderData['user_id'],$title,$message,$data['order_id']);
+		// 	}
+			
+		// }
+		// // echo '<pre>';
+		// // print_r($dataToInsert); die();
+		// // Perform the batch insert
+		// $rrr = $this->common_model->addManyData('uw_uwin_winner', $dataToInsert);
+		$dataToInsert = [];
+		$notificationsToInsert = [];
+
+		// Initialize next sequence just once
+		$nextVoucherId = (int) $this->common_model->getNextSequence('uw_uwin_winner');
+		$now = date('Y-m-d H:i:s');
+		$ip = $this->input->ip_address();
+
+		foreach ($batchData as $index => $data) {
 			$order_id = $data['order_id'];
-			$fields = array('created_at', 'store_name');
-			$tableName = 'uw_lotto_orders';
-			$whereCon['where'] = array('order_id'=> $order_id);
-			$OrderData = $this->common_model->getParticularFieldByMultipleCondition($fields, $tableName, $whereCon);
-			$timestamp = strtotime(str_replace('/', '-', $OrderData['created_at']));
-			$formatted_date = date('d M Y h:i A', $timestamp);
 
-			// Prepare the data array for insertion
-			$param['voucher_id'] = (int)$this->common_model->getNextSequence('uw_uwin_winner');
-			$param['batch_id'] = (int)$data['batch_id'];
-			$param['csv_name'] = $data['csv_name'];
-			$param['order_id'] = $data['order_id'];
-			$param['seller_first_name'] = $data['seller_first_name'];
-			$param['seller_last_name'] = $data['seller_last_name'];
-			$param['store_name'] = $OrderData['store_name']?$OrderData['store_name']:$data['seller_first_name'];
-			$param['code'] = $data['code'];
-			$param['coupons'] = $data['coupons'];
-			$param['amount'] = $data['amount'];
-			$param["order_date"]  = $formatted_date;
-			$param["winner_type"] = $data['winner_type'];
-			$param['products_id'] = (int)$data['products_id'];
-			$param["status"] = (int)1;
-			$param["created_at"] = date('Y-m-d H:i:s');
-			$param["created_by"] = "Admin";
-			$param["modified_at"] = date('Y-m-d H:i:s');
-			$param["modified_by"] = "";
-			$param["creation_ip"] = $this->input->ip_address();
-			$param['soft_delete'] = (int)0;
+			// Fetch order data
+			$whereCon = ['where' => ['order_id' => $order_id]];
+			$OrderData = $this->common_model->getParticularFieldByMultipleCondition(
+				['created_at', 'store_name', 'user_id'],
+				'uw_lotto_orders',
+				$whereCon
+			);
+
+			// Fetch user type only if user_id exists
+			$UsersData = [];
+			if (!empty($OrderData['user_id'])) {
+				$uwhereCon = ['where' => ['users_id' => $OrderData['user_id']]];
+				$UsersData = $this->common_model->getParticularFieldByMultipleCondition(
+					['users_type'],
+					'uw_users',
+					$uwhereCon
+				);
+			}
+
+			// Format date
+			$timestamp = strtotime(str_replace('/', '-', $OrderData['created_at'] ?? ''));
+			$formatted_date = $timestamp ? date('d M Y h:i A', $timestamp) : '';
+
+			// Prepare insert data
+			$param = [
+				'voucher_id'     => $nextVoucherId++,
+				'batch_id'       => (int) $data['batch_id'],
+				'csv_name'       => $data['csv_name'],
+				'order_id'       => $data['order_id'],
+				'seller_first_name' => $data['seller_first_name'],
+				'seller_last_name'  => $data['seller_last_name'],
+				'store_name'     => $OrderData['store_name'] ?? $data['seller_first_name'],
+				'code'           => $data['code'],
+				'coupons'        => $data['coupons'],
+				'amount'         => $data['amount'],
+				'order_date'     => $formatted_date,
+				'winner_type'    => $data['winner_type'],
+				'products_id'    => (int) $data['products_id'],
+				'status'         => 1,
+				'created_at'     => $now,
+				'created_by'     => "Admin",
+				'modified_at'    => $now,
+				'modified_by'    => "",
+				'creation_ip'    => $ip,
+				'soft_delete'    => 0
+			];
 
 			$dataToInsert[] = $param;
+
+			// Queue notification if needed
+			if (($UsersData['users_type'] ?? '') === 'Users') {
+				$notificationsToInsert[] = [
+					'user_id' => $OrderData['user_id'],
+					'title'   => 'Congratulations',
+					'message' => "Congratulations! You have won {$data['amount']} AED prize for your order: {$data['order_id']}",
+					'order_id' => $data['order_id'],
+					'created_at' => $now,
+				];
+			}
 		}
-		// echo '<pre>';
-		// print_r($dataToInsert); die();
-		// Perform the batch insert
+
+		// Batch insert
 		$rrr = $this->common_model->addManyData('uw_uwin_winner', $dataToInsert);
-		
+
+		// Optional: batch insert notifications
+		foreach ($notificationsToInsert as $note) {
+			$this->common_model->saveNotifications(
+				$note['user_id'],
+				$note['title'],
+				$note['message'],
+				$note['order_id']
+			);
+		}
 		$successMessage = count($dataToInsert) . " items uploaded successfully.";
+		 return $successMessage;
 	}
 
 	// public function uploadVoucher()
@@ -594,5 +785,198 @@ class Voucher extends CI_Controller {
 	    return $successMessage;
 	}
 
+/***********************************************************************
+	** Function name 	: exportexcel 
+	** Developed By 	: Ashif Iqbal
+	** Purpose  		: This function used for export winner 
+	** Date 			: 07 July 2025s
+	************************************************************************/
+	public function exportexcel(){
+		try {
+			$matchStage = [];
+			$fromDateStr =  date('Y-m-d H:i:00', strtotime($_POST['fromDate']));//$_POST['fromDate'];
+			$toDateStr   =date('Y-m-d H:i:59', strtotime($_POST['toDate'])); //$_POST['toDate'];
+			
+			// If from/to date are provided, add match filter on winner.created_at
+			if ($fromDateStr && $toDateStr) {
+				$matchStage = [
+					'$match' => [
+						'status'=>1,
+						'soft_delete'=>0,
+						'created_at' => [
+							'$gte' => $fromDateStr,
+							'$lte' => $toDateStr
+						]
+					]
+				];
+			}
 
+			// Build pipeline with optional match
+			$pipeline = [];
+
+			if (!empty($matchStage)) {
+				$pipeline[] = $matchStage;
+			}
+			
+			$pipeline[] = [
+				'$lookup' => [
+					'from' => 'uw_lotto_orders',
+					'localField' => 'order_id',
+					'foreignField' => 'order_id',
+					'as' => 'order_data'
+				]
+			];
+			$pipeline[] = [
+				'$unwind' => [
+					'path' => '$order_data',
+					'preserveNullAndEmptyArrays' => true
+				]
+			];
+			$pipeline[] = [
+				'$lookup' => [
+					'from' => 'uw_users',
+					'let' => [ 'user_oid' => '$order_data.user_oid' ],
+					'pipeline' => [
+						[
+							'$match' => [
+								'$expr' => [
+									'$eq' => ['$_id', [ '$toObjectId' => '$$user_oid' ]]
+								]
+							]
+						]
+					],
+					'as' => 'user_data'
+				]
+			];
+			$pipeline[] = [
+				'$unwind' => [
+					'path' => '$user_data',
+					'preserveNullAndEmptyArrays' => true
+				]
+			];
+			$pipeline[] = [
+				'$lookup' => [
+					'from' => 'uw_products_draw_records',
+					'localField' => 'order_data.draw_id',
+					'foreignField' => 'draw_id',
+					'as' => 'draw_data'
+				]
+			];
+			$pipeline[] = [
+				'$unwind' => [
+					'path' => '$draw_data',
+					'preserveNullAndEmptyArrays' => true
+				]
+			];
+			$pipeline[] = [
+				'$addFields' => [
+					'amount_numeric' => [ '$toDouble' => '$amount' ]
+				]
+			];
+			$pipeline[] = [
+				'$project' => [
+					'_id' => 0,
+					'order_id' => 1,
+					'retailer' => '$seller_first_name',
+					'seller_name' => '$seller_last_name',
+					'product_title'=>[
+						'$ifNull' => ['$order_data.product_title', 'N/A']
+					],
+					'status' => 1,
+					'amount'=>1,
+					'created_at' => [
+						'$ifNull' => ['$order_data.created_at', 'N/A']
+					],
+					'draw_date' => [
+						'$ifNull' => ['$draw_data.draw_date', 'N/A']
+					],
+					'bind_person_name' => [
+						'$ifNull' => ['$user_data.bind_person_name', 'N/A']
+					],
+					'pos_number' => [
+						'$ifNull' => ['$user_data.pos_number', 'N/A']
+					]
+				]
+			];
+		
+		// Filter by date
+		$pipeline[] = [
+			'$sort' => [
+				'amount' => -1
+			]
+		];
+		$winnerData = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, ['batchSize' => 4]);
+		usort($winnerData, function ($a, $b) {
+			// Ensure both are treated as numbers
+			return (float)$b['amount'] <=> (float)$a['amount'];
+		});
+
+		//  echo$fromDateStr.'---'.$toDateStr."<pre>";print_r($winnerData);die();
+		// dd($winnerData);
+		require_once FCPATH . 'vendor/psr/simple-cache/src/CacheInterface.php';
+		$spreadsheet = new Spreadsheet();
+		$sheet = $spreadsheet->getActiveSheet();
+		$sheet->setCellValue('A1', 'SL.NO');
+		$sheet->setCellValue('B1', 'ORDER ID');
+		$sheet->setCellValue('C1', 'RETAILER');
+		$sheet->setCellValue('D1', 'POS NUMBER');
+		$sheet->setCellValue('E1', 'DRAW DATE');
+		$sheet->setCellValue('F1', 'GAME NAME');
+		$sheet->setCellValue('G1', 'PRIZE MONEY');
+		$sheet->setCellValue('H1', 'PURCHASE DATE');
+		$sheet->setCellValue('I1', 'AREA');
+		$sheet->setCellValue('J1', 'BIND WITH');
+		$slno = 1;
+		$start = 2;
+		foreach ($winnerData as $key => $d) {
+			$sheet->setCellValue('A'.$start, $slno);
+			$sheet->setCellValue('B'.$start, $d['order_id']);
+			$sheet->setCellValue('C'.$start, ucwords( $d['retailer']));
+			$sheet->setCellValue('D'.$start, $d['pos_number']);
+			$sheet->setCellValue('E'.$start,$d['draw_date']);
+			$sheet->setCellValue('F'.$start, $d['product_title']);
+			$sheet->setCellValue('G'.$start, $d['amount']);
+			$sheet->setCellValue('H'.$start, $d['created_at']);
+			$sheet->setCellValue('I'.$start, $d['seller_name']);
+			$sheet->setCellValue('J'.$start, $d['bind_person_name']);
+			$start = $start+1;
+			$slno = $slno+1;
+		}
+		$styleThinBlackBorderOutline = [
+					'borders' => [
+						'allBorders' => [
+							'borderStyle' => Border::BORDER_THIN,
+							'color' => ['argb' => 'FF000000'],
+						],
+					],
+				];
+		$sheet->getStyle('A1:J1')->getFont()->setBold(true);		
+		$sheet->getStyle('A1:J'.count($winnerData))->applyFromArray($styleThinBlackBorderOutline);
+		//Alignment
+		//fONT SIZE
+		$sheet->getStyle('A1:J10')->getFont()->setSize(12);
+		$sheet->getStyle('A1:J2')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+		$sheet->getStyle('A2:J'.count($winnerData))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+		$sheet->getColumnDimension('A')->setWidth(5);
+		$sheet->getColumnDimension('B')->setWidth(15);
+		$sheet->getColumnDimension('C')->setWidth(30);
+		$sheet->getColumnDimension('D')->setWidth(30);
+		$sheet->getColumnDimension('E')->setWidth(15);
+		$sheet->getColumnDimension('F')->setWidth(15);
+		$sheet->getColumnDimension('G')->setWidth(15);
+		$sheet->getColumnDimension('H')->setWidth(30);
+		$sheet->getColumnDimension('I')->setWidth(30);
+		$sheet->getColumnDimension('J')->setWidth(30);
+		$curdate = date('d-m-Y H:i:s');
+		$writer = new Xlsx($spreadsheet);
+		$filename = 'Big Winners '.$_POST['fromDate'].'__'.$_POST['toDate'];
+		ob_end_clean();
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="'. $filename .'.xlsx"'); 
+		header('Cache-Control: max-age=0');
+		$writer->save('php://output');
+		} catch (\Throwable $th) {
+			//throw $th;
+		}
+	}
 }

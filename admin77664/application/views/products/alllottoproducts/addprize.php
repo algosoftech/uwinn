@@ -110,9 +110,9 @@
                                         </div>
                                         <div class="col-sm-12 col-md-12 col-lg-12">
                                              <!-- Prize 1 winner inputs -->
+                                            <?php if($straight_settings == 'Enable'): ?>
                                             <fieldset>
                                                 <legend>Straight Module</legend>
-                                                
                                                 <div class="row">
                                                     <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-4 <?php if(form_error('enable_stright_prize_heading')): ?>error<?php endif; ?>">
                                                         <label>Enable/Disable Heading<span class="required">*</span></label>
@@ -151,16 +151,30 @@
                                                     <?php for ($i=1; $i <=$lotto_type ; $i++): ?>   
                                                         <!-- stright_prize start -->
                                                         <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('stright_prize'.$i)): ?>error<?php endif; ?>">
-                                                            <label>Straight Prize Prize <?=$i.'/'.$lotto_type; ?> (Main Prize)<span class="required"></span></label>
-                                                            <input type="number" min="0" name="stright_prize<?=$i?>" id="stright_prize<?=$i;?>" class="form-control" value="<?php if(set_value('stright_prize'.$i)): echo set_value('stright_prize'.$i); else: echo stripslashes($EDITDATA['stright_prize'.$i]);endif; ?>" placeholder="Straight Prize Prize <?=$i.'/'.$lotto_type; ?>" required>
+                                                            <label>Straight Prize <?=$i.'/'.$lotto_type; ?> (Main Prize)<span class="required"></span></label>
+                                                            <input type="number" min="0" name="stright_prize<?=$i?>" id="stright_prize<?=$i;?>" class="form-control" value="<?php if(set_value('stright_prize'.$i)): echo set_value('stright_prize'.$i); else: echo stripslashes($EDITDATA['stright_prize'.$i]);endif; ?>" placeholder="Straight Prize <?=$i.'/'.$lotto_type; ?>" required>
                                                             <?php if(form_error('stright_prize'.$i)): ?>
                                                                 <span for="prize1" generated="true" class="help-inline"><?php echo form_error('stright_prize'.$i); ?></span>
                                                             <?php endif; ?>
                                                         </div>
                                                         <!-- stright_prize end -->
                                                     <?php endfor; ?>
+
+                                                    <?php if($enable_super_ball == "Y"): ?>
+                                                        <!-- straight_super_prize start -->
+                                                        <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('straight_super_prize')): ?>error<?php endif; ?>">
+                                                            <label>Straight Super Prize  (Grand Prize)<span class="required"></span></label>
+                                                            <input type="number" min="0" name="straight_super_prize" id="straight_super_prize" class="form-control" value="<?php if(set_value('straight_super_prize')): echo set_value('straight_super_prize'); else: echo stripslashes($EDITDATA['straight_super_prize']);endif; ?>" placeholder="Straight Super Prize " required>
+                                                            <?php if(form_error('straight_super_prize')): ?>
+                                                                <span for="prize1" generated="true" class="help-inline"><?php echo form_error('straight_super_prize'); ?></span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <!-- straight_super_prize end -->
+                                                    <?php endif; ?>
                                                 </div>
                                             </fieldset>
+                                            <?php endif;?>
+                                            
                                             <!-- END -->
                                             <!-- Prize 2 winner inputs -->
                                             <?php if($rumble_settings == 'Enable'): ?>
@@ -201,19 +215,30 @@
 
                                                       </div>
                                                     </div>
-
                                                     <div class="row">
                                                         <?php for ($i=1; $i <=$lotto_type ; $i++): ?>   
                                                             <!-- rumble_mix_prize start -->
                                                             <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('rumble_mix_prize'.$i)): ?>error<?php endif; ?>">
-                                                                <label>Rumble Mix Prize Prize <?=$i.'/'.$lotto_type; ?> (Main Prize)<span class="required"></span></label>
-                                                                <input type="number" min="0" name="rumble_mix_prize<?=$i?>" id="rumble_mix_prize<?=$i;?>" class="form-control" value="<?php if(set_value('rumble_mix_prize'.$i)): echo set_value('rumble_mix_prize'.$i); else: echo stripslashes($EDITDATA['rumble_mix_prize'.$i]);endif; ?>" placeholder="Rumble Mix Prize Prize <?=$i.'/'.$lotto_type; ?>" required>
+                                                                <label>Rumble Mix Prize <?=$i.'/'.$lotto_type; ?> (Main Prize)<span class="required"></span></label>
+                                                                <input type="number" min="0" name="rumble_mix_prize<?=$i?>" id="rumble_mix_prize<?=$i;?>" class="form-control" value="<?php if(set_value('rumble_mix_prize'.$i)): echo set_value('rumble_mix_prize'.$i); else: echo stripslashes($EDITDATA['rumble_mix_prize'.$i]);endif; ?>" placeholder="Rumble Mix Prize <?=$i.'/'.$lotto_type; ?>" required>
                                                                 <?php if(form_error('rumble_mix_prize'.$i)): ?>
                                                                     <span for="prize1" generated="true" class="help-inline"><?php echo form_error('rumble_mix_prize'.$i); ?></span>
                                                                 <?php endif; ?>
                                                             </div>
                                                             <!-- rumble_mix_prize end -->
                                                         <?php endfor; ?>
+
+                                                        <?php if($enable_super_ball == "Y"): ?>
+                                                            <!-- rumble_super_prize start -->
+                                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('rumble_super_prize')): ?>error<?php endif; ?>">
+                                                                <label>Rumble Super Prize (Grand Prize)<span class="required"></span></label>
+                                                                <input type="number" min="0" name="rumble_super_prize" id="rumble_super_prize" class="form-control" value="<?php if(set_value('rumble_super_prize')): echo set_value('rumble_super_prize'); else: echo stripslashes($EDITDATA['rumble_super_prize']);endif; ?>" placeholder="Rumble Super Prize " required>
+                                                                <?php if(form_error('rumble_super_prize')): ?>
+                                                                    <span for="prize1" generated="true" class="help-inline"><?php echo form_error('rumble_super_prize'); ?></span>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                            <!-- rumble_super_prize end -->
+                                                        <?php endif; ?>
                                                     </div>
                                                 </fieldset>
                                             <?php endif;?>
@@ -270,6 +295,19 @@
                                                             </div>
                                                             <!-- reverse_prize end -->
                                                         <?php endfor; ?>
+
+                                                        <?php if($enable_super_ball == "Y"): ?>
+                                                            <!-- chance_super_prize start -->
+                                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('chance_super_prize')): ?>error<?php endif; ?>">
+                                                                <label>chance Super Prize (Grand Prize)<span class="required"></span></label>
+                                                                <input type="number" min="0" name="chance_super_prize" id="chance_super_prize" class="form-control" value="<?php if(set_value('chance_super_prize')): echo set_value('chance_super_prize'); else: echo stripslashes($EDITDATA['chance_super_prize']);endif; ?>" placeholder="Chance Super Prize " required>
+                                                                <?php if(form_error('chance_super_prize')): ?>
+                                                                    <span for="prize1" generated="true" class="help-inline"><?php echo form_error('chance_super_prize'); ?></span>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                            <!-- chance_super_prize end -->
+                                                        <?php endif; ?>
+
                                                     </div>
                                                 </fieldset>
                                             <!-- END -->

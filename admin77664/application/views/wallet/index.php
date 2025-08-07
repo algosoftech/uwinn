@@ -119,6 +119,7 @@ $(function(){
                               <!-- <option value="user_id" <?php if($searchField == 'user_id')echo 'selected="selected"'; ?>>User ID</option> -->
                               <option value="users_email" <?php if($searchField == 'users_email')echo 'selected="selected"'; ?>>User Email</option>
                               <option value="users_mobile" <?php if($searchField == 'users_mobile')echo 'selected="selected"'; ?>>User Phone</option>
+                              <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS Number</option>
                           </select>
                         </div>
 
@@ -271,6 +272,7 @@ $(function(){
                       <!-- <option value="user_id" <?php if($searchField == 'user_id')echo 'selected="selected"'; ?>>User ID</option> -->
                       <option value="users_email" <?php if($searchField == 'users_email')echo 'selected="selected"'; ?>>User Email</option>
                       <option value="users_mobile" <?php if($searchField == 'users_mobile')echo 'selected="selected"'; ?>>User Phone</option>
+                      <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS Number</option>
                   </select>
                 </div>
 

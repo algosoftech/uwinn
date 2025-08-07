@@ -35,73 +35,184 @@ class Notifications extends CI_Controller {
 	 + + Updated By   	: 
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-	public function index()
-	{	
+	// public function index()
+	// {	
 		
-		$this->admin_model->authCheck();
-		$data['error'] 						= 	'';
-		$data['activeMenu'] 				= 	'cms/notifications';
-		$data['activeSubMenu'] 				= 	'notifications';
+	// 	$this->admin_model->authCheck();
+	// 	$data['error'] 						= 	'';
+	// 	$data['activeMenu'] 				= 	'cms/notifications';
+	// 	$data['activeSubMenu'] 				= 	'notifications';
 		
-		if($this->input->get('searchField') && $this->input->get('searchValue')):
-			$sField							=	$this->input->get('searchField');
-			$sValue							=	$this->input->get('searchValue');
-			$whereCon['like']			 	= 	array('0'=>trim($sField),'1'=>trim($sValue));
-			$data['searchField'] 			= 	$sField;
-			$data['searchValue'] 			= 	$sValue;
-		else:
-			$whereCon['like']		 		= 	"";
-			$data['searchField'] 			= 	'';
-			$data['searchValue'] 			= 	'';
-		endif;
+	// 	if($this->input->get('searchField') && $this->input->get('searchValue')):
+	// 		$sField							=	$this->input->get('searchField');
+	// 		$sValue							=	$this->input->get('searchValue');
+	// 		$whereCon['like']			 	= 	array('0'=>trim($sField),'1'=>trim($sValue));
+	// 		$data['searchField'] 			= 	$sField;
+	// 		$data['searchValue'] 			= 	$sValue;
+	// 	else:
+	// 		$whereCon['like']		 		= 	"";
+	// 		$data['searchField'] 			= 	'';
+	// 		$data['searchValue'] 			= 	'';
+	// 	endif;
 				
-		$whereCon['where']		 			= 	"";		
-		$shortField 						= 	array('_id'=>-1);
+	// 	$whereCon['where']		 			= 	"";		
+	// 	$shortField 						= 	array('_id'=>-1);
 		
-		$baseUrl 							= 	getCurrentControllerPath('index');
-		$this->session->set_userdata('TGPNOTIFICATIONDATA',currentFullUrl());
-		$qStringdata						=	explode('?',currentFullUrl());
-		$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
-		$tblName 							= 	'uw_notifications';
-		$con 								= 	'';
-		$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCon,$shortField,'0','0');
+	// 	$baseUrl 							= 	getCurrentControllerPath('index');
+	// 	$this->session->set_userdata('TGPNOTIFICATIONDATA',currentFullUrl());
+	// 	$qStringdata						=	explode('?',currentFullUrl());
+	// 	$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
+	// 	$tblName 							= 	'uw_notifications';
+	// 	$con 								= 	'';
+	// 	$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCon,$shortField,'0','0');
 		
-		if($this->input->get('showLength') == 'All'):
-			$perPage	 					= 	$totalRows;
-			$data['perpage'] 				= 	$this->input->get('showLength');  
-		elseif($this->input->get('showLength')):
-			$perPage	 					= 	$this->input->get('showLength'); 
-			$data['perpage'] 				= 	$this->input->get('showLength'); 
-		else:
-			$perPage	 					= 	SHOW_NO_OF_DATA;
-			$data['perpage'] 				= 	SHOW_NO_OF_DATA; 
-		endif;
-		$uriSegment 						= 	getUrlSegment();
-	    $data['PAGINATION']					=	adminPagination($baseUrl,$suffix,$totalRows,$perPage,$uriSegment);
+	// 	if($this->input->get('showLength') == 'All'):
+	// 		$perPage	 					= 	$totalRows;
+	// 		$data['perpage'] 				= 	$this->input->get('showLength');  
+	// 	elseif($this->input->get('showLength')):
+	// 		$perPage	 					= 	$this->input->get('showLength'); 
+	// 		$data['perpage'] 				= 	$this->input->get('showLength'); 
+	// 	else:
+	// 		$perPage	 					= 	SHOW_NO_OF_DATA;
+	// 		$data['perpage'] 				= 	SHOW_NO_OF_DATA; 
+	// 	endif;
+	// 	$uriSegment 						= 	getUrlSegment();
+	//     $data['PAGINATION']					=	adminPagination($baseUrl,$suffix,$totalRows,$perPage,$uriSegment);
 	    
-       if ($this->uri->segment(getUrlSegment())):
-           $page = $this->uri->segment(getUrlSegment());
-       else:
-           $page = 0;
-       endif;
+    //    if ($this->uri->segment(getUrlSegment())):
+    //        $page = $this->uri->segment(getUrlSegment());
+    //    else:
+    //        $page = 0;
+    //    endif;
 		
-		$data['forAction'] 					= 	$baseUrl; 
-		if($totalRows):
-			$first							=	(int)($page)+1;
-			$data['first']					=	$first;
-			$last							=	((int)($page)+$data['perpage'])>$totalRows?$totalRows:((int)($page)+$data['perpage']);
-			$data['noOfContent']			=	'Showing '.$first.'-'.$last.' of '.$totalRows.' items';
-		else:
-			$data['first']					=	1;
-			$data['noOfContent']			=	'';
-		endif;
+	// 	$data['forAction'] 					= 	$baseUrl; 
+	// 	if($totalRows):
+	// 		$first							=	(int)($page)+1;
+	// 		$data['first']					=	$first;
+	// 		$last							=	((int)($page)+$data['perpage'])>$totalRows?$totalRows:((int)($page)+$data['perpage']);
+	// 		$data['noOfContent']			=	'Showing '.$first.'-'.$last.' of '.$totalRows.' items';
+	// 	else:
+	// 		$data['first']					=	1;
+	// 		$data['noOfContent']			=	'';
+	// 	endif;
 		
-		$data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
-		$this->layouts->set_title('Notification | CMS | Dealz Arabia');
-		$this->layouts->admin_view('cms/notifications/index',array(),$data);
-	}	// END OF FUNCTION
+	// 	$data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
+	// 	$this->layouts->set_title('Notification | CMS | Dealz Arabia');
+	// 	$this->layouts->admin_view('cms/notifications/index',array(),$data);
+	// }	// END OF FUNCTION
 
+public function index()
+		
+		{
+			// $this->admin_model->authCheck();
 
+			$data['error'] = '';
+			$data['activeMenu'] = 'cms/notifications';
+			$data['activeSubMenu'] = 'notifications';
+
+			// ----------------- SEARCH FILTER -----------------
+			if ($this->input->get('searchField') && $this->input->get('searchValue')) {
+				$sField = $this->input->get('searchField');
+				$sValue = $this->input->get('searchValue');
+				$whereCon['like'] = array('0' => trim($sField), '1' => trim($sValue));
+				$data['searchField'] = $sField;
+				$data['searchValue'] = $sValue;
+			} else {
+				$whereCon['like'] = "";
+				$data['searchField'] = '';
+				$data['searchValue'] = '';
+			}
+
+			$whereCon['where'] = "";
+			$shortField = array('_id' => -1);
+			$tblName = 'uw_notifications';
+
+			$baseUrl = getCurrentControllerPath('index');
+			$this->session->set_userdata('TGPNOTIFICATIONDATA', currentFullUrl());
+			$qStringdata = explode('?', currentFullUrl());
+			$suffix = $qStringdata[1] ? '?' . $qStringdata[1] : '';
+
+			// ----------------- PAGINATION -----------------
+			$totalRows = $this->common_model->getData('count', $tblName, $whereCon, $shortField, '0', '0');
+
+			if ($this->input->get('showLength') == 'All') {
+				$perPage = $totalRows;
+				$data['perpage'] = $this->input->get('showLength');
+			} elseif ($this->input->get('showLength')) {
+				$perPage = $this->input->get('showLength');
+				$data['perpage'] = $this->input->get('showLength');
+			} else {
+				$perPage = SHOW_NO_OF_DATA;
+				$data['perpage'] = SHOW_NO_OF_DATA;
+			}
+
+			$uriSegment = getUrlSegment();
+			$data['PAGINATION'] = adminPagination($baseUrl, $suffix, $totalRows, $perPage, $uriSegment);
+
+			$page = $this->uri->segment(getUrlSegment()) ?: 0;
+
+			$data['forAction'] = $baseUrl;
+
+			if ($totalRows) {
+				$first = (int)$page + 1;
+				$data['first'] = $first;
+				$last = (($first - 1) + $data['perpage']) > $totalRows ? $totalRows : (($first - 1) + $data['perpage']);
+				$data['noOfContent'] = 'Showing ' . $first . '-' . $last . ' of ' . $totalRows . ' items';
+			} else {
+				$data['first'] = 1;
+				$data['noOfContent'] = '';
+			}
+
+			// ----------------- MAIN DATA FETCH -----------------
+			$ALLDATA = $this->common_model->getData('multiple', $tblName, $whereCon, $shortField, $perPage, $page);
+			$data['ALLDATA'] = [];
+
+			if (!empty($ALLDATA)) {
+				$notificationIds = array_column($ALLDATA, 'notification_id');
+
+				// ----------------- AGGREGATION FOR READ/UNREAD -----------------
+				$pipeline = [
+					[
+						'$match' => [
+							'notification_id' => ['$in' => $notificationIds]
+						]
+					],
+					[
+						'$group' => [
+							'_id' => [
+								'notification_id' => '$notification_id',
+								'is_read' => '$is_read'
+							],
+							'count' => ['$sum' => 1]
+						]
+					]
+				];
+
+				$aggregationResults = $this->mongo_db->aggregate('uw_notifications_details', $pipeline,['batchSize' => 4]);
+
+				// ----------------- MAPPING READ/UNREAD COUNTS -----------------
+				$readStatusMap = [];
+				foreach ($aggregationResults as $res) {
+					$res = (array)$res;
+					$res['_id'] = (array)$res['_id'];
+
+					$nid = $res['_id']['notification_id'];
+					$isRead = $res['_id']['is_read'];
+					$readStatusMap[$nid][$isRead] = $res['count'];
+				}
+
+				// ----------------- FINAL DATA BUILD -----------------
+				foreach ($ALLDATA as $item) {
+					$nid = $item['notification_id'];
+					$item['read_count'] = isset($readStatusMap[$nid]['Y']) ? $readStatusMap[$nid]['Y'] : 0;
+					$item['unread_count'] = isset($readStatusMap[$nid]['N']) ? $readStatusMap[$nid]['N'] : 0;
+					$data['ALLDATA'][] = $item;
+				}
+			}
+			// echo"<pre>";print_r($data);die();
+			$this->layouts->set_title('Notification | CMS | Dealz Arabia');
+			$this->layouts->admin_view('cms/notifications/index', array(), $data);
+}
 	public function test($value='')
 	{
 		$serviceAccount = json_decode(file_get_contents($this->serviceAccountFile), true);
@@ -137,141 +248,367 @@ class Notifications extends CI_Controller {
 	 + + Updated By    :
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-	public function addeditdata($editId='')
-	{	 
+	// public function addeditdata($editId='')
+	// {	 
 		
-		$data['error'] 				= 	'';
-		$data['activeMenu'] 		= 	'cms/notifications';
-		$data['activeSubMenu'] 		= 	'notifications';
+	// 	$data['error'] 				= 	'';
+	// 	$data['activeMenu'] 		= 	'cms/notifications';
+	// 	$data['activeSubMenu'] 		= 	'notifications';
 		
-		if($editId):
-			$this->admin_model->authCheck('edit_data');
-			$data['EDITDATA']		=	$this->common_model->getDataByParticularField('uw_notifications','notification_temp_id',(int)$editId);
-		else:
-			$this->admin_model->authCheck('add_data');
-		endif;
+	// 	if($editId):
+	// 		$this->admin_model->authCheck('edit_data');
+	// 		$data['EDITDATA']		=	$this->common_model->getDataByParticularField('uw_notifications','notification_temp_id',(int)$editId);
+	// 	else:
+	// 		$this->admin_model->authCheck('add_data');
+	// 	endif;
 
-		$UwhereCon['where']		 	= 	array("status"=>'A');		
-		$UshortField 				= 	array('users_name'=>'ASC');
-		$data['usersdata'] 			= 	$this->common_model->getDataByNewQuery(array('users_id','users_name','users_email','users_mobile','email_notification','notification','sms_notification'),'multiple','uw_users',$UwhereCon,$UshortField,'0','0');
+	// 	$UwhereCon['where']		 	= 	array("status"=>'A');		
+	// 	$UshortField 				= 	array('users_name'=>'ASC');
+	// 	$data['usersdata'] 			= 	$this->common_model->getDataByNewQuery(array('users_id','users_name','users_email','users_mobile','email_notification','notification','sms_notification'),'multiple','uw_users',$UwhereCon,$UshortField,'0','0');
 		
-		if($this->input->post('SaveChanges')): 
-			$error					=	'NO';
-			$error							=	'NO';
-			$data['formError'] 				= 	'Yes';
-			$this->form_validation->set_rules('notific_type', 'notification type', 'trim|required');
-			if($this->input->post('notific_type') != 'all-users'):
-				$this->form_validation->set_rules('student_id[]', 'Student', 'trim|required');
-			endif;
-			$this->form_validation->set_rules('notific_title', 'notification title', 'trim|required');
-			$this->form_validation->set_rules('notific_message', 'message', 'trim|required');
-			// if($_FILES['image']['name'] == ''):
-			// 	$this->form_validation->set_rules('image', 'Image', 'required');
-			// endif;
+	// 	if($this->input->post('SaveChanges')): 
+	// 		$error					=	'NO';
+	// 		$error							=	'NO';
+	// 		$data['formError'] 				= 	'Yes';
+	// 		$this->form_validation->set_rules('notific_type', 'notification type', 'trim|required');
+	// 		if($this->input->post('notific_type') != 'all-users'):
+	// 			$this->form_validation->set_rules('student_id[]', 'Student', 'trim|required');
+	// 		endif;
+	// 		$this->form_validation->set_rules('notific_title', 'notification title', 'trim|required');
+	// 		$this->form_validation->set_rules('notific_message', 'message', 'trim|required');
+	// 		// if($_FILES['image']['name'] == ''):
+	// 		// 	$this->form_validation->set_rules('image', 'Image', 'required');
+	// 		// endif;
 
-			if($this->form_validation->run() && $error == 'NO'):  
+	// 		if($this->form_validation->run() && $error == 'NO'):  
 			
-				$param['notification_id']			=	(int)$this->common_model->getNextSequence('uw_notifications');
-				$param['notific_title']				= 	stripslashes($this->input->post('notific_title'));
-				$param['notific_message']			= 	stripslashes($this->input->post('notific_message'));
+	// 			$param['notification_id']			=	(int)$this->common_model->getNextSequence('uw_notifications');
+	// 			$param['notific_title']				= 	stripslashes($this->input->post('notific_title'));
+	// 			$param['notific_message']			= 	stripslashes($this->input->post('notific_message'));
 
-				if($_FILES['image']['name']):
-					$ufileName						= 	$_FILES['image']['name'];
-					$utmpName						= 	$_FILES['image']['tmp_name'];
-					$ufileExt         				= 	pathinfo($ufileName);
-					$unewFileName 					= 	$this->common_model->microseconds().'.'.$ufileExt['extension'];
-					$this->load->library("upload_crop_img");
-					$uimageLink						=	$this->upload_crop_img->_upload_image($ufileName,$utmpName,'notifications',$unewFileName,'');
-					if($uimageLink != 'UPLODEERROR'):
-						$param['image']		= $uimageLink;
-						$img_path           = $uimageLink;
-					else:
-						$param['image']		= 	'';
-					endif;
-				endif;
+	// 			if($_FILES['image']['name']):
+	// 				$ufileName						= 	$_FILES['image']['name'];
+	// 				$utmpName						= 	$_FILES['image']['tmp_name'];
+	// 				$ufileExt         				= 	pathinfo($ufileName);
+	// 				$unewFileName 					= 	$this->common_model->microseconds().'.'.$ufileExt['extension'];
+	// 				$this->load->library("upload_crop_img");
+	// 				$uimageLink						=	$this->upload_crop_img->_upload_image($ufileName,$utmpName,'notifications',$unewFileName,'');
+	// 				if($uimageLink != 'UPLODEERROR'):
+	// 					$param['image']		= $uimageLink;
+	// 					$img_path           = $uimageLink;
+	// 				else:
+	// 					$param['image']		= 	'';
+	// 				endif;
+	// 			endif;
 				
-				if($this->input->post('notific_type') == 'all-users'):
-					$whereCon['where_ne'][0]     	=  'device_id';
-					$whereCon['where_ne'][1]    	=  "";
-				else:
-					if($this->input->post('student_id')):
-						$selectStudentIds  			=	array();
-						foreach($this->input->post('student_id') as $student_id):
-							array_push($selectStudentIds,(int)$student_id);
-						endforeach;
-					else:
-						$selectStudentIds  			=	array();
-					endif;
-					$whereCon['where_in']     		=  array(array('users_id',$selectStudentIds));
-					$whereCon['where_ne'][0]     	=  'device_id';
-					$whereCon['where_ne'][1]    	=  '';
-				endif;
-				$deviceId 							= 	$this->common_model->getDataByNewQuery(array('users_id','device_id'),'multiple','uw_users',$whereCon,'','0','0');
-				if($deviceId <>''):  
+	// 			if($this->input->post('notific_type') == 'all-users'):
+	// 				$whereCon['where_ne'][0]     	=  'device_id';
+	// 				$whereCon['where_ne'][1]    	=  "";
+	// 			else:
+	// 				if($this->input->post('student_id')):
+	// 					$selectStudentIds  			=	array();
+	// 					foreach($this->input->post('student_id') as $student_id):
+	// 						array_push($selectStudentIds,(int)$student_id);
+	// 					endforeach;
+	// 				else:
+	// 					$selectStudentIds  			=	array();
+	// 				endif;
+	// 				$whereCon['where_in']     		=  array(array('users_id',$selectStudentIds));
+	// 				$whereCon['where_ne'][0]     	=  'device_id';
+	// 				$whereCon['where_ne'][1]    	=  '';
+	// 			endif;
+	// 			$whereCon['where']['users_type']    = 'Users';
+	// 			$deviceId 							= 	$this->common_model->getDataByNewQuery(array('users_id','device_id'),'multiple','uw_users',$whereCon,'','0','0');
+	// 			if($deviceId <>''):  
 					
-					$param['creation_ip']			=	currentIp();
-					$param['creation_date']			=	(int)$this->timezone->utc_time();//currentDateTime();
-					$param['created_by']			=	(int)$this->session->userdata('HCAP_ADMIN_ID');
-					$param['status']				=	'A';
-					$alastInsertId					=	$this->common_model->addData('uw_notifications',$param);
+	// 				$param['creation_ip']			=	currentIp();
+	// 				$param['creation_date']			=	(int)$this->timezone->utc_time();//currentDateTime();
+	// 				$param['created_by']			=	(int)$this->session->userdata('HCAP_ADMIN_ID');
+	// 				$param['status']				=	'A';
+	// 				$alastInsertId					=	$this->common_model->addData('uw_notifications',$param);
 					
-					$i = 1;  $j=0;	$notification_Id_array 	=	array();
-					foreach($deviceId as $devid): 
-						array_push($notification_Id_array,$devid['device_id']);
+	// 				$i = 1;  $j=0;	$notification_Id_array 	=	array();
+	// 				foreach($deviceId as $devid): 
+	// 					array_push($notification_Id_array,$devid['device_id']);
 
-						$detailParam['notification_details_id']	=	(int)$this->common_model->getNextSequence('uw_notifications_details');
-						$detailParam['users_id']				=	$devid['users_id'];
-						$detailParam['notification_id']			=	$param['notification_id'];
-						$detailParam['notific_title']			= 	stripslashes($this->input->post('notific_title'));
-						$detailParam['notific_message']			= 	stripslashes($this->input->post('notific_message'));
-						$detailParam['link']					= 	$this->input->post('link');
-						$detailParam['image']					= 	$param['image'];
-						$detailParam['is_read']					= 	'N';
+	// 					$detailParam['notification_details_id']	=	(int)$this->common_model->getNextSequence('uw_notifications_details');
+	// 					$detailParam['users_id']				=	$devid['users_id'];
+	// 					$detailParam['notification_id']			=	$param['notification_id'];
+	// 					$detailParam['notific_title']			= 	stripslashes($this->input->post('notific_title'));
+	// 					$detailParam['notific_message']			= 	stripslashes($this->input->post('notific_message'));
+	// 					$detailParam['link']					= 	$this->input->post('link');
+	// 					$detailParam['image']					= 	$param['image'];
+	// 					$detailParam['is_read']					= 	'N';
 
-						$detailParam['creation_ip']				=	currentIp();
-						$detailParam['creation_date']			=	(int)$this->timezone->utc_time();//currentDateTime();
-						$detailParam['created_by']				=	(int)$this->session->userdata('HCAP_ADMIN_ID');
-						$detailParam['status']					=	'A';
-						$detailParam['push_status']					=	0;
-						$this->common_model->addData('uw_notifications_details',$detailParam);
-					$i++;
-					endforeach;
+	// 					$detailParam['creation_ip']				=	currentIp();
+	// 					$detailParam['creation_date']			=	(int)$this->timezone->utc_time();//currentDateTime();
+	// 					$detailParam['created_by']				=	(int)$this->session->userdata('HCAP_ADMIN_ID');
+	// 					$detailParam['status']					=	'A';
+	// 					$detailParam['push_status']					=	0;
+	// 					$this->common_model->addData('uw_notifications_details',$detailParam);
+	// 				$i++;
+	// 				endforeach;
 
-					// if($notification_Id_array):
+	// 				// if($notification_Id_array):
 						
-					// 	// $res = sendNotification($this->input->post('notific_title'),$this->input->post('notific_message'), $notification_Id_array,$img_path);
-					// 	// if($res == false){
-					// 	// 	$this->session->set_flashdata('alert_error','Unable to send notification');
-					// 	// }
-					// 	// $notification_Ids_array  	=	array_chunk($notification_Id_array, 500);
-					// 	// if($notification_Ids_array):
-					// 	// 	foreach($notification_Ids_array as $notification_Ids):
-					// 	// 		$legency_key 			= 	'AAAAMa0rZsg:APA91bH1OhWfs7PXQX6MaApB3CqBjqETD3mdBxYYwtQ_i3bQYS2X-iJVLWgc5lY-wbeuB3-cwntDzz-D5M3z_qlH_AAO4Z8RSJ2ILviFovrdLhnO26i852DUJR0yj5yM2HoZJ5m36qPl';
-					// 	// 		//$legency_key 			= 	'AAAAMa0rZsg:APA91bH1OhWfs7PXQX6MaApB3CqBjqETD3mdBxYYwtQ_i3bQYS2X-iJVLWgc5lY-wbeuB3-cwntDzz-D5M3z_qlH_AAO4Z8RSJ2ILviFovrdLhnO26i852DUJR0yj5yM2HoZJ5m36qPl';
-					// 	//         $deviceType 			= 	'Andriod';
-					// 	// 		$img_path 				=	fileBaseUrl.$param['image'];
+	// 				// 	// $res = sendNotification($this->input->post('notific_title'),$this->input->post('notific_message'), $notification_Id_array,$img_path);
+	// 				// 	// if($res == false){
+	// 				// 	// 	$this->session->set_flashdata('alert_error','Unable to send notification');
+	// 				// 	// }
+	// 				// 	// $notification_Ids_array  	=	array_chunk($notification_Id_array, 500);
+	// 				// 	// if($notification_Ids_array):
+	// 				// 	// 	foreach($notification_Ids_array as $notification_Ids):
+	// 				// 	// 		$legency_key 			= 	'AAAAMa0rZsg:APA91bH1OhWfs7PXQX6MaApB3CqBjqETD3mdBxYYwtQ_i3bQYS2X-iJVLWgc5lY-wbeuB3-cwntDzz-D5M3z_qlH_AAO4Z8RSJ2ILviFovrdLhnO26i852DUJR0yj5yM2HoZJ5m36qPl';
+	// 				// 	// 		//$legency_key 			= 	'AAAAMa0rZsg:APA91bH1OhWfs7PXQX6MaApB3CqBjqETD3mdBxYYwtQ_i3bQYS2X-iJVLWgc5lY-wbeuB3-cwntDzz-D5M3z_qlH_AAO4Z8RSJ2ILviFovrdLhnO26i852DUJR0yj5yM2HoZJ5m36qPl';
+	// 				// 	//         $deviceType 			= 	'Andriod';
+	// 				// 	// 		$img_path 				=	fileBaseUrl.$param['image'];
 								
-					// 	// 		$response   			=  $this->notification_model->sendBRConfirmationNotificationToMultipleUser($notification_Ids,$legency_key,$deviceType,$this->input->post('notific_title'),$this->input->post('notific_message'),$img_path); 
-					// 	// 	endforeach;
-					// 	// endif;
+	// 				// 	// 		$response   			=  $this->notification_model->sendBRConfirmationNotificationToMultipleUser($notification_Ids,$legency_key,$deviceType,$this->input->post('notific_title'),$this->input->post('notific_message'),$img_path); 
+	// 				// 	// 	endforeach;
+	// 				// 	// endif;
 
-					// endif;
-					$this->session->set_flashdata('alert_success',lang('addsuccess'));
-				else:
-					$this->session->set_flashdata('alert_error','No data Found');
-				endif;
+	// 				// endif;
+	// 				$this->session->set_flashdata('alert_success',lang('addsuccess'));
+	// 			else:
+	// 				$this->session->set_flashdata('alert_error','No data Found');
+	// 			endif;
 				
-				$this->session->set_flashdata('alert_success','Notifications Sent');
-				redirect(correctLink('TGPNOTIFICATIONDATA',$this->session->userdata('HCAP_ADMIN_CURRENT_PATH').$this->router->fetch_class().'/index'));
-			endif;
-		endif;
+	// 			$this->session->set_flashdata('alert_success','Notifications Sent');
+	// 			redirect(correctLink('TGPNOTIFICATIONDATA',$this->session->userdata('HCAP_ADMIN_CURRENT_PATH').$this->router->fetch_class().'/index'));
+	// 		endif;
+	// 	endif;
 		
-		//echo '<pre>';  print_r($data['notific_type']); die;
-		$this->layouts->set_title('Add/Edit Notification | CMS | Dealz Arabia');
-		$this->layouts->admin_view('cms/notifications/addeditdata',array(),$data);
+	// 	//echo '<pre>';  print_r($data['notific_type']); die;
+	// 	$this->layouts->set_title('Add/Edit Notification | CMS | Dealz Arabia');
+	// 	$this->layouts->admin_view('cms/notifications/addeditdata',array(),$data);
 
-	}	// END OF FUNCTION	
-	
+	// }	// END OF FUNCTION	
+// 	public function addeditdata($editId = '') {
+//     $data['error'] = '';
+//     $data['activeMenu'] = 'cms/notifications';
+//     $data['activeSubMenu'] = 'notifications';
+
+//     $adminId = (int)$this->session->userdata('UW_ADMIN_ID');
+//     $creationDate = (int)$this->timezone->utc_time();
+
+//     // Auth check
+//     if ($editId):
+//         $this->admin_model->authCheck('edit_data');
+//         $data['EDITDATA'] = $this->common_model->getDataByParticularField('uw_notifications', 'notification_temp_id', (int)$editId);
+//     else:
+//         $this->admin_model->authCheck('add_data');
+//     endif;
+
+//     // Fetch active users
+//     $userQuery = ['where' => ['status' => 'A', 'users_type' => 'Users']];
+//     $data['usersdata'] = $this->common_model->getDataByNewQuery(
+//         ['users_id', 'users_name', 'users_email', 'users_mobile', 'email_notification', 'notification', 'sms_notification'],
+//         'multiple',
+//         'uw_users',
+//         $userQuery,
+//         ['users_name' => 'ASC'],
+//         '0',
+//         '0'
+//     );
+
+//     // On form submit
+//     if ($this->input->post('SaveChanges')) {
+//         $data['formError'] = 'Yes';
+//         $this->form_validation->set_rules('notific_type', 'notification type', 'trim|required');
+//         if ($this->input->post('notific_type') != 'all-users') {
+//             $this->form_validation->set_rules('student_id[]', 'Student', 'trim|required');
+//         }
+//         $this->form_validation->set_rules('notific_title', 'notification title', 'trim|required');
+//         $this->form_validation->set_rules('notific_message', 'message', 'trim|required');
+
+//         if ($this->form_validation->run()) {
+//             $param = [
+//                 'notification_id' => (int)$this->common_model->getNextSequence('uw_notifications'),
+//                 'notific_title' => stripslashes($this->input->post('notific_title')),
+//                 'notific_message' => stripslashes($this->input->post('notific_message')),
+//                 'creation_ip' => currentIp(),
+//                 'creation_date' => $creationDate,
+//                 'created_by' => $adminId,
+//                 'status' => 'A',
+//                 'notific_type' => $this->input->post('notific_type')
+//             ];
+
+//             // Upload image if exists
+//             $img_path = '';
+//             if ($_FILES['image']['name']) {
+//                 $ufileName = $_FILES['image']['name'];
+//                 $utmpName = $_FILES['image']['tmp_name'];
+//                 $ext = pathinfo($ufileName, PATHINFO_EXTENSION);
+//                 $unewFileName = $this->common_model->microseconds() . '.' . $ext;
+//                 $this->load->library("upload_crop_img");
+//                 $uimageLink = $this->upload_crop_img->_upload_image($ufileName, $utmpName, 'notifications', $unewFileName, '');
+//                 $param['image'] = $uimageLink != 'UPLODEERROR' ? $uimageLink : '';
+//             }
+
+//             // Get recipient users
+//             $whereCon = ['where' => ['users_type' => 'Users']];
+//             if ($param['notific_type'] != 'all-users') {
+//                 $studentIds = array_map('intval', $this->input->post('student_id') ?? []);
+//                 $whereCon['where_in'] = [['users_id', $studentIds]];
+//             }
+//             $whereCon['where_ne'] = ['device_id', ''];
+
+//             $recipients = $this->common_model->getDataByNewQuery(['users_id', 'device_id'], 'multiple', 'uw_users', $whereCon);
+
+//             if (!empty($recipients)) {
+//                 $this->common_model->addData('uw_notifications', $param);
+
+//                 $bulkInsert = [];
+//                 foreach ($recipients as $r) {
+//                     $bulkInsert[] = [
+//                         'notification_details_id' => (int)$this->common_model->getNextSequence('uw_notifications_details'),
+//                         'users_id' => $r['users_id'],
+//                         'notification_id' => $param['notification_id'],
+//                         'notific_title' => $param['notific_title'],
+//                         'notific_message' => $param['notific_message'],
+//                         'link' => $this->input->post('link'),
+//                         'image' => $param['image'],
+//                         'is_read' => 'N',
+//                         'creation_ip' => currentIp(),
+//                         'creation_date' => $creationDate,
+//                         'created_by' => (int)$this->session->userdata('HCAP_ADMIN_ID'),
+//                         'status' => 'A',
+//                         'push_status' => 0
+//                     ];
+//                 }
+
+//                 // 🚀 Batch insert instead of looping
+//                 if (!empty($bulkInsert)) {
+//                     $this->mongo_db->batch_insert('uw_notifications_details', $bulkInsert);
+// 				}
+
+//                 $this->session->set_flashdata('alert_success', 'Notifications Saved');
+//                 redirect(correctLink('TGPNOTIFICATIONDATA', $this->session->userdata('HCAP_ADMIN_CURRENT_PATH') . $this->router->fetch_class() . '/index'));
+//             } else {
+//                 $this->session->set_flashdata('alert_error', 'No users found');
+//             }
+//         }
+//     }
+
+//     $this->layouts->set_title('Add/Edit Notification | CMS | Dealz Arabia');
+//     $this->layouts->admin_view('cms/notifications/addeditdata', [], $data);
+// }
+public function addeditdata($editId = '') {
+    $data['error'] = '';
+    $data['activeMenu'] = 'cms/notifications';
+    $data['activeSubMenu'] = 'notifications';
+
+    $adminId = (int)$this->session->userdata('UW_ADMIN_ID');
+    $creationDate = (int)$this->timezone->utc_time();
+
+    // Auth check
+    if ($editId):
+        $this->admin_model->authCheck('edit_data');
+        $data['EDITDATA'] = $this->common_model->getDataByParticularField('uw_notifications', 'notification_temp_id', (int)$editId);
+    else:
+        $this->admin_model->authCheck('add_data');
+    endif;
+
+    // Fetch active users
+    $userQuery = ['where' => ['status' => 'A', 'users_type' => 'Users']];
+    $data['usersdata'] = $this->common_model->getDataByNewQuery(
+        ['users_id', 'users_name', 'users_email', 'users_mobile', 'email_notification', 'notification', 'sms_notification'],
+        'multiple',
+        'uw_users',
+        $userQuery,
+        ['users_name' => 'ASC'],
+        '0',
+        '0'
+    );
+
+    // On form submit
+    if ($this->input->post('SaveChanges')) {
+        $data['formError'] = 'Yes';
+        $this->form_validation->set_rules('notific_type', 'notification type', 'trim|required');
+        if ($this->input->post('notific_type') != 'all-users') {
+            $this->form_validation->set_rules('student_id[]', 'Student', 'trim|required');
+        }
+        $this->form_validation->set_rules('notific_title', 'notification title', 'trim|required');
+        $this->form_validation->set_rules('notific_message', 'message', 'trim|required');
+
+        if ($this->form_validation->run()) {
+            $param = [
+                'notification_id' => (int)$this->common_model->getNextSequence('uw_notifications'),
+                'notific_title' => stripslashes($this->input->post('notific_title')),
+                'notific_message' => stripslashes($this->input->post('notific_message')),
+                'creation_ip' => currentIp(),
+                'creation_date' => $creationDate,
+                'created_by' => $adminId,
+                'status' => 'A',
+                'notific_type' => $this->input->post('notific_type')
+            ];
+
+            // Upload image if exists
+            $img_path = '';
+            if ($_FILES['image']['name']) {
+                $ufileName = $_FILES['image']['name'];
+                $utmpName = $_FILES['image']['tmp_name'];
+                $ext = pathinfo($ufileName, PATHINFO_EXTENSION);
+                $unewFileName = $this->common_model->microseconds() . '.' . $ext;
+                $this->load->library("upload_crop_img");
+                $uimageLink = $this->upload_crop_img->_upload_image($ufileName, $utmpName, 'notifications', $unewFileName, '');
+                $param['image'] = $uimageLink != 'UPLODEERROR' ? $uimageLink : '';
+            }
+
+            // Get recipient users
+            $whereCon = ['where' => ['users_type' => 'Users']];
+            if ($param['notific_type'] != 'all-users') {
+                $studentIds = array_map('intval', $this->input->post('student_id') ?? []);
+                $whereCon['where_in'] = [['users_id', $studentIds]];
+            }
+            $whereCon['where_ne'] = ['device_id', ''];
+
+            $recipients = $this->common_model->getDataByNewQuery(['users_id', 'device_id'], 'multiple', 'uw_users', $whereCon);
+
+            if (!empty($recipients)) {
+                $this->common_model->addData('uw_notifications', $param);
+
+                $bulkInsert = [];
+                foreach ($recipients as $r) {
+                    $bulkInsert[] = [
+                        'notification_details_id' => (int)$this->common_model->getNextSequence('uw_notifications_details'),
+                        'users_id' => $r['users_id'],
+                        'notification_id' => $param['notification_id'],
+                        'notific_title' => $param['notific_title'],
+                        'notific_message' => $param['notific_message'],
+                        'link' => $this->input->post('link'),
+                        'image' => $param['image'],
+                        'is_read' => 'N',
+                        'creation_ip' => currentIp(),
+                        'creation_date' => $creationDate,
+                        'created_by' => (int)$this->session->userdata('HCAP_ADMIN_ID'),
+                        'status' => 'A',
+                        'push_status' => 1
+                    ];
+					if($this->input->post('notific_type') == 'individual-user'){
+						sendNotification($param['notific_title'], $param['notific_message'], [$r['device_id']],  '',0);
+					}
+                }
+
+                // 🚀 Batch insert instead of looping
+                if (!empty($bulkInsert)) {
+                    $this->mongo_db->batch_insert('uw_notifications_details', $bulkInsert);
+					if($this->input->post('notific_type') == 'all-users'){
+						sendNotificationToTopic($param['notific_title'], $param['notific_message'], '');
+					}
+				}
+				
+                $this->session->set_flashdata('alert_success', 'Notifications Saved');
+                redirect(correctLink('TGPNOTIFICATIONDATA', $this->session->userdata('HCAP_ADMIN_CURRENT_PATH') . $this->router->fetch_class() . '/index'));
+            } else {
+                $this->session->set_flashdata('alert_error', 'No users found');
+            }
+        }
+    }
+
+    $this->layouts->set_title('Add/Edit Notification | CMS | Dealz Arabia');
+    $this->layouts->admin_view('cms/notifications/addeditdata', [], $data);
+}
 	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 + + Function name 	: 	changestatus
@@ -366,4 +703,28 @@ class Notifications extends CI_Controller {
 			'data' => $html
 		]);die();
 	}	
+	public function deleteOldNotificationsData()
+	{
+		// Step 1: Get current UTC timestamp
+		$now = (int)$this->timezone->utc_time();
+
+		// Step 2: Subtract 2 days
+		$cutoffTimestamp = $now - (2 * 86400);
+
+		// Step 3: Build raw MongoDB filter
+		$filter = ['creation_date' => ['$lt' => $cutoffTimestamp]];
+
+		// Step 4: Delete from uw_notifications
+		$delete1 = $this->mongo_db->where($filter)->delete_all('uw_notifications');
+
+		// Step 5: Delete from uw_notifications_details
+		$delete2 = $this->mongo_db->where($filter)->delete_all('uw_notifications_details');
+
+		// Step 6: Output result
+		echo "✅ Deleted records older than " . date('Y-m-d H:i:s', $cutoffTimestamp) . " UTC<br>";
+		echo "🗑️ uw_notifications delete result: ";
+		print_r($delete1);
+		echo "<br>🗑️ uw_notifications_details delete result: ";
+		print_r($delete2);
+	}
 }

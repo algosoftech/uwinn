@@ -163,7 +163,7 @@ $(function(){
                                          
                                   </td>
                                   <td><?=showStatus($ALLDATAINFO['status'])?></td>
-                                  <td><?=$this->timezone->location_date($ALLDATAINFO['created_date'],'d F Y H:i',DEFAULT_TIMEZONE);?></td>
+                                  <td><?=$this->timezone->location_date($ALLDATAINFO['created_date'],'d F Y H:i','Asia/Dubai');?></td>
                                   <td>
                                   <div class="btn-group">
                                     <?php if($ALLDATAINFO['status'] == 'A'): ?>

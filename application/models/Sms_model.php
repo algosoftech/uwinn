@@ -154,7 +154,68 @@ class Sms_model extends CI_Model
 		
 	} //END OF FUNCTION
 
-	 
+	/***********************************************************************
+	** Function name 	: accountWhatsappVerifyOTP
+	** Developed By 	: Dilip Halder
+	** Purpose  		: This is use for to send whatsapp otp.
+	** Date 			: 15 July 2025
+	************************************************************************/
+ 	function accountWhatsappVerifyOTP($countryCode='+971',$mobile='',$otp='')
+ 	{
+	 	// Set your credentials and message info
+		$apiKey     = '6876026f3efcc78baa8a405d';
+		$apiSecret  = '15b64cbab271477c980bbdaa7b10457e';
+		$channelId  = '68720fc7904c8c7ddb0c57bf';
+
+
+		$countryCode = str_replace('+','', $countryCode);
+		// echo "<pre>";print_r($countryCode);die();
+
+		// Create the payload
+		$data = array(
+		    'channelId'   => $channelId,
+		    'channelType' => 'whatsapp',
+		    'recipient'   => [ 'name'  => $name, 'phone' => $phone ],
+		    'whatsapp'    => [
+		        'text' => [
+		            'body' => $message
+		        ],
+		        'type' => 'text'
+		    ]
+		);
+
+		$postFields = array(
+		    "channelId" => $channelId,
+		    "channelType" => "whatsapp",
+		    "recipient" => array("phone" => $countryCode.$mobile  ),
+		    "whatsapp" => array(
+		        "type" => "template",
+		        "template" => array(
+		            "templateName" => "otp_verification",
+		            "bodyValues" => array(
+		                "otp" => $otp
+		            )
+		        )
+		    )
+		);
+
+		// Initialize cURL
+		$ch = curl_init('https://server.gallabox.com/devapi/messages/whatsapp');
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+		    "apiKey: $apiKey",
+		    "apiSecret: $apiSecret",
+		    'Content-Type: application/json'
+		]);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+
+		// Execute and handle response
+		$response = curl_exec($ch);
+		curl_close($ch);
+
+		// echo $response;
+ 	} 
 
 	/***********************************************************************
 	** Function name 	: sendSuccessResetPasswordSmsToUser

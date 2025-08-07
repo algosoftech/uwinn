@@ -165,6 +165,9 @@ $(function(){
                       <div class="btn-group">
                         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
                         <ul class="dropdown-menu" role="menu">
+                          <?php if($ALLDATAINFO['users_type'] == 'Users') { ?>
+                          <li><a href="<?php echo base_url('users/activity-dashboard/'.$ALLDATAINFO['users_id']) ?>"><i class="fas fa-eye"></i> View Dashboard</a></li>
+                          <?php } ?>
                         <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['users_id'])?>"><i class="fas fa-edit"></i> Edit Details</a></li>
                         <?php if($ALLDATAINFO['status'] == 'A'): ?>
                           <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['users_id'].'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>

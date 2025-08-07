@@ -82,7 +82,7 @@ public function  __construct()
 				]],
 				['$unwind' => '$user_info'],
 				['$sort' => ['creation_date' => 1]], // Sort by creation_date ASC
-				['$limit' => 100], // Limit to 100 records
+				['$limit' => 1000], // Limit to 100 records
 				['$project' => [
 					'_id' => 0, 
 					'notific_title' => 1, 
@@ -305,5 +305,38 @@ public function  __construct()
 		
 		
 	}
+	public function deleteOldNotificationsData()
+	{
+		// Step 1: Get current UTC timestamp
+		$now = (int)$this->timezone->utc_time();
+
+		// Step 2: Subtract 2 days
+		$cutoffTimestamp = $now - (7 * 86400);
+
+		// Step 3: Build raw MongoDB filter
+		$filter = ['creation_date' => ['$lt' => $cutoffTimestamp]];
+
+		// Step 4: Delete from uw_notifications
+		$delete1 = $this->mongo_db->where($filter)->delete_all('uw_notifications');
+
+		// Step 5: Delete from uw_notifications_details
+		$delete2 = $this->mongo_db->where($filter)->delete_all('uw_notifications_details');
+
+		// Step 6: Output result
+		echo "✅ Deleted records older than " . date('Y-m-d H:i:s', $cutoffTimestamp) . " UTC<br>";
+		echo "🗑️ uw_notifications delete result: ";
+		print_r($delete1);
+		echo "<br>🗑️ uw_notifications_details delete result: ";
+		print_r($delete2);
+	}
+
+
+	// public function test()
+	// {
+	// 	echo "<pre>";
+	// 	print_r('a');
+	// 	die();
+	// }
+
 
 }	

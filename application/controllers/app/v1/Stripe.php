@@ -21,74 +21,98 @@ class Stripe extends CI_Controller {
 	 * * Purpose  		: This function used for get winner results
 	 * * Date 			: 16 April 2024
 	 * * **********************************************************************/
-	public function initilizeOrder()
-	{	
+	 public function initilizeOrder()
+	 {	
 		$apiHeaderData 		=	getApiHeaderData();
 		$result 			= 	array();	
 		if(requestAuthenticate(APIKEY,'POST')):
-			
-			$userID   = $this->input->post('user_id');
-			$currency = $this->input->post('currency');
-			$amount   = $this->input->post('amount');
-			
-			if(empty($userID)) :
-				echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);
-			elseif(empty($currency)) :
-				echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_CURRENCY'),$result);
-			elseif(empty($amount)):
-				echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_Amount'),$result);
-			else:
-				 
-				$where['where']['users_id'] = (int)$userID;
-				$Fieldslist   = array('users_name','last_name','users_type','country_code','users_mobile', 'users_email','status','users_id','stripe_customer_id');
-				$tblName      =  'uw_users';
-				$userDetails  =  $this->common_model->getParticularFieldByMultipleCondition($Fieldslist ,$tblName, $where);
-				// echo "<pre>";print_r($userDetails);die();
 
-				if(!empty($userDetails) && $userDetails['status'] == 'A' && $userDetails['users_type'] == 'Users' ):
+			try {
+				$userID   = $this->input->post('user_id');
+				$currency = $this->input->post('currency');
+				$amount   = $this->input->post('amount');
 
-					// Creating customer in stripe..
-					$CustomerData = $this->stripe_model->createCustomers($userDetails);
-					$IDS  					= $this->transactionIDS();
-					$intentData['currency'] = $currency;
-					$intentData['amount']   = $amount;
-					$intentData['mobile']   = $userDetails['users_mobile'];
-					$intentData['tranasactionID'] = $IDS['tranasactionID'];
-					$intentData['customer']       = $userDetails['stripe_customer_id']?$userDetails['stripe_customer_id']:$CustomerData['id'] ;
-					$intentData['idempotencyKEY'] = $IDS['idempotencyKEY'];
-					$intentData['metadata']['first_name'] = $userDetails['users_name'];
-					$intentData['metadata']['last_name']  = $userDetails['last_name'];
-					$intentData['metadata']['mobile'] 	  = $userDetails['users_mobile'];
-					$result = $this->stripe_model->paymentIntent($intentData);
-
-					/* Adding payment details in initilize payment gateway api*/ 
-			        $tableName                = 'uw_transactions';
-			        $Param['tranasactionID']  = $intentData['tranasactionID'];
-			        $Param['users_id']        = (int)$userID;
-			        $Param['currency']        = $intentData['currency'];
-			        $Param['amount']          = (int)$intentData['amount'];
-					$Param['first_name']      = $userDetails['users_name'];
-					$Param['last_name']       = $userDetails['last_name'];
-			        $Param['mobile']          = (int)$intentData['mobile'];
-					$Param['created_at']      = date('Y-m-d H:i:s');
-			        $Param['status']          = 'pending';
-			      	$this->common_model->addData($tableName,$Param);
-
-					echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
-				elseif(!empty($userDetails) && $userDetails['status'] == 'A' && $userDetails['users_type'] != 'Users' ):
-					echo outPut(1,lang('SUCCESS_CODE'),lang('STRIPE_AVAILABLE_ONLY_IN_APP'),$result);
-
-				elseif(empty($userDetails)):
-					echo outPut(0,lang('SUCCESS_CODE'),lang('INVALID_LOGIN'),$result);
+				if(empty($userID)) :
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($currency)) :
+					throw new Exception(lang('EMPTY_CURRENCY'), 1);
+				elseif(empty($amount)):
+					throw new Exception(lang('EMPTY_Amount'), 1);
 				else:
-					echo outPut(0,lang('SUCCESS_CODE'),lang('FORBIDDEN_MSG'),$result);
+
+					$tblName1     = 'uw_general_data';
+					$Fieldslist   = array('recharge_topup_btn','recharge_topup_end_time','recharge_topup_start_time','recharge_topup_msg');
+					$generalData  =  $this->common_model->getParticularFieldByMultipleCondition($Fieldslist ,$tblName1, $where);
+					
+					if($generalData):
+						$currentTime  = strtotime(date('H:i'));
+						$starTime     = strtotime($generalData['recharge_topup_start_time']);
+						$endTime      = strtotime($generalData['recharge_topup_end_time']);
+					endif;
+
+					if(!empty($generalData) && $generalData['recharge_topup_btn'] === 'Y' && ($currentTime >= $startTime && $currentTime <= $endTime)):
+
+						$where['where']['users_id'] = (int)$userID;
+						$Fieldslist   = array('users_name','last_name','users_type','country_code','users_mobile', 'users_email','status','users_id','stripe_customer_id');
+						$tblName      =  'uw_users';
+						$userDetails  =  $this->common_model->getParticularFieldByMultipleCondition($Fieldslist ,$tblName, $where);
+						// echo "<pre>";print_r($userDetails);die();
+
+						if(!empty($userDetails) && $userDetails['status'] == 'A' && $userDetails['users_type'] == 'Users' ):
+
+							// Creating customer in stripe..
+							$CustomerData = $this->stripe_model->createCustomers($userDetails);
+							$IDS  					= $this->transactionIDS();
+							$intentData['currency'] = $currency;
+							$intentData['amount']   = $amount;
+							$intentData['mobile']   = $userDetails['users_mobile'];
+							$intentData['tranasactionID'] = $IDS['tranasactionID'];
+							$intentData['customer']       = $userDetails['stripe_customer_id']?$userDetails['stripe_customer_id']:$CustomerData['id'] ;
+							$intentData['idempotencyKEY'] = $IDS['idempotencyKEY'];
+							$intentData['metadata']['first_name'] = $userDetails['users_name'];
+							$intentData['metadata']['last_name']  = $userDetails['last_name'];
+							$intentData['metadata']['mobile'] 	  = $userDetails['users_mobile'];
+							$result = $this->stripe_model->paymentIntent($intentData);
+
+							/* Adding payment details in initilize payment gateway api*/ 
+					        $tableName                = 'uw_transactions';
+					        $Param['tranasactionID']  = $intentData['tranasactionID'];
+					        $Param['users_id']        = (int)$userID;
+							$Param['currency']        = $intentData['currency'];
+							$Param['amount']          = (int)$intentData['amount'];
+					        $Param['first_name']        = $userDetails['users_name'];
+							$Param['last_name']          = $userDetails['last_name'];
+					        $Param['mobile']          = (int)$intentData['mobile'];
+							$Param['created_at']          = date('Y-m-d H:i:s');
+					        $Param['status']          = 'pending';
+					      	$this->common_model->addData($tableName,$Param);
+
+							echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
+						elseif(!empty($userDetails) && $userDetails['status'] == 'A' && $userDetails['users_type'] != 'Users' ):
+							throw new Exception(lang('STRIPE_AVAILABLE_ONLY_IN_APP'), 1);
+						elseif(empty($userDetails)):
+							throw new Exception(lang('INVALID_LOGIN'), 1);
+						else:
+							throw new Exception(lang('FORBIDDEN_MSG'), 1);
+						endif;
+
+					else:
+						$errorMsg = $generalData['recharge_topup_msg']? $generalData['recharge_topup_msg'] :lang('RECHARGE_TOPUP_MSG');
+						throw new Exception($errorMsg, 1);
+					endif;
+					
 				endif;
-			endif;
+				
+			} catch (Exception $e) {
+				echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+				
+			}
+			
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
-	}
-
+	 }
+	
 	/* * *********************************************************************
 	 * * Function name  : stripeDetails
 	 * * Developed By 	: Dilip Halder
@@ -231,8 +255,7 @@ class Stripe extends CI_Controller {
 						// Added balance in account..
 						$UserParam['totalArabianPoints']     =  (float)$userDetails['totalArabianPoints']+$orderDetails['amount'];
 						$UserParam['availableArabianPoints'] =  (float)$userDetails['availableArabianPoints']+$orderDetails['amount'];
-						$where1['users_id'] = (int)$userID;
-				      	$this->common_model->editDataByMultipleCondition($tblName1,$UserParam ,$where1);
+				      	$this->common_model->editDataByMultipleCondition($tblName1,$UserParam ,$where['where']);
 
 						// Updating payment responce.
 				        $updateParam['status']   = $status;

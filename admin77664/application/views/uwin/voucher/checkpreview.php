@@ -217,83 +217,103 @@ function totalAmount(){
       });
    })
 }
+// $('#allwinners').on('submit', function(e) {
+//     e.preventDefault();
+//     showLoadingOverlay(); // Show loading overlay at the start
+//     var uploadedCount = 0; // Tracks the number of uploaded rows
+//     var totalRows = $('tbody tr').length; // Total rows in the table
+//     // var batchSize = 90; // Number of rows to upload in each batch
+//     var batchSize = (totalRows * 25) / 100;
+//     // Function to upload data in batches
+//     function uploadBatch(startIndex) {
+//         var endIndex = Math.min(startIndex + batchSize, totalRows); // End index for the batch
+//         var batchData = []; // Array to hold batch data
+        
+//         // Gather data for the current batch
+//         for (var i = startIndex; i < endIndex; i++) {
+//             var row = $('tbody tr').eq(i); // Get each row
+            
+//             // Collect all necessary data from the row
+//             var batch_id = row.find('input[name^="batch_id"]').val();
+//             var order_id = row.find('input[name^="order_id"]').val();
+//             var seller_first_name = row.find('input[name^="seller_first_name"]').val();
+//             var seller_last_name = row.find('input[name^="seller_last_name"]').val();
+//             var code = row.find('input[name^="code"]').val();
+//             var amount = row.find('input[name^="amount"]').val();
+//             var coupons = row.find('input[name^="coupons"]').val();
+//             var products_id = row.find('input[name^="products_id"]').val();
+//             var csv_name = row.find('input[name^="csv_name"]').val();
+//             var user_id = row.find('input[name^="user_id"]').val();
+//             var winner_type = row.find('input[name^="winner_type"]').val();
 
+//             // Add row data to the batch
+//             batchData.push({
+//                 batch_id: batch_id,
+//                 order_id: order_id,
+//                 seller_first_name: seller_first_name,
+//                 seller_last_name: seller_last_name,
+//                 code: code,
+//                 amount: amount,
+//                 coupons: coupons,
+//                 products_id: products_id,
+//                 csv_name: csv_name,
+//                 user_id: user_id,
+//                 winner_type: winner_type
+//             });
+//         }
+
+//         // AJAX call to upload the batch
+//         $.ajax({
+//             url: '<?= base_url('uwin/voucher/uploadVoucher') ?>',
+//             type: 'POST',
+//             data: JSON.stringify({ batch: batchData }), // Send the batch data
+//             success: function(response) {
+//                 uploadedCount += batchData.length; // Update uploaded count
+//                 updateLoadingOverlay(uploadedCount, totalRows); // Update loading progress
+//                 if (endIndex < totalRows) {
+//                     uploadBatch(endIndex); // Upload the next batch
+//                 } else {
+//                     hideLoadingOverlay(); // Hide overlay after all data is uploaded
+//                     alert('All ' + totalRows + ' data uploaded successfully!');
+//                     window.location.href = '<?= base_url('uwin/voucher/index') ?>'; // Replace with your redirect URL
+
+//                 }
+//             },
+//             error: function() {
+//                 console.error('Failed to upload data for batch starting at row ' + (startIndex + 1));
+//                 hideLoadingOverlay(); // Hide the overlay in case of error
+//                 alert('Error in uploading batch starting from row ' + (startIndex + 1) + '. Please try again.');
+//             }
+//         });
+//     }
+
+//     uploadBatch(0); // Start uploading from the first batch
+// });
 $('#allwinners').on('submit', function(e) {
     e.preventDefault();
-    showLoadingOverlay(); // Show loading overlay at the start
-    var uploadedCount = 0; // Tracks the number of uploaded rows
-    var totalRows = $('tbody tr').length; // Total rows in the table
-    var batchSize = 90; // Number of rows to upload in each batch
-    
-    // Function to upload data in batches
-    function uploadBatch(startIndex) {
-        var endIndex = Math.min(startIndex + batchSize, totalRows); // End index for the batch
-        var batchData = []; // Array to hold batch data
-        
-        // Gather data for the current batch
-        for (var i = startIndex; i < endIndex; i++) {
-            var row = $('tbody tr').eq(i); // Get each row
-            
-            // Collect all necessary data from the row
-            var batch_id = row.find('input[name^="batch_id"]').val();
-            var order_id = row.find('input[name^="order_id"]').val();
-            var seller_first_name = row.find('input[name^="seller_first_name"]').val();
-            var seller_last_name = row.find('input[name^="seller_last_name"]').val();
-            var code = row.find('input[name^="code"]').val();
-            var amount = row.find('input[name^="amount"]').val();
-            var coupons = row.find('input[name^="coupons"]').val();
-            var products_id = row.find('input[name^="products_id"]').val();
-            var csv_name = row.find('input[name^="csv_name"]').val();
-            var user_id = row.find('input[name^="user_id"]').val();
-            var winner_type = row.find('input[name^="winner_type"]').val();
-
-            // Add row data to the batch
-            batchData.push({
-                batch_id: batch_id,
-                order_id: order_id,
-                seller_first_name: seller_first_name,
-                seller_last_name: seller_last_name,
-                code: code,
-                amount: amount,
-                coupons: coupons,
-                products_id: products_id,
-                csv_name: csv_name,
-                user_id: user_id,
-                winner_type: winner_type
-            });
-        }
-
-        // AJAX call to upload the batch
-        $.ajax({
+    showLoadingOverlay();
+   $.ajax({
             url: '<?= base_url('uwin/voucher/uploadVoucher') ?>',
             type: 'POST',
-            data: { batch: batchData }, // Send the batch data
+            data: { temp_id: '<?=$temp_id?>' }, // Send the batch data
             success: function(response) {
-                uploadedCount += batchData.length; // Update uploaded count
-                updateLoadingOverlay(uploadedCount, totalRows); // Update loading progress
-                if (endIndex < totalRows) {
-                    uploadBatch(endIndex); // Upload the next batch
-                } else {
-                    hideLoadingOverlay(); // Hide overlay after all data is uploaded
-                    alert('All ' + totalRows + ' data uploaded successfully!');
-                    window.location.href = '<?= base_url('uwin/voucher/index') ?>'; // Replace with your redirect URL
-
-                }
+                  hideLoadingOverlay(); // Hide overlay after all data is uploaded
+                  alert('All  data uploaded successfully!');
+                  window.location.href = '<?= base_url('uwin/voucher/index') ?>';
+                
             },
             error: function() {
                 console.error('Failed to upload data for batch starting at row ' + (startIndex + 1));
                 hideLoadingOverlay(); // Hide the overlay in case of error
-                alert('Error in uploading batch starting from row ' + (startIndex + 1) + '. Please try again.');
+                alert('Error in uploading batch starting from row  Please try again.');
             }
         });
-    }
-
-    uploadBatch(0); // Start uploading from the first batch
+    
 });
 
 // Loading overlay functions
 function showLoadingOverlay() {
-    var overlay = $('<div id="loadingOverlay"><span id="uploadPercentage">0%</span></div>');
+    var overlay = $('<div id="loadingOverlay"><span id="uploadPercentage">Uploading</span></div>');
     overlay.css({
         'position': 'fixed',
         'top': 0,
@@ -325,7 +345,7 @@ function showLoadingOverlay() {
 
 function updateLoadingOverlay(uploadedCount, totalRows) {
     var percentage = Math.floor((uploadedCount / totalRows) * 100); // Calculate the upload progress
-    $('#uploadPercentage').text(percentage + '%');
+    // $('#uploadPercentage').text('Uploading');
 }
 
 function hideLoadingOverlay() {

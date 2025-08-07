@@ -106,37 +106,34 @@
                       <td><?=stripslashes($ALLDATAINFO['stock'].'/'.$ALLDATAINFO['totalStock'])?></td>
                       <td style="text-align: right;"><?=showStatus($ALLDATAINFO['status'])?></td>
 										  <td>
-											<div class="btn-group">
-											  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
-											  <ul class="dropdown-menu" role="menu">
-												<li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['products_id'])?>"><i class="fas fa-edit"></i> Edit Details</a></li>
-												<?php if($ALLDATAINFO['status'] == 'A'): ?>
+											 <div class="btn-group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['products_id'])?>"><i class="fas fa-edit"></i> Edit Details</a></li>
+                          <?php if($ALLDATAINFO['status'] == 'A'): ?>
+                          
+                            <?php 
+                            /* 
+                             <li><a href="<?php echo getCurrentControllerPath('updatestock/'.$ALLDATAINFO['products_id'])?>"><i class="fas fa-cubes"></i> Update Stock </a></li>  
+                             <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['products_id'].'/D')?>"><i class="fas fa-trash"></i> Delete</a></li>
+                             <li><a href="<?php echo base_url('winners/alllottowinners/index/'.base64_encode($ALLDATAINFO['products_id']))?>"><i class="fas fa-trophy"></i> Add Winners</a></li>
+                            <?php if($ALLDATAINFO['isSoldout'] == 'Y'): ?>
+                              <li><a href="<?php echo getCurrentControllerPath('changesoldoutstatus/'.$ALLDATAINFO['products_id'].'/N')?>"><i class="fa fa-check-circle"></i> Mark as Available</a></li>
+                            <?php else: ?>
+                              <li><a href="<?php echo getCurrentControllerPath('changesoldoutstatus/'.$ALLDATAINFO['products_id'].'/Y')?>"><i class="fa fa-window-close"></i> Mark as Soldout</a></li>
+                            <?php endif; ?>
+                           */
+                             ?>
 
-                          <li><a href="<?php echo getCurrentControllerPath('updatestock/'.$ALLDATAINFO['products_id'])?>"><i class="fas fa-cubes"></i> Update Stock </a></li>
-
-												  <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['products_id'].'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
-
-                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['products_id'].'/D')?>"><i class="fas fa-trash"></i> Delete</a></li>
-
+                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['products_id'].'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
                           <li><a href="<?php echo getCurrentControllerPath('prizeList/'.base64_encode($ALLDATAINFO['products_id']))?>"><i class="fas fa-gift"></i> Add Prize</a></li>
-                          <li><a href="<?php echo base_url('winners/alllottowinners/index/'.base64_encode($ALLDATAINFO['products_id']))?>"><i class="fas fa-trophy"></i> Add Winners</a></li>
-
-												<?php elseif($ALLDATAINFO['status'] == 'I'): ?>
-												  <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['products_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
-
-												<?php endif; ?>
-                        <?php if($ALLDATAINFO['isSoldout'] == 'Y'): ?>
-                          <li><a href="<?php echo getCurrentControllerPath('changesoldoutstatus/'.$ALLDATAINFO['products_id'].'/N')?>"><i class="fa fa-check-circle"></i> Mark as Available</a></li>
-                        <?php else: ?>
-                          <li><a href="<?php echo getCurrentControllerPath('changesoldoutstatus/'.$ALLDATAINFO['products_id'].'/Y')?>"><i class="fa fa-window-close"></i> Mark as Soldout</a></li>
-                        <?php endif; ?>
-                        <li>
-                          <a href="<?php echo getCurrentControllerPath('settings/'.$ALLDATAINFO['products_id'])?>"><i class="fas fa-cog"></i> Settings
-                          </a>
-                        </li>
-
-											   </ul>
-											</div>
+                          <?php elseif($ALLDATAINFO['status'] == 'I'): ?>
+                            <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['products_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
+                          <?php endif; ?>
+                          <li><a href="<?php echo getCurrentControllerPath('settings/'.$ALLDATAINFO['products_id'])?>"><i class="fas fa-cog"></i> Settings</a></li>
+                          <li><a href="<?php echo getCurrentControllerPath('updateDraw/'.$ALLDATAINFO['products_id'])?>" onClick='return confirm("<?=$drawDates;?> Do you want to update Draw Date?");' ><i class="fas fa-cog"></i> Update Draw Date</a></li>
+                        </ul>
+                      </div>
 										  </td>
 										</tr>
 									  <?php $j++; endforeach; else: ?>

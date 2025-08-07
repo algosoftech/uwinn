@@ -42,7 +42,127 @@ class Allorders extends CI_Controller {
 	 + + Updated By   	:
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-	public function index()
+	// public function index()
+	// {	
+	// 	$this->admin_model->authCheck('view_data');
+	// 	$data['error'] 						= 	'';
+	// 	$data['activeMenu'] 				= 	'orders';
+	// 	$data['activeSubMenu'] 				= 	'alllottooders';
+
+
+	// 	if($this->input->get('fromDate')):
+	// 		$fromDate	 = date('Y-m-d H:i', strtotime($this->input->get('fromDate')));
+	// 	else:
+	// 		$fromDate    = date('Y-m-d 22:01', strtotime('-1 day'));
+	// 	endif;
+	// 	if($this->input->get('toDate')):
+	// 		$toDate	 	 = date('Y-m-d H:i', strtotime($this->input->get('toDate')));
+	// 	else:
+	// 		$toDate	 	 = date('Y-m-d 22:00');
+	// 	endif;
+		
+	// 	$searchField   = $this->input->get('searchField');
+	// 	$searchValue   = $this->input->get('searchValue');
+		 
+
+	// 	if($searchField == 'status'):
+	// 		if($fromDate):
+	// 			$whereCondition['where']['update_date']['$gte']  =  strtotime($fromDate);
+	// 		endif;
+	// 		if($toDate):
+	// 			$whereCondition['where']['update_date']['$lte']  =  strtotime($toDate);
+	// 		endif;
+	// 	else:
+	// 		if($fromDate):
+	// 			$whereCondition['where']['created_at']['$gte']  =  $fromDate;
+	// 		endif;
+	// 		if($toDate):
+	// 			$whereCondition['where']['created_at']['$lte']  =  $toDate;
+	// 		endif;
+
+	// 	endif;
+
+	// 	$whereCondition['where']['raffle_mode']   = array('$ne' => 'Y');
+
+	// 	$data['searchField'] 			= $searchField;
+	// 	$data['searchValue'] 			= $searchValue;
+	// 	$data['fromDate'] 				= $fromDate;  
+	// 	$data['toDate'] 				= $toDate;
+
+	// 	// Where conditions section.
+	// 	if(!empty($searchField) && !empty($searchValue)):
+	// 		if($searchField == 'ticket'):
+	// 		 	$whereCondition['where']	 = 	array($searchField=> "[[".$searchValue."]]" );
+	// 		elseif($searchField == 'order_code'):
+	// 			$whereCondition['where'][$searchField] = base64_encode($searchValue);	
+	// 		else:
+	// 		  	$whereCondition['where'][$searchField] = is_numeric($searchValue)?(int)$searchValue:$searchValue;
+	// 		endif;
+
+	// 	else:
+	// 		$whereCondition['where']['order_status'] = array('$ne' => 'Initialize');
+	// 	endif;
+
+	// 	$baseUrl 							= 	getCurrentControllerPath('index');
+		
+	// 	$this->session->set_userdata('ALLORDERSDATA',currentFullUrl());
+	// 	$qStringdata						=	explode('?',currentFullUrl());
+	// 	$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
+	// 	$tblName 							= 	'uw_lotto_orders';
+
+	// 	$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCondition,$shortField,'0','0');
+		
+	// 	if($this->input->get('showLength') == 'All'):
+	// 		$perPage	 					= 	$totalRows;
+	// 		$data['perpage'] 				= 	$this->input->get('showLength');  
+	// 	elseif($this->input->get('showLength')):
+	// 		$perPage	 					= 	$this->input->get('showLength'); 
+	// 		$data['perpage'] 				= 	$this->input->get('showLength'); 
+	// 	else:
+	// 		$perPage	 					= 	SHOW_NO_OF_DATA;
+	// 		$data['perpage'] 				= 	SHOW_NO_OF_DATA; 
+	// 	endif;
+
+	// 	$uriSegment 						= 	getUrlSegment();
+	//     $data['PAGINATION']					=	adminPagination($baseUrl,$suffix,$totalRows,$perPage,$uriSegment);
+
+    //    if($this->uri->segment(getUrlSegment())):
+    //        $page = $this->uri->segment(getUrlSegment());
+    //    else:
+    //        $page = 0;
+    //    endif;
+		
+	// 	$data['forAction'] 					= 	$baseUrl; 
+	// 	if($totalRows):
+	// 		$first							=	(int)($page)+1;
+	// 		$data['first']					=	$first;
+			
+	// 		if($data['perpage'] == 'All'):
+	// 			$pageData 					=	$totalRows;
+	// 		else:
+	// 			$pageData 					=	$data['perpage'];
+	// 		endif;
+			
+	// 		$last							=	((int)($page)+$pageData)>$totalRows?$totalRows:((int)($page)+$pageData);
+	// 		$data['noOfContent']			=	'Showing '.$first.'-'.$last.' of '.$totalRows.' items';
+	// 	else:
+	// 		$data['first']					=	1;
+	// 		$data['noOfContent']			=	'';
+	// 	endif;
+
+	// 	$startIndex   = $page;
+	// 	$itemsPerPage = $pageData;
+	// 	// $itemsPerPage = 1;
+	// 	$resultType  			= '';
+	// 	$data['ALLDATA']  		= $this->common_model->getOrderDetails($resultType,$whereCondition,$startIndex,$itemsPerPage);
+	// 	// echo "<pre>";print_r($data);die();
+
+	// 	$this->layouts->set_title('Orders | UWINN');
+	// 	$this->layouts->admin_view('orders/allorders/index',array(),$data);
+	// }	// END OF FUNCTION
+
+
+	 public function index()
 	{	
 		$this->admin_model->authCheck('view_data');
 		$data['error'] 						= 	'';
@@ -67,22 +187,20 @@ class Allorders extends CI_Controller {
 
 		if($searchField == 'status'):
 			if($fromDate):
-				$whereCondition['where']['update_date']['$gte']  =  strtotime($fromDate);
+				$whereCon['where']['update_date']['$gte']  =  strtotime($fromDate);
 			endif;
 			if($toDate):
-				$whereCondition['where']['update_date']['$lte']  =  strtotime($toDate);
+				$whereCon['where']['update_date']['$lte']  =  strtotime($toDate);
 			endif;
 		else:
 			if($fromDate):
-				$whereCondition['where']['created_at']['$gte']  =  $fromDate;
+				$whereCon['where']['created_at']['$gte']  =  $fromDate;
 			endif;
 			if($toDate):
-				$whereCondition['where']['created_at']['$lte']  =  $toDate;
+				$whereCon['where']['created_at']['$lte']  =  $toDate;
 			endif;
 
 		endif;
-
-		$whereCondition['where']['raffle_mode']   = array('$ne' => 'Y');
 
 		$data['searchField'] 			= $searchField;
 		$data['searchValue'] 			= $searchValue;
@@ -92,26 +210,27 @@ class Allorders extends CI_Controller {
 		// Where conditions section.
 		if(!empty($searchField) && !empty($searchValue)):
 			if($searchField == 'ticket'):
-			 	$whereCondition['where']	 = 	array($searchField=> "[[".$searchValue."]]" );
+			 	$whereCon['where']	 = 	array($searchField=> "[[".$searchValue."]]" );
 			elseif($searchField == 'order_code'):
-				$whereCondition['where'][$searchField] = base64_encode($searchValue);	
+				$whereCon['where'][$searchField] = base64_encode($searchValue);	
 			else:
-			  	$whereCondition['where'][$searchField] = is_numeric($searchValue)?(int)$searchValue:$searchValue;
+			  	$whereCon['where'][$searchField]   =  is_numeric($searchValue)?(int)$searchValue:$searchValue;
 			endif;
 
 		else:
-			$whereCondition['where']['order_status'] = array('$ne' => 'Initialize');
+			$whereCon['where']['order_status'] = array('$ne' => 'Initialize');
 		endif;
-
+			$whereCon['where']['raffle_mode'] = array('$ne' => 'Y');
+		$shortField 						= 	array('sequence_id'=> -1);
 		$baseUrl 							= 	getCurrentControllerPath('index');
 		
 		$this->session->set_userdata('ALLORDERSDATA',currentFullUrl());
 		$qStringdata						=	explode('?',currentFullUrl());
 		$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
 		$tblName 							= 	'uw_lotto_orders';
+		$con 								= 	'';
+		$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCon,$shortField,'0','0');
 
-		$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCondition,$shortField,'0','0');
-		
 		if($this->input->get('showLength') == 'All'):
 			$perPage	 					= 	$totalRows;
 			$data['perpage'] 				= 	$this->input->get('showLength');  
@@ -149,17 +268,14 @@ class Allorders extends CI_Controller {
 			$data['first']					=	1;
 			$data['noOfContent']			=	'';
 		endif;
-
-		$startIndex   = $page;
-		$itemsPerPage = $pageData;
-		// $itemsPerPage = 1;
-		$resultType  			= '';
-		$data['ALLDATA']  		= $this->common_model->getOrderDetails($resultType,$whereCondition,$startIndex,$itemsPerPage);
+	 
+		$data['ALLDATA']  = 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
 		// echo "<pre>";print_r($data);die();
 
 		$this->layouts->set_title('Orders | UWINN');
 		$this->layouts->admin_view('orders/allorders/index',array(),$data);
 	}	// END OF FUNCTION
+
 
 	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -219,6 +335,105 @@ class Allorders extends CI_Controller {
 	function cancelationorder($changeStatusId='')
 	{  
 		
+		// $array = array();
+		// for ($i=0; $i <count($array) ; $i++) { 
+
+		// 	$orderID = $array[$i];
+
+		// 	$tblName 				= 'uw_lotto_orders';
+		// 	$whereCon['where']		= array('order_id' => $orderID  );
+		// 	$shortField 			= array('sequence_id' => -1);
+		// 	$cancleOrderData 		= $this->common_model->getData('single',$tblName,$whereCon,$shortField,'0','0');
+
+		// 	if($cancleOrderData['status']  == 'A'):
+
+
+		// 		$param1['status']			= 'CL';
+		// 		$param1['update_ip']		=	currentIp();
+		// 		$param1['update_date']		=	(int)$this->timezone->utc_time();//currentDateTime();
+		// 		$param1['refund_date']		=	(int)$this->timezone->utc_time();//currentDateTime();
+		// 		$param1['updated_by']		=	(int)$this->session->userdata('UW_ADMIN_ID');
+				
+		// 		// echo "<pre>";print_r($param1);die();
+		// 		$this->common_model->editData('uw_lotto_orders',$param1,'order_id',$orderID );
+
+		// 		// Checking Sender User.
+		// 		$userid = $cancleOrderData['user_id'];
+				
+		// 		$tblName 			=   'uw_users';
+		// 		$whereCon['where']	=	array('users_id' => $userid , 'status'=> 'A' );
+		// 		$shortField 		=   array('users_id' => -1);
+		// 		$UserData 			= 	$this->common_model->getData('single',$tblName,$whereCon,$shortField,'0','0');
+		// 		if($cancleOrderData['user_type'] == "Users"){
+		// 			// $message = 'Order ID '.$cancleOrderData['order_id'].' has been canceled as the order was incomplete.';
+		// 			// $title = 'Order Canceled: Incomplete Details ('.$cancleOrderData['order_id'].')';
+		// 			// $this->common_model->saveNotifications($userid,$title,$message,$cancleOrderData['order_id']);
+		// 		}
+		// 		// Refund wallet statement Code start here..
+		// 		$user_oid 			   					 = $UserData['_id']->{'$id'};
+		// 		$commission_amount                       = (float)$cancleOrderData['total_price'];
+
+		// 		$refundparam["load_balance_id"]		     =	(int)$this->common_model->getNextSequence('uw_loadBalance');
+		// 		$refundparam["order_oid"] 			     =	new MongoDB\BSON\ObjectId($cancleOrderData['_id']->{'$id'});
+		// 		$refundparam["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_oid);
+		// 		$refundparam["user_id_cred"] 			 =	(int)$UserData['users_id'];
+		// 		$refundparam["user_id_deb"]			 	 =	(int)0;
+		// 		$refundparam["order_id"] 				 =	$cancleOrderData['order_id'];
+		// 		$refundparam["upoints"] 				 =	(float)$commission_amount;
+		// 		$refundparam["availableArabianPoints"] 	 =	(float)$UserData['availableArabianPoints'];
+		// 		$refundparam["end_balance"] 			 =	(float)$UserData['availableArabianPoints'] + (float)$cancleOrderData['total_price'];
+		// 	    $refundparam["record_type"] 			 =	'Credit';
+		// 	    $refundparam["narration"]				 =	'Order Cancalled';
+		// 	    $refundparam["remarks"]				 =	'Ticket ID : '.$cancleOrderData['order_id'];
+		// 	    $refundparam["creation_ip"] 			 =	$this->input->ip_address();
+		// 	    $refundparam["created_at"] 			 =	date('Y-m-d H:i');
+		// 	    $refundparam["created_by"] 			 =	(int)$this->input->get('users_id');
+		// 	    $refundparam["status"] 				 =	"A";
+		// 	    $this->common_model->addData('uw_loadBalance', $refundparam);
+
+		// 	   	$tblName 			=   'uw_loadBalance';
+		// 		$whereCon['where']	=	array('status'=> 'A' , 'narration'=> 'Commission' , 'order_oid' => new MongoDB\BSON\ObjectId($cancleOrderData['_id']->{'$id'}) );
+		// 		$commissionList 	= 	$this->common_model->getData('single',$tblName,$whereCon,$shortField);
+		// 		$commissionAmount 	= $commissionList['upoints'];
+		// 		// Refund wallet statement Code End here..
+
+		// 		if($cancleOrderData['user_type'] != "Users"):	
+		// 		    // Commission capturing in order uw_loadbalance table.. // BTB
+		// 		    $commissionParam["load_balance_id"]		 	 =	(int)$this->common_model->getNextSequence('uw_loadBalance');
+		// 			$commissionParam["order_oid"] 			 	 =	new MongoDB\BSON\ObjectId($cancleOrderData['_id']->{'$id'});
+		// 			$commissionParam["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_oid);
+		// 			$commissionParam["user_id_deb"]			 	 =	(int)$UserData['users_id'];
+		// 			$commissionParam["user_id_cred"] 			 =	(int)0;
+		// 			$commissionParam["order_id"] 				 =	$cancleOrderData['order_id'];
+		// 			$commissionParam["upoints"] 				 =	(float)$commissionAmount;
+		// 			$commissionParam["availableArabianPoints"] 	 =	(float)$refundparam["end_balance"];
+		// 			$commissionParam["end_balance"] 			 =	(float)$refundparam["end_balance"] - $commissionAmount;
+		// 		    $commissionParam["record_type"] 			 =	'Debit';
+		// 		    $commissionParam["narration"]				 =	'Commission Reverted';
+		// 		    $commissionParam["remarks"]				 	 =	'Ticket ID : '.$cancleOrderData['order_id'];
+		// 		    $commissionParam["creation_ip"] 			 =	$this->input->ip_address();
+		// 		    $commissionParam["created_at"] 				 =	date('Y-m-d H:i');
+		// 		    $commissionParam["created_by"] 			 	 =	(int)$this->input->get('users_id');
+		// 		    $commissionParam["status"] 				 	 =	"A";
+		// 	    	$this->common_model->addData('uw_loadBalance', $commissionParam);
+		// 	    	// Credit the purchesed points and get available arabian points of user.
+		// 			// Refunded Sender Cancelation Order Amount.
+		// 			if($UserData['availableArabianPoints']):
+		// 				$param['availableArabianPoints'] = $commissionParam["end_balance"];
+		// 				$this->common_model->editData('uw_users',$param,'users_id',(int)$userid);	
+		// 			endif;
+		// 	    else:
+		// 	    	// Refunded Sender Cancelation Order Amount. // BTC
+		// 			if($UserData['availableArabianPoints']):
+		// 				$param['availableArabianPoints'] = $refundparam["end_balance"];
+		// 				$this->common_model->editData('uw_users',$param,'users_id',(int)$userid);	
+		// 			endif;
+		// 	    endif;
+
+		// 	endif;
+		// }
+
+		
 		$this->admin_model->authCheck('edit_data');
 		// $this->common_model->editData('uw_category',$param,'category_id',(int)$changeStatusId);
 		$tblName 				= 'uw_lotto_orders';
@@ -248,9 +463,11 @@ class Allorders extends CI_Controller {
 			$whereCon['where']	=	array('users_id' => $userid , 'status'=> 'A' );
 			$shortField 		=   array('users_id' => -1);
 			$UserData 			= 	$this->common_model->getData('single',$tblName,$whereCon,$shortField,'0','0');
-			$message = 'Order ID '.$cancleOrderData['order_id'].' has been canceled as the order was incomplete.';
-			$title = 'Order Canceled: Incomplete Details ('.$cancleOrderData['order_id'].')';
-			$this->common_model->saveNotifications($userid,$title,$message,$cancleOrderData['order_id']);
+			if($cancleOrderData['user_type'] == "Users"){
+				$message = 'Order ID '.$cancleOrderData['order_id'].' has been canceled as the order was incomplete.';
+				$title = 'Order Canceled: Incomplete Details ('.$cancleOrderData['order_id'].')';
+				$this->common_model->saveNotifications($userid,$title,$message,$cancleOrderData['order_id']);
+			}
 			// Refund wallet statement Code start here..
 			$user_oid 			   					 = $UserData['_id']->{'$id'};
 			$commission_amount                       = (float)$cancleOrderData['total_price'];

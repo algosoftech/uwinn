@@ -78,6 +78,8 @@
     var searchValue = <?=json_encode($searchValue);?>;
     var fromDate = <?=json_encode($fromDate);?>;
     var toDate = <?=json_encode($toDate);?>;
+    var pageName = <?=json_encode($page_name);?>;
+
 
     let timeLeft = totalPage == 1 ? 5 : 5 * totalPage + 5;
 
@@ -97,7 +99,7 @@
                         clearInterval(intervalId);
 
                         const curdate = new Date().toISOString().slice(0, 10).replace(/-/g, '-');
-                        const filename = 'U-WIN-WALLETSTATEMENT-' + curdate + '.xlsx';
+                        const filename = 'WALLETSTATEMENT-'+pageName+'-' + curdate + '.xlsx';
                         downloadCSV(allData, filename);
 
                         downloadLink.href = URL.createObjectURL(new Blob([convertToExcel(allData)], { type: 'text/xlsx' }));

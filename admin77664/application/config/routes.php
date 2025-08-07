@@ -73,7 +73,7 @@ else:
 	$fourthlug				=	isset($curUrl[5])?$curUrl[5]:'';
 	$extractData 			=	'/admin/';
 endif;
-$functionArray 				=	array('getsubcategoryData','exportexcel','videoDelete','index','addeditdata','addprize','deletedata','changestatus','imageUpload','imageDelete','deleteContent','memberDelete','viewdata','changedatastatus','getdatabyajax','getCityData','getStatisticsByUserID','registrationListByEmail','getmaratArea','checkRetailer','users_list','exportAllUsers','getTicketData','getCampaignSalesData','getSponsoredData','getRefferalData','getSignupBonusData','getMembershipData','getRechargeData','checkDeplicacy','generatecoupons','userdetails','addOption','upload_subwinners','settings','subwinner','imagePrizeDelete','generatePosNumber','checkpreview','uploadVoucher','exportexcelApi','changestatusByorderID','checkInactivepreview','rejectrequest','adminRecharges','getnotificationuser');
+$functionArray 				=	array('getsubcategoryData','exportexcel','videoDelete','index','addeditdata','addprize','deletedata','changestatus','imageUpload','imageDelete','deleteContent','memberDelete','viewdata','changedatastatus','getdatabyajax','getCityData','getStatisticsByUserID','registrationListByEmail','getmaratArea','checkRetailer','users_list','exportAllUsers','getTicketData','getCampaignSalesData','getSponsoredData','getRefferalData','getSignupBonusData','getMembershipData','getRechargeData','checkDeplicacy','generatecoupons','userdetails','addOption','upload_subwinners','settings','subwinner','imagePrizeDelete','generatePosNumber','checkpreview','uploadVoucher','exportexcelApi','changestatusByorderID','checkInactivepreview','rejectrequest','adminRecharges','getnotificationuser','multiplechangestatus','getUserTicketList','getUserActiveTicketList','getUserNotificationList','getTopupsVouchersList','deleteOldNotificationsData','getbindwith');
 
 if($firstSlug == 'login'):  
 	$route['login'] 											= 	'login/index';
@@ -113,7 +113,25 @@ elseif($firstSlug == 'change-password-verify-otp'):
 
 elseif($firstSlug == 'winners'):  
 	$route['add-winner'] 										= 	'winners/allwinners/addeditdata';
+elseif($firstSlug == 'users' && $secondSlug == 'activity-dashboard'):  
+	$route['users/activity-dashboard/(:any)'] = 	'users/UserDashboard/index/$1';
 
+
+elseif($firstSlug == 'users' && $secondSlug == 'get-user-ticket-list'):  
+	$route['users/get-user-ticket-list'] = 	'users/UserDashboard/getUserTicketList';
+
+elseif($firstSlug == 'users' && $secondSlug == 'get-user-active-ticket-list'):  
+	$route['users/get-user-active-ticket-list'] = 	'users/UserDashboard/getUserActiveTicketList';
+
+
+elseif($firstSlug == 'users' && $secondSlug == 'get-user-winner-list'):  
+	$route['users/get-user-winner-list'] = 	'users/UserDashboard/getUserWinnerList';
+
+elseif($firstSlug == 'users' && $secondSlug == 'get-user-notification-list'):  
+	$route['users/get-user-notification-list'] = 	'users/UserDashboard/getUserNotificationList';
+
+elseif($firstSlug == 'users' && $secondSlug == 'get-user-voucher-topups-list'):  
+	$route['users/get-user-voucher-topups-list'] = 	'users/UserDashboard/getTopupsVouchersList';
 
 elseif($secondSlug == 'allsatickets'):  
 	$route['index'] 											= 	'tickets/allsatickets/index';

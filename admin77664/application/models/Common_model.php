@@ -1843,6 +1843,8 @@ class Common_model extends CI_Model
 	      'seller_details' 		   => 1,
 	      'raffle_mode'			   => 1,
 	      'raffle_tickets'		   => 1,
+	      'super_ball_mode'	       => 1,
+	      'sb_tickect'		   	   => 1,
 		  'straight_add_on_amount' => '$straight_add_on_amount',
 	      'rumble_add_on_amount'   => '$rumble_add_on_amount',
 	      'reverse_add_on_amount'  => '$reverse_add_on_amount',
@@ -1952,7 +1954,7 @@ class Common_model extends CI_Model
 	public function getWithdrawRequestDetails($resultType,$whereCon,$startIndex='',$itemsPerPage='',$tblName='')
 	{  
 		$SelectFields = array(
-	      'users_name'       	=> array('$arrayElemAt' => array('$users.users_name', 0)),
+	       'users_name'       	=> array('$arrayElemAt' => array('$users.users_name', 0)),
 	      'last_name'        	=> array('$arrayElemAt' => array('$users.last_name', 0)),
 	      'user_email'       	=> array('$arrayElemAt' => array('$users.users_email', 0)),
 	      'user_mobile'       	=> array('$arrayElemAt' => array('$users.users_mobile', 0)),
@@ -1963,6 +1965,10 @@ class Common_model extends CI_Model
 	      'account_holder_name' => 1,
 	      'bank_name'       	=> 1,
 	      'account_no'       	=> 1,
+	      'swiftBicCode'       	=> 1,
+	      'iben'       			=> 1,
+	      'orderIds'       		=> 1,
+	      'orderData'       	=> 1,
 	      'ifsc_code'       	=> 1,
 	      'request_id'       	=> 1,
 	      'user_id'       		=> 1,
@@ -1970,9 +1976,10 @@ class Common_model extends CI_Model
 	      'withdraw_id'       	=> 1,
 	      'created_at'       	=> 1,
 	      'cripto_id'       	=> 1,
+	      'cryto_account_id'    => 1,
 	      'status'       		=> 1,
 	      'request_id'       	=> 1,
-	      'reject_at'       	=> 1,
+	      'updated_at'       	=> 1,
 	      'reason'       		=> 1,
 		);
 		
@@ -2689,6 +2696,86 @@ class Common_model extends CI_Model
 
 	    return $rechargeTopupData;
 	    die();
+	}
+
+	/***********************************************************************
+	** Function name : getReferrelDetails
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used for getReferrelDetails
+	** Date          : 12 June 2025
+	************************************************************************/
+	public function getReferrelDetails($resultType='', $whereCon='',$shortField='',$itemsPerPage='',$startIndex='')
+	{
+		try {
+
+			$SelectFields = array(
+		      'user_oid'      => 1,
+		      'upoints'       => 1,
+		      'narration'     => 1,
+		      'remarks'       => 1,
+		      'created_at'    => 1,
+		      'user_id_cred'  => 1,
+		      'user_id_deb'   => 1,
+		      'referralUser'  => '$referralUser',
+		      'referredUser'  => '$referredUser',
+			);
+
+			if($whereCon['where']):
+				$whereCondition = $whereCon['where'];
+			endif;
+
+			$lookup = array(
+			    array(
+			        'from' => 'uw_users',
+			        'localField' => "user_oid",
+			        'foreignField' => "_id",
+			        'pipeline' => array(
+			            array(
+		                    '$project' => array(
+		                        '_id'          => 0,
+		                        'users_name'   => 1,
+		                        'last_name'    => 1,
+		                        'users_type'   => 1,
+		                        'users_mobile' => 1,
+		                        'users_email'  => 1,
+		                        'pos_number'   => 1,
+		                         
+		                    )
+		                ),
+		            ),
+			        'as' => 'referralUser'
+			    ),
+			    array(
+			        'from' => 'uw_users',
+			        'localField' => "request_oid",
+			        'foreignField' => "_id",
+			        'pipeline' => array(
+			            array(
+		                    '$project' => array(
+		                        '_id'       => 0,
+		                        'users_name'       => 1,
+		                        'last_name'        => 1,
+		                        'users_type'       => 1,
+		                        'users_mobile'     => 1,
+		                        'users_email'      => 1,
+		                        'pos_number'       => 1,
+		                         
+		                    )
+		                ),
+		            ),
+			        'as' => 'referredUser'
+			    )
+			);
+
+			$unwind     = array('$referralUser','$referredUser');
+			$tblName    = "uw_loadBalance";
+	   	 	$raffleData = $this->getAggregateData($tblName ,$SelectFields ,$whereCondition ,$groupBy ,$shortField ,$lookup ,$unwind ,$resultType,$startIndex,$itemsPerPage);
+		    return $raffleData;
+		    die();
+			
+		} catch (Exception $e) {
+			echo 'error';
+		}
 	}
 	
 

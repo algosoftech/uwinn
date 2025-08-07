@@ -71,8 +71,13 @@ $route['api/resetPassword'] 									= 	'api/users/resetPassword';
 $route['api/getProfileData'] 									= 	'api/users/getProfileData';
 $route['api/updateProfile'] 									= 	'api/users/updateProfile';
 $route['api/changePassword'] 									= 	'api/users/changePassword';
+
+$route['api/send-otp-mobile-email'] 							=   'api/users/sendotpOTPMobileEmail';
+$route['api/update-mobile-email'] 								=   'api/users/updateMobileEmail';
 $route['api/verifyaccount'] 									= 	'api/users/verifyaccount';
 $route['api/deleteAccount'] 									= 	'api/users/deleteAccount';
+
+
 $route['api/rsendotp'] 									        = 	'api/users/rsendotp';
 $route['api/refreshPoint'] 										= 	'api/users/refreshPoint';
 $route['api/checkEmail'] 										= 	'api/users/checkEmail';
@@ -198,6 +203,8 @@ $route['api/pos/generate-cash-voucher'] 	= 'api/pos/generateRechargeCoupon';
 $route['api/pos/cash-voucher-history'] 		= 'api/pos/rechargeCouponHistory';
 $route['api/uwinn/redeem-recharge-coupon']	= 'api/pos/redeemRechargeCoupon';
 $route['api/pos/cash-voucher-summery'] 	    = 'api/pos/SummeryReportCashVoucher';
+$route['api/pos/new-cash-voucher-summary']  = 'api/pos/newCashVoucherSummary';
+
 $route['api/pos/checkwinner-order-history'] = 'api/pos/checkWinnerOrderHistory';
 /*********************************************** APP Routs End****************************************************/
 
@@ -227,8 +234,23 @@ $route['api/stripe-intent'] 			    = 'app/v1/stripe/initilizeOrder';
 $route['api/stripe-payment-status'] 		= 'app/v1/stripe/paymentsuccess';
 $route['api/stripe-info'] 			        = 'app/v1/stripe/stripeDetails';
 
+
 // notification
 $route['api/v1/app/notification/get-notifications'] = 'app/v1/notifications/index';
 $route['api/v1/app/notification/update-notifications'] = 'app/v1/notifications/update';
 $route['cron-notification'] = 'home/triggerNotificationJob';
 $route['cron-cancel-order'] = 'home/AutoCancelNotificationJob';
+
+
+$route['api/btc/move-to-wallet'] 			= 'app/v1/btc/moveToWallet';
+$route['api/btc/winning-orders'] 			= 'app/v1/btc/winningOrders';
+$route['api/btc/bank-transer'] 				= 'app/v1/btc/bankTranser';
+$route['api/btc/cryto-transer'] 			= 'app/v1/btc/crytoTranser';
+
+$route['api/btc/verify/email'] 			    = 'app/v1/btc/verifyEmail';
+$route['api/btc/verify/mobile'] 			= 'app/v1/btc/verifyMobile';
+$route['api/btc/verify/mobile/code'] 	    = 'app/v1/btc/verifyMobileCode';
+$route['api/btc/verify/email/code'] 		= 'app/v1/btc/verifyEmailCode';
+$route['api/btc/verify/whatsapp']           = 'app/v1/btc/verifyWhatsapp';
+
+$route['test'] 									= 'home/test';

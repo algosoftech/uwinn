@@ -352,6 +352,58 @@
                                     </div>
                                 </div>
 
+                                 <fieldset>
+                                    <legend>Super Ball Section</legend>
+
+                                    <div class="row">
+                                    
+                                        <div class="form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('enable_super_ball')): ?>error<?php endif; ?>">
+                                            <label>Enable Super Ball <span class="required">*</span></label>
+                                            <select name="enable_super_ball" id="enable_super_ball" class="enable_super_ball form-control required">
+                                                <?php if(stripslashes($EDITDATA['enable_super_ball']) == 'Y'): ?>
+                                                <option value="Y" hidden selected>Yes</option>
+                                                <?php else: ?>
+                                                <option value="N" hidden selected>No</option>
+                                                <?php endif; ?>
+                                                <option value="Y" >Yes</option>
+                                                <option value="N">No</option>
+                                            </select>
+                                            <?php if(form_error('enable_super_ball')): ?>
+                                             <span for="enable_super_ball" generated="true" class="help-inline">
+                                                <?php echo form_error('enable_super_ball'); ?>
+                                            </span>
+                                            <?php endif; ?>
+                                        </div>  
+
+                                        <div class="super_ball_type d-none form-group-inner col-lg-2 col-md-2 col-sm-2 col-xs-12 <?php if(form_error('super_ball_type')): ?>error<?php endif; ?>">
+                                            <label>Super Ball Type<span class="required">*</span></label>
+                                            <input type="number"  min="0"  max="100" name="super_ball_type" id="super_ball_type" class="super_ball_type form-control required" value="<?php if(set_value('super_ball_type')): echo set_value('super_ball_type'); else: echo stripslashes($EDITDATA['super_ball_type']);endif; ?>">
+                                            <?php if(form_error('super_ball_type')): ?>
+                                                <span for="super_ball_type" generated="true" class="help-inline"><?php echo form_error('super_ball_type'); ?></span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <div class="superbal_range_start d-none form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('superbal_range_start')): ?>error<?php endif; ?>">
+                                            <label>Super ball Number Range Start<span class="required">*</span></label>
+                                            <input type="number" min="0"  max="100" name="superbal_range_start" id="superbal_range_start" class="superbal_range_start form-control required" value="<?php if(set_value('superbal_range_start')): echo set_value('superbal_range_start'); elseif($EDITDATA['superbal_range_start'] == 0): echo '0';  else: echo $EDITDATA['superbal_range_start']; endif; ?>" >
+                                            <div class="range-section"></div>
+                                            <?php if(form_error('superbal_range_start')): ?>
+                                                <span for="superbal_range_start" generated="true" class="help-inline"><?php echo form_error('superbal_range_start'); ?></span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <div class="superbal_range_end d-none form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('superbal_range_end')): ?>error<?php endif; ?>">
+                                            <label>Super ball Number Range end<span class="required">*</span></label>
+                                            <input type="number" min="0"  max="100" name="superbal_range_end" id="superbal_range_end" class="superbal_range_end form-control required" value="<?php if(set_value('superbal_range_end')): echo set_value('superbal_range_end'); elseif($EDITDATA['superbal_range_end'] == 0): echo '0';  else: echo $EDITDATA['superbal_range_end']; endif; ?>" >
+                                            <div class="range-section"></div>
+                                            <?php if(form_error('superbal_range_end')): ?>
+                                                <span for="superbal_range_end" generated="true" class="help-inline"><?php echo form_error('superbal_range_end'); ?></span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                    </div>
+                                </fieldset>
+
                                 <div class="row">
                                     <div class="form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('show_on')): ?>error<?php endif; ?>">
                                         <label>Show ON <sub class="text-danger"> ( Website, App , POS ) </sub></label>
@@ -371,6 +423,7 @@
                                             <option value="Website" <?= in_array('Website',$show_on )  ? 'selected':''; ?> > Website </option>
                                             <option value="App"     <?= in_array('App', $show_on)      ? 'selected':''; ?> > App </option>
                                             <option value="POS"     <?= in_array('POS', $show_on)      ? 'selected':''; ?> > POS </option>
+                                            <option value="coming_soon" <?= in_array('coming_soon', $show_on)      ? 'selected':''; ?> > Coming Soon </option>
                                         </select>
                                         <?php if(form_error('show_on')): ?>
                                             <span for="show_on" generated="true" class="help-inline"><?php echo form_error('show_on'); ?></span>
@@ -455,6 +508,30 @@
             }
         });
     });
+
+    $(document).ready(function() {
+        // Function to toggle visibility, 'required' attribute, and reset values
+        function toggleSuperBallFields() {
+            const enableSuperBall = $('#enable_super_ball').val();
+            if (enableSuperBall === 'Y') {
+                // Show fields and add 'required' attribute
+                $('.super_ball_type, .superbal_range_start, .superbal_range_end').removeClass('d-none').attr('required', true);
+            } else {
+                // Hide fields, remove 'required' attribute, and reset values
+                $('.super_ball_type, .superbal_range_start, .superbal_range_end').addClass('d-none').removeAttr('required').val(''); 
+
+            }
+        }
+
+        // Initial check on page load
+        toggleSuperBallFields();
+        // Event listener for changes in the dropdown
+        $('#enable_super_ball').change(function() {
+            toggleSuperBallFields();
+        });
+    });
+
+
 
     $(document).ready(function(){
         var category_id =  $('#category_id').val();

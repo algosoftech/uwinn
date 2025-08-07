@@ -241,6 +241,110 @@
                             <?php endif; ?>
                           </div>
 
+                          <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('show_bank_widhdrawal')): ?>error<?php endif; ?>">
+                            <label>Enable/Disable Bank Withdrawal<span class="required">*</span></label>
+                            <select name="show_bank_widhdrawal" id="show_bank_widhdrawal" class="form-control required">
+                              <option>Select </option>
+                              <option value="N" <?php if($EDITDATA['show_bank_widhdrawal'] == 'N'): echo 'selected'; endif; ?> >No</option>
+                              <option value="Y" <?php if($EDITDATA['show_bank_widhdrawal'] == 'Y'): echo 'selected'; endif; ?>>Yes</option>
+                            </select>
+                            <?php if(form_error('show_bank_widhdrawal')): ?>
+                              <span for="show_bank_widhdrawal" generated="true" class="help-inline"><?php echo form_error('show_bank_widhdrawal'); ?></span>
+                            <?php endif; ?>
+                          </div>
+
+                          <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('btc_bank_withdrawal')): ?><?php endif; ?>">
+                            <label>b2c Bank withdrawal  <span class="required">*</span></label>
+                            <input type="number" name="btc_bank_withdrawal" id="btc_bank_withdrawal" value="<?php if(set_value('btc_bank_withdrawal')): echo set_value('btc_bank_withdrawal'); else: echo stripslashes($EDITDATA['btc_bank_withdrawal']);endif; ?>" class="form-control valid required" placeholder="b2c Bank withdrawal">
+                            <?php if(form_error('btc_bank_withdrawal')): ?>
+                              <span for="btc_bank_withdrawal" generated="true" class="help-inline"><?php echo form_error('btc_bank_withdrawal'); ?></span>
+                            <?php endif; ?>
+                          </div>
+
+                          <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('show_crypto')): ?>error<?php endif; ?>">
+                            <label>Enable/Disable Crypto Withdrawal<span class="required">*</span></label>
+                            <select name="show_crypto" id="show_crypto" class="form-control required">
+                              <option>Select </option>
+                              <option value="N" <?php if($EDITDATA['show_crypto'] == 'N'): echo 'selected'; endif; ?> >No</option>
+                              <option value="Y" <?php if($EDITDATA['show_crypto'] == 'Y'): echo 'selected'; endif; ?>>Yes</option>
+                            </select>
+                            <?php if(form_error('show_crypto')): ?>
+                              <span for="show_crypto" generated="true" class="help-inline"><?php echo form_error('show_crypto'); ?></span>
+                            <?php endif; ?>
+                          </div>
+
+                          <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('btc_crypto_limit')): ?><?php endif; ?>">
+                            <label>b2c Crypto withdrawal limit  <span class="required">*</span></label>
+                            <input type="number" name="btc_crypto_limit" id="btc_crypto_limit" value="<?php if(set_value('btc_crypto_limit')): echo set_value('btc_crypto_limit'); else: echo stripslashes($EDITDATA['btc_crypto_limit']);endif; ?>" class="form-control valid required" placeholder="b2c Crypto withdrawal">
+                            <?php if(form_error('btc_crypto_limit')): ?>
+                              <span for="btc_crypto_limit" generated="true" class="help-inline"><?php echo form_error('btc_crypto_limit'); ?></span>
+                            <?php endif; ?>
+                          </div>
+
+                          <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('summary_time')): ?><?php endif; ?>">
+                            <label>Summary Time  <span class="required">*</span></label>
+                            <input type="time" name="summary_time" id="summary_time" value="<?php if(set_value('summary_time')): echo set_value('summary_time'); else: echo stripslashes($EDITDATA['summary_time']);endif; ?>" class="form-control valid required" placeholder="Summary Time">
+                            <?php if(form_error('summary_time')): ?>
+                              <span for="summary_time" generated="true" class="help-inline"><?php echo form_error('summary_time'); ?></span>
+                            <?php endif; ?>
+                          </div>
+
+                          <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('global_freezing')): ?>error<?php endif; ?>">
+                            <label>Global Freezing<span class="required">*</span></label>
+                            <select name="global_freezing" id="global_freezing" class="form-control required">
+                              <option value="" >Select </option>
+                              <option value="disable" <?php if($EDITDATA['global_freezing'] == 'disable'): echo 'selected'; endif; ?> >No</option>
+                              <option value="enable" <?php if($EDITDATA['global_freezing'] == 'enable'): echo 'selected'; endif; ?>>Yes</option>
+                            </select>
+                            <?php if(form_error('global_freezing')): ?>
+                              <span for="global_freezing" generated="true" class="help-inline"><?php echo form_error('global_freezing'); ?></span>
+                            <?php endif; ?>
+                          </div>
+
+                          <div class="form-group-inner col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <fieldset>
+                              <legend>Recharge Topup Section</legend>
+                              <div class="row">
+                                  <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('recharge_topup_btn')): ?>error<?php endif; ?>">
+                                    <label> Recharge Topup <span class="required">*</span> </label>
+                                    <select name="recharge_topup_btn" id="recharge_topup_btn" class="form-control  required">
+                                      <option value="">Select </option>
+                                      <option value="N" <?php if($EDITDATA['recharge_topup_btn'] == 'N'): echo 'selected'; endif; ?> >No</option>
+                                      <option value="Y" <?php if($EDITDATA['recharge_topup_btn'] == 'Y'): echo 'selected'; endif; ?>>Yes</option>
+                                    </select>
+                                    <?php if(form_error('recharge_topup_btn')): ?>
+                                      <span for="recharge_topup_btn" generated="true" class="help-inline"><?php echo form_error('recharge_topup_btn'); ?></span>
+                                    <?php endif; ?>
+                                  </div>
+
+                                  <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('recharge_topup_start_time')): ?><?php endif; ?>">
+                                    <label> Recharge Topup Start Time  <span class="required">*</span></label>
+                                    <input type="time" name="recharge_topup_start_time" id="recharge_topup_start_time" value="<?php if(set_value('recharge_topup_start_time')): echo set_value('recharge_topup_start_time'); else: echo stripslashes($EDITDATA['recharge_topup_start_time']);endif; ?>" class="form-control valid required" placeholder="Summary Time">
+                                    <?php if(form_error('recharge_topup_start_time')): ?>
+                                      <span for="recharge_topup_start_time" generated="true" class="help-inline"><?php echo form_error('recharge_topup_start_time'); ?></span>
+                                    <?php endif; ?>
+                                  </div>
+
+                                  <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('recharge_topup_end_time')): ?><?php endif; ?>">
+                                    <label> Recharge Topup End Time  <span class="required">*</span></label>
+                                    <input type="time" name="recharge_topup_end_time" id="recharge_topup_end_time" value="<?php if(set_value('recharge_topup_end_time')): echo set_value('recharge_topup_end_time'); else: echo stripslashes($EDITDATA['recharge_topup_end_time']);endif; ?>" class="form-control valid required" placeholder="Summary Time">
+                                    <?php if(form_error('recharge_topup_end_time')): ?>
+                                      <span for="recharge_topup_end_time" generated="true" class="help-inline"><?php echo form_error('recharge_topup_end_time'); ?></span>
+                                    <?php endif; ?>
+                                  </div>
+
+                                  <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('recharge_topup_msg')): ?><?php endif; ?>">
+                                    <label> Recharge Topup Messsage  <span class="required">*</span></label>
+                                    <input type="text" name="recharge_topup_msg" id="recharge_topup_msg" value="<?php if(set_value('recharge_topup_msg')): echo set_value('recharge_topup_msg'); else: echo stripslashes($EDITDATA['recharge_topup_msg']);endif; ?>" class="form-control valid required" placeholder="Summary Time">
+                                    <?php if(form_error('recharge_topup_msg')): ?>
+                                      <span for="recharge_topup_msg" generated="true" class="help-inline"><?php echo form_error('recharge_topup_msg'); ?></span>
+                                    <?php endif; ?>
+                                  </div>
+
+                              </div>
+                            </fieldset>
+                          </div>
+
                           <div class="form-group-inner col-lg-12 col-md-12 col-sm-12 col-xs-12">
                             <fieldset>
                               <legend>Page Heading section</legend>

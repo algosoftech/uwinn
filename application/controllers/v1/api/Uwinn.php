@@ -298,6 +298,7 @@ class uwinn extends CI_Controller {
 		        $ORparam["user_oid"] 					=	new MongoDB\BSON\ObjectId($user_oid);
 		        $ORparam["order_id"]		        	=	$this->geneal_model->getNextUWINOrderId();
 		        $ORparam["draw_id"]		    			=	(int)$ProductData['draw_id']; 
+		        $ORparam["draw_date"]		    		=	$ProductData['draw_date']; 
 		        $ORparam["order_code"]		    		=	base64_encode(rand(1000,9999)); 
 		        $ORparam["user_id"] 					=	(int)$this->input->get('users_id');
 		        $ORparam["user_type"] 					=	$sellerDetails['users_type']; 

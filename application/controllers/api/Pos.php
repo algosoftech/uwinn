@@ -142,7 +142,7 @@ class Pos extends CI_Controller {
                 $whereCon['where'] =  array('users_id'=> (int)$USERID);
                 $UserData          = $this->common_model->getData('single',$tblName,$whereCon);
 
-                if(!empty($UserData) && $UserData['status'] == 'A' && ($UserData['is_verify']  == 'Y' || $UserData['is_varified']  == 'Y') ):
+                if(!empty($UserData) && $UserData['status'] == 'A'):
 
                     if($UserData['availableArabianPoints'] >= $coupon_amount):
  
@@ -182,7 +182,7 @@ class Pos extends CI_Controller {
                             //Voucher Createing section start here ..
                             if($result):
                                 
-                                $commission_percentage = $UserData['commission_percentage'];
+                                $commission_percentage = $UserData['recharge_commission_percentage']?$UserData['recharge_commission_percentage']:15;
                                 $commission_amount     = $coupon_amount*$commission_percentage/100;
                                 
                                 if($commission_amount > 0):
@@ -222,7 +222,7 @@ class Pos extends CI_Controller {
                                     $commisionBalance["end_balance"]            =   (float)$availableArabianPoints;
                                     $commisionBalance['record_type']     = 'Credit';
                                     $commisionBalance['narration']       = 'Recharge Commission';
-                                    $commisionBalance['remarks']         = "Serial no. ".$param['rc_id'].'.';
+                                    $commisionBalance['remarks']         = "Commisssion added for recharge serial no. ".$param['rc_id'].'.';
                                     $commisionBalance['upoints']         = (float)$commission_amount;
                                     $commisionBalance['creation_ip']     = $this->input->ip_address();;
                                     $commisionBalance['created_at']      = date('Y-m-d H:i');
@@ -306,12 +306,47 @@ class Pos extends CI_Controller {
                 $UserData          = $this->common_model->getData('single',$tblName,$whereCon);
                 $UserData['from']  = $this->input->post('from');
                 $UserData['to']    = $this->input->post('to');
-                if(!empty($UserData) && $UserData['status'] == 'A' && ($UserData['is_verify']  == 'Y' || $UserData['is_varified']  == 'Y') ):
+                if(!empty($UserData) && $UserData['status'] == 'A' ):
 
                     $whereCon1['where']  = array('user_oid'=> new MongoDB\BSON\ObjectId($UserData['_id']->{'$id'}) ,'narration' => "Recharge Coupon");
                     $result              = $this->common_model->getCashSummery($UserData); 
                     echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);die();
 
+                else:
+                    echo outPut(0,lang('SUCCESS_CODE'),lang('INVALID_USER_ID'),$result);die();
+                endif;
+
+            endif;
+        else:
+            echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+        endif;
+    } 
+
+     public function newCashVoucherSummary()
+    {   
+
+        $apiHeaderData      =   getApiHeaderData();
+        $this->generatelogs->putLog('APP',logOutPut($_POST));
+        $result                             =   array();    
+        if(requestAuthenticate(APIKEY,'POST')):
+
+            $USERID = $this->input->post('user_id');
+            $from   = $this->input->post('from');
+            $to     = $this->input->post('to');
+
+            if(empty($USERID)):
+                echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
+            else:
+ 
+                $tblName           = 'uw_users'; 
+                $whereCon['where'] =  array('users_id'=> (int)$USERID);
+                $UserData          = $this->common_model->getData('single',$tblName,$whereCon);
+                $UserData['from']  = $this->input->post('from');
+                $UserData['to']    = $this->input->post('to');
+                if(!empty($UserData) && $UserData['status'] == 'A' ):
+                    $whereCon1['where']  = array('user_oid'=> new MongoDB\BSON\ObjectId($UserData['_id']->{'$id'}) ,'narration' => "Recharge Coupon");
+                    $result              = $this->common_model->getCashSummery2($UserData); 
+                    echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);die();
                 else:
                     echo outPut(0,lang('SUCCESS_CODE'),lang('INVALID_USER_ID'),$result);die();
                 endif;
@@ -353,7 +388,7 @@ class Pos extends CI_Controller {
 
                 $tblName        = "uw_users";
                 $where['where'] = array('users_id' => (int)$usersId);
-                $FieldList      = array('users_type','status','availableArabianPoints','commission_percentage');
+                $FieldList      = array('users_type','status','availableArabianPoints','commission_percentage','recharge_commission_percentage');
                 $userDetails    = $this->common_model->getParticularFieldByMultipleCondition($FieldList,$tblName, $where);
                 // echo "<pre>";print_r();die();
                 
@@ -374,7 +409,7 @@ class Pos extends CI_Controller {
                             if((int)$checkUser['users_id'] != (int)$usersId):
 
                                 //Commission added for rechrge..
-                                $commission_percentage = $userDetails['commission_percentage'];
+                                $commission_percentage = $userDetails['recharge_commission_percentage']?$userDetails['recharge_commission_percentage']:15;
                                 $commission_amount     = $rechargeAmount*$commission_percentage/100;
                                 //deduting recharge amount from saeller account..
                                 $sellerParam['availableArabianPoints'] = -(float)$rechargeAmount+$commission_amount;
@@ -417,8 +452,8 @@ class Pos extends CI_Controller {
                                 $touserparam["end_balance"]             = (float)$checkUser['availableArabianPoints']+$rechargeAmount;
                                 $touserparam["creation_ip"]         = currentIp();
                                 $touserparam["created_at"]          = date('Y-m-d H:i');
-                                $touserparam["created_user_id"]     = (int)$usersId;
                                 $touserparam["created_by"]          = (int)$usersId;
+                                $touserparam["created_user_id"]     = (int)$usersId;
                                 $touserparam["status"]              = "A";
                                 $this->geneal_model->addData('uw_loadBalance', $touserparam);
 
@@ -477,6 +512,7 @@ class Pos extends CI_Controller {
             echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
         endif;
     }
+
 
     /* * *********************************************************************
      * * Function name  : getRechargeHistory
@@ -644,18 +680,18 @@ class Pos extends CI_Controller {
                 $tblName           = 'uw_users'; 
                 $whereCon['where'] =  array('users_id'=> (int)$USERID);
                 $UserData          = $this->common_model->getData('single',$tblName,$whereCon);
-                if(!empty($UserData) && $UserData['status'] == 'A' && ($UserData['is_verify']  == 'Y' || $UserData['is_varified']  == 'Y') ):
+                if(!empty($UserData) && $UserData['status'] == 'A'):
                     $tblName           = 'uw_lotto_orders'; 
                     $whereCon['where'] =  array('order_id'=> $orderId);
                     $orderData         = $this->common_model->getData('single',$tblName,$whereCon);
                     if(!empty($orderData)):
                         echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$orderData);die();
                     else:
-                        $result = [];
-                        echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);die();
+                        echo outPut(0,lang('SUCCESS_CODE'),lang('ORDET_ID_INVALID'),$result);die();
                     endif;
                 else:
-                    echo outPut(0,lang('SUCCESS_CODE'),lang('INVALID_USER_ID'),$result);die();
+                    $result = [];
+                    echo outPut(1,lang('SUCCESS_CODE'),lang('INVALID_USER_ID'),$result);die();
                 endif;
 
             endif;

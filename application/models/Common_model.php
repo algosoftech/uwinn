@@ -2116,6 +2116,7 @@ class Common_model extends CI_Model
 		
 		$whereCon['user_oid']        = new MongoDB\BSON\ObjectId($user_oid);
 		$whereCon['narration']       = 'Redeem Prize';
+		$whereCon['user_type']       =  array('$ne' => 'Users');
 		if($DateFilter['created_at']):
 			$whereCon['created_at']  = $DateFilter['created_at'];
 		endif;
@@ -2225,6 +2226,9 @@ class Common_model extends CI_Model
 													'payment_mode' =>1,
 													'created_at' =>1,
 													'raffle_mode' =>1,
+													// 'draw_id' =>1,
+												    'draw_date' => '$draw.draw_date',
+												    'draw_time' => '$draw.draw_time'
 													
 										));
 
@@ -2239,21 +2243,25 @@ class Common_model extends CI_Model
 		endif;
 
 		$currentQuery					=	array(
-												  array('$lookup'=>array('from'=>'uw_products','localField'=>'product_id','foreignField'=>'products_id','as'=>'product')),
+												  array('$lookup' => array('from'=>'uw_products','localField'=>'product_id','foreignField'=>'products_id','as'=>'product')),
+												  array('$lookup' => array('from'=>'uw_products_draw_records','localField'=>'draw_id','foreignField'=>'draw_id','as'=>'draw')),
 												  $selectFields,
 												  array('$match'=>array('$and'=>$whereCondition)),
 											  	  array('$unwind' => '$product_image' ),
 											  	  array(
 										  	  		'$group' => array(
-							  	  						'_id' => '$product_title' ,
-				  		                    			'price'   => array('$first' => '$product_price'),
-				  		                    			'sales_count'=>array('$sum' =>  '$product_qty'),
+							  	  						'_id' 				  => '$product_title' ,
+				  		                    			'price'   			  => array('$first' => '$product_price'),
+				  		                    			'sales_count'		  =>array('$sum' =>  '$product_qty'),
 				  		                    			'sales'=>array('$sum' => '$total_price'),
-							  	  						'product_image' => array('$first' => '$product_image'),
-							  	  						'product_id' => array('$first' => '$product_id')
+							  	  						'product_image' 	  => array('$first' => '$product_image'),
+							  	  						'product_id' 		  => array('$first' => '$product_id'),
+							  	  						'draw_date'     	  => array('$first' => '$draw_date'),
+							  	  						'draw_time'           => array('$first' => '$draw_time'),
 			                 		  				)),
 							  	  					array('$sort'=>$shortField),
 												);
+
 
 		if($action == 'count'):
 			$totalDataCount				=	$this->getDataByMultipleAndCondition($tbl_name,$currentQuery);
@@ -2663,219 +2671,210 @@ class Common_model extends CI_Model
 
 
 
-	public function paymentCapture($accesstype='',$users_id='',$order_id='',$payment_mode='',$transaction_id='',$order_status='',$raffle_mode='') {
-		$tblName  	     	= 'uw_lotto_orders';
-		$whereCon['where'] 	= array('order_id' => $order_id);
-		$CheckOrders	    = $this->getData('single',$tblName,$whereCon);
-		$error = 'N';
-		if($CheckOrders):
-			$error = 'Y';
-			if($accesstype == 'web' && $error  == 'Y'):
-				$this->session->set_flashdata('alert_error',lang('ALREADY_ORDER_PLACED'));
-		    	redirect('/');die();
-			else:
-				echo outPut(0,lang('FORBIDDEN_CODE'),lang('ALREADY_ORDER_PLACED'),$result);die();
-			endif;
-		endif;
- 
-		// Orders Details
-		$tblName  	     	= 'uw_initilize_orders';
-		$whereCon['where'] 	= array('order_id' => $order_id);
-		$OrderDetails	    = $this->getData('single',$tblName,$whereCon);
-		// echo "<pre>";print_r($OrderDetails);die();
+	/***********************************************************************
+	** Function name : paymentCapture
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used to initialize orders.
+	** Date 		 : 09 July 2024
+	** Updated By    : Dilip Halder
+	** Updated Date  : 05 June 2025
+	************************************************************************/
+	public function paymentCapture($accesstype='',$userId='',$orderId='',$paymentMode='',$transactionId='',$orderStatus='',$raffleMode='') {
+		 
+	 	try {
 
-		// Products Details
-		$PRODUCTSearchFiled = array('title','draw_id','draw_date','draw_time','products_id','straight_add_on_amount','rumble_add_on_amount','reverse_add_on_amount','reffle_prefix','reffle_length'); 
-		$this->mongo_db->select($PRODUCTSearchFiled);
-		$this->mongo_db->where('products_id' ,(int)$OrderDetails['products_id']);
-		$ProductData   = $this->mongo_db->find_one('uw_products');
-		// echo "<pre>";print_r($ProductData);die();
+	 		$tblName  	     	= 'uw_lotto_orders';
+			$whereCon['where'] 	= array('order_id' => $orderId );
+			$CheckOrders	    = $this->getData('single',$tblName,$whereCon);
 
-		/* ---------------------------------------------------- */
-		
-		//User Details 
-		$USERSearchFiled    = array('users_type','users_id','availableArabianPoints','country_code','users_mobile','users_email','referred_by','referrel_amount','redeemed_referrel_amount','winningBalance'); 
-		$this->mongo_db->select($USERSearchFiled);
-		$this->mongo_db->where('users_id' ,(int)$OrderDetails['user_id']);
-		$UserData  = $this->mongo_db->find_one('uw_users');
-	 	$user_oid = $UserData['_id']->{'$id'};
+			//  if order is not placed than added to uw_lotto_orders..
+			$error  = 'N';
+			if(empty($CheckOrders)):
 
-		/* ---------------------------------------------------- */
+				// Orders Details
+				$tblName  	     	= 'uw_initilize_orders';
+				$whereCon['where'] 	= array('order_id' => $orderId);
+				$OrderDetails	    = $this->getData('single',$tblName,$whereCon);
+				// echo "<pre>";print_r($OrderDetails);die();
+				if(!empty($OrderDetails['products_id']) && is_numeric($OrderDetails['products_id'])):
 
-		// Order Placing
-		/* ---------------------------------------------------- */
-		if($order_status == "Success"):
-			$status = "A";
-		else:
-			$status = "A";
-		endif;
+					$PRODUCTSearchFiled = array('title','draw_id','draw_date','draw_time','products_id','straight_add_on_amount','rumble_add_on_amount','reverse_add_on_amount','reffle_prefix','reffle_length','status'); 
+					$this->mongo_db->select($PRODUCTSearchFiled);
+					$this->mongo_db->where('products_id' ,(int)$OrderDetails['products_id']);
+					$productDATA   = $this->mongo_db->find_one('uw_products');
+					// echo "<pre>";print_r($productDATA);die();
 
-			$availableArabianPoints = (float)$UserData['availableArabianPoints'];
-		if($OrderDetails['payment_mode'] == "UPoints"):
-			$end_balance = (float)$availableArabianPoints - $OrderDetails['total_price'];
+					$currentDat    = strtotime(date('Y-m-d H:i'));
+					$drawDateTime  = strtotime(date('Y-m-d H:i',strtotime('-5 mins',strtotime($productDATA['draw_date'].' '.$productDATA['draw_time']))));
 
-			// Deduct the purchesed points and get available arabian points of user.
-        	$currentBal  = $this->geneal_model->debitPointsByAPI((float)$OrderDetails['total_price'],(int)$UserData['users_id']); 
-        	if($accesstype == 'web'):
-				$this->session->set_userdata('availableArabianPoints',$currentBal);
-			endif;
-		else:
-			$end_balance = (float)$availableArabianPoints;
-		endif;
+					 // Cheking product current availability... 
+					if(!empty($productDATA) && $productDATA['status'] == 'A' &&  $currentDat <= $drawDateTime):
+						
+						// Getting users detail start here ..
+						$FieldList   		= array('users_type','users_name','last_name','users_email','users_mobile','store_name','pos_number','status','availableArabianPoints','users_id'); 
+						$tableName          = 'uw_users';
+					    $whereCon['where']  = array('users_id' => (int)$userId );
+						$userDetails 		= $this->common_model->getParticularFieldByMultipleCondition($FieldList,$tableName,$whereCon);
+						// echo "<pre>";print_r($userDetails);die();
+						
+						// user's related validation start here..
+						if(!empty($userDetails) && $userDetails['status'] == 'A' && $userDetails['availableArabianPoints'] >= $OrderDetails['total_price'] ):
+							
+							if($OrderDetails['raffle_mode'] == "Y"):
+								$quantity 	    = $OrderDetails['quantity'];
+								$reffle_prefix  = $productDATA['reffle_prefix'];
+								$reffle_length  = $productDATA['reffle_length'];
+								$raffle_tickets = $this->generateRaffle($quantity,$reffle_prefix ,$reffle_length);
+							endif;
 
-		// new function...
-		if($OrderDetails['raffle_mode'] == "Y"):
-			$quantity 	    = $OrderDetails['quantity'];
-			$reffle_prefix  = $ProductData['reffle_prefix'];
-			$reffle_length  = $ProductData['reffle_length'];
-			$raffle_tickets = $this->generateRaffle($quantity,$reffle_prefix ,$reffle_length);
-		endif;
-		
-		$this->load->library('mongodb_client');
-		$session = $this->mongodb_client->client->startSession();
-		$session->startTransaction();
-		try {
-			
-			$param["sequence_id"]		     	= (int)$this->geneal_model->getNextSequence('uw_lotto_orders');
-			$param["order_id"]		     	 	= $OrderDetails['order_id'];
-			$param["transaction_id"]		    = $transaction_id;
-			$param["pos_number"]		     	= $OrderDetails['pos_number'];
-			$param["user_id"]		     	 	= (int)$UserData['users_id'];
-			$param["user_type"]		     	 	= $UserData['users_type'];
-			$param["user_email"]		     	= $UserData['users_email'];
-			$param["user_phone"]		     	= $UserData['users_mobile'];
-			$param["store_name"]		     	= $UserData['store_name'];
-			$param["product_id"]		     	= $ProductData['products_id'];
-			$param["product_title"]		     	= $ProductData['title'];
-			$param["product_qty"]		     	= $OrderDetails['quantity'];
-			$param["prize_title"]		     	= $OrderDetails['prize_title'];
-			$param["straight_add_on_amount"] 	= (float)$OrderDetails['straight_add_on_amount'];
-			$param["rumble_add_on_amount"]   	= (float)$OrderDetails['rumble_add_on_amount'];
-			$param["reverse_add_on_amount"]  	= (float)$OrderDetails['reverse_add_on_amount'];
-			$param["selection_values"]  		= $OrderDetails['selection_values'];
-			$param["vat_amount"]		     	= (float)$OrderDetails['vat_amount'];
-			$param["subtotal"]  			 	= (float)$OrderDetails['subtotal'];
-			$param["total_price"]  			 	= (float)$OrderDetails['total_price'];
-			$param["availableArabianPoints"] 	= (float)$availableArabianPoints;
-			$param["end_balance"] 			 	= (float)$end_balance;
-			$param["payment_mode"] 			 	= $OrderDetails['payment_mode'];
-			$param["pickup_point"] 			    = $OrderDetails['pickup_point'];	 
-			$param["delivery_address"] 		    = $OrderDetails['delivery_address'];	 
-			$param["delivery_charge"] 		    = (float)$OrderDetails['delivery_charge'];	 
-			$param["draw_id"]		    		= (int)$ProductData['draw_id'];
-			$param["draw_date"]		    		= $ProductData['draw_date'];
-			$param["draw_time"]		    		= $ProductData['draw_time'];
-			$param["payment_from"] 			 	= 'Lotto';
-			$param["product_is_donate"] 	 	= $OrderDetails['product_is_donate'];
-			$param["order_status"] 	 		 	= $order_status;
-			$param["device_type"] 	 		 	= $OrderDetails['device_type'];
-			$param["app_version"] 	 		 	= $OrderDetails['app_version'];
-			$param["ticket"] 	 		 	 	= $OrderDetails['ticket'];
-			$param["status"] 	 		 	 	= $status;
-			$param["order_first_name"] 	 	 	= $OrderDetails['order_first_name'];
-			$param["order_last_name"] 	 	 	= $OrderDetails['order_last_name'];
-			$param["order_users_country_code"]  = $OrderDetails['order_users_country_code'];
-			$param["order_users_mobile"] 	 	= $OrderDetails['order_users_mobile'];
-			$param["order_users_email"] 	 	= $OrderDetails['order_users_email'];
-			$param["SMS"] 	 					= $OrderDetails['SMS'];
-			$param['latitude']					= $OrderDetails['latitude'];
-			$param['longitude']					= $OrderDetails['longitude'];
-			$param['address']					= $OrderDetails['address'];
-			if(!empty($raffle_tickets)):
-				$param['raffle_mode']			= $OrderDetails['raffle_mode'];
-				$param['raffle_tickets']		= $raffle_tickets;
-			endif;
-			$param["creation_ip"] 	 			= currentIp();
-			$param["created_at"] 	 			= $OrderDetails['created_at'];
-			// $orderInsertID 					 = $this->geneal_model->addData('uw_lotto_orders', $param);
-			$orderInsertID = $this->mongodb_client->insertDocument('uw_lotto_orders', $param, $session);
-			$o_id  = (string) $orderInsertID['_id'];
+							$this->load->library('mongodb_client');
+							$session = $this->mongodb_client->client->startSession();
+							$session->startTransaction();
+									
+							$user_oid = $userDetails['_id']['$id'];
+
+							$param["sequence_id"]		     	= (int)$this->geneal_model->getNextSequence('uw_lotto_orders');
+							$param["order_id"]		     	 	= $OrderDetails['order_id'];
+							$param["transaction_id"]		    = $transactionId;
+							$param["pos_number"]		     	= $OrderDetails['pos_number'];
+							$param["user_id"]		     	 	= (int)$userDetails['users_id'];
+							$param["user_oid"]		     	 	= new MongoDB\BSON\ObjectId($user_oid);
+							$param["user_type"]		     	 	= $userDetails['users_type'];
+							$param["user_email"]		     	= $userDetails['users_email'];
+							$param["user_phone"]		     	= $userDetails['users_mobile'];
+							$param["store_name"]		     	= $userDetails['store_name'];
+							$param["product_id"]		     	= $productDATA['products_id'];
+							$param["product_title"]		     	= $productDATA['title'];
+							$param["product_qty"]		     	= $OrderDetails['quantity'];
+							$param["prize_title"]		     	= $OrderDetails['prize_title'];
+							$param["straight_add_on_amount"] 	= (float)$OrderDetails['straight_add_on_amount'];
+							$param["rumble_add_on_amount"]   	= (float)$OrderDetails['rumble_add_on_amount'];
+							$param["reverse_add_on_amount"]  	= (float)$OrderDetails['reverse_add_on_amount'];
+							$param["selection_values"]  		= $OrderDetails['selection_values'];
+							$param["vat_amount"]		     	= (float)$OrderDetails['vat_amount'];
+							$param["subtotal"]  			 	= (float)$OrderDetails['subtotal'];
+							$param["total_price"]  			 	= (float)$OrderDetails['total_price'];
+							$param["availableArabianPoints"] 	= (float)$userDetails['availableArabianPoints'];
+							$param["end_balance"] 			 	= (float)$userDetails['availableArabianPoints']-$OrderDetails['total_price'];
+							$param["payment_mode"] 			 	= $OrderDetails['payment_mode'];
+							$param["pickup_point"] 			    = $OrderDetails['pickup_point'];	 
+							$param["delivery_address"] 		    = $OrderDetails['delivery_address'];	 
+							$param["delivery_charge"] 		    = (float)$OrderDetails['delivery_charge'];	 
+							$param["draw_id"]		    		= (int)$productDATA['draw_id'];
+							$param["draw_date"]		    		= $productDATA['draw_date'];
+							$param["draw_time"]		    		= $productDATA['draw_time'];
+							$param["payment_from"] 			 	= 'Lotto';
+							$param["product_is_donate"] 	 	= $OrderDetails['product_is_donate'];
+							$param["order_status"] 	 		 	= $orderStatus;
+							$param["device_type"] 	 		 	= $OrderDetails['device_type'];
+							$param["app_version"] 	 		 	= $OrderDetails['app_version'];
+							$param["ticket"] 	 		 	 	= $OrderDetails['ticket'];
+							$param["status"] 	 		 	 	= $orderStatus == "Success" ?"A" :"A";
+							$param["order_first_name"] 	 	 	= $OrderDetails['order_first_name'];
+							$param["order_last_name"] 	 	 	= $OrderDetails['order_last_name'];
+							$param["order_users_country_code"]  = $OrderDetails['order_users_country_code'];
+							$param["order_users_mobile"] 	 	= $OrderDetails['order_users_mobile'];
+							$param["order_users_email"] 	 	= $OrderDetails['order_users_email'];
+							$param["SMS"] 	 					= $OrderDetails['SMS'];
+							$param['latitude']					= $OrderDetails['latitude'];
+							$param['longitude']					= $OrderDetails['longitude'];
+							$param['address']					= $OrderDetails['address'];
+							if(!empty($raffle_tickets)):
+								$param['raffle_mode']			= $OrderDetails['raffle_mode'];
+								$param['raffle_tickets']		= $raffle_tickets;
+							endif;
+							$param["creation_ip"] 	 			= currentIp();
+							$param["created_at"] 	 			= $OrderDetails['created_at'];
+							
+							// $orderInsertID 					 	= $this->addData('uw_lotto_orders', $param);
+							// $o_id  =  $orderInsertID['_id']->{'$id'} ;
+							
+							$orderInsertID 						= $this->mongodb_client->insertDocument('uw_lotto_orders', $param, $session);
+							$o_id  = (string) $orderInsertID['_id'];
 
 
-			// if(!empty($UserData['referred_by']) && empty($UserData['redeemed_referrel_amount'])):
+							if(!empty($orderInsertID)):
 
-			// Added syntex for first raferrel commission for btb users..  
-			$tblName  	     	= 'uw_lotto_orders';
-			$whereCon['where'] 	= array('user_id' => (int)$UserData['users_id']);
-			$firstPurchase	    = $this->getData('count',$tblName,$whereCon);
-			if(!empty($UserData['referred_by'])  && $firstPurchase == 0 ):
- 
-				$USERSearchFiled = array('users_type','users_id','availableArabianPoints','country_code','users_mobile','users_email','referred_by','referrel_amount','redeemed_referrel_amount','commission_percentage'); 
-				$ReferredBy  	 = (string)$UserData['referred_by'];
-				$this->mongo_db->select($USERSearchFiled);
-				$this->mongo_db->where('_id' ,new MongoDB\BSON\ObjectId($ReferredBy));
-				$SellerData  	 = $this->mongo_db->find_one('uw_users');
+								// Deduct the purchesed points and get available arabian points of user.
+					        	$currentBal  = $this->geneal_model->debitPointsByAPI((float)$OrderDetails['total_price'],(int)$userDetails['users_id']); 
+					        	if($accesstype == 'web'):
+									$this->session->set_userdata('availableArabianPoints',$currentBal);
+								endif;
 
-				if(!empty($SellerData)):
-					$seller_oid 	      = $SellerData['_id']->{'$id'};
-					$commition_amount = $OrderDetails['total_price']*$SellerData['commission_percentage']/100;
-					$CommissionParam  = array('totalArabianPoints'=> +$commition_amount ,'availableArabianPoints'=> +$commition_amount,'redeemed_referrel_amount' => +$commition_amount); 
-					$commissionData   = $this->manageBalance("uw_users",$CommissionParam ,"_id" ,new MongoDB\BSON\ObjectId($ReferredBy));
+								// Order capturing in order uw_loadbalance table..
+								$fromuserparam["load_balance_id"]		 =	(int)$this->geneal_model->getNextSequence('uw_loadBalance');
+								$fromuserparam["order_oid"] 			 =	new MongoDB\BSON\ObjectId($o_id);
+								$fromuserparam["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_oid);
+								$fromuserparam["user_id_deb"]			 =	(int)$userDetails['users_id'];
+								$fromuserparam["order_id"] 				 =	$orderInsertID['order_id'];
+								$fromuserparam["user_id_cred"] 			 =	(int)0;
+								$fromuserparam["upoints"] 				 =	(float)$orderInsertID['total_price'];
+								$fromuserparam["availableArabianPoints"] =	(float)$orderInsertID['availableArabianPoints'];
+								$fromuserparam["end_balance"] 			 =	(float)$orderInsertID['end_balance'];
+								$fromuserparam["record_type"] 			 =	'Debit';
+								$fromuserparam["narration"]				 =	'Order';
+								$fromuserparam["remarks"]				 =	'Ticket ID : '.$orderInsertID['order_id'];
+								$fromuserparam["creation_ip"] 	 		 =  currentIp();
+								$fromuserparam["created_at"] 			 =	date('Y-m-d H:i');
+								$fromuserparam["created_by"] 			 =	(int)$userDetails['users_id'];
+								$fromuserparam["status"] 				 =	"A";
 
-					$UserCommissionParam = array('redeemed_referrel_amount' => $commition_amount); 
-					$commissionData      = $this->manageBalance("uw_users",$UserCommissionParam ,"_id" ,new MongoDB\BSON\ObjectId($seller_oid));
+								// $fromuserinsertResult = $this->geneal_model->addData('uw_loadBalance', $fromuserparam);
 
-					// First Commission amount  releasing for btb user..
-					$FirstpurchaseParam["load_balance_id"]		 = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
-					$FirstpurchaseParam["order_oid"] 			 = new MongoDB\BSON\ObjectId($o_id);
-					$FirstpurchaseParam["user_oid"] 			 = new MongoDB\BSON\ObjectId($seller_oid);
-					$FirstpurchaseParam["user_id_deb"]			 = (int)0;
-					$FirstpurchaseParam["order_id"] 			 = $orderInsertID['order_id'];
-					$FirstpurchaseParam["user_id_cred"] 		 = (int)$SellerData['users_id'];
-					$FirstpurchaseParam["upoints"] 				 = (float)$commition_amount;
-					$FirstpurchaseParam["availableArabianPoints"]= (float)$SellerData['availableArabianPoints'];
-					$FirstpurchaseParam["end_balance"] 			 = (float)$SellerData['availableArabianPoints'] + $commition_amount;
-					$FirstpurchaseParam["record_type"] 			 = 'Credit';
-					$FirstpurchaseParam["narration"]			 = 'Referrel Commission';
-					$FirstpurchaseParam["remarks"]				 = 'Ticket ID : '.$orderInsertID['order_id'];
-					$FirstpurchaseParam["creation_ip"] 	 		 = currentIp();
-					$FirstpurchaseParam["created_at"] 			 = date('Y-m-d H:i');
-					$FirstpurchaseParam["created_by"] 			 = (int)$UserData['users_id'];
-					$FirstpurchaseParam["status"] 				 =	"A";
-					// $FirstpurchaseinsertResult = $this->geneal_model->addData('uw_loadBalance', $FirstpurchaseParam);
-					$FirstpurchaseinsertResult = $this->mongodb_client->insertDocument('uw_loadBalance', $FirstpurchaseParam, $session);
+								$fromuserinsertResult = $this->mongodb_client->insertDocument('uw_loadBalance', $fromuserparam, $session);
+								if($fromuserinsertResult || $FirstpurchaseinsertResult ){
+									$session->commitTransaction();
+		   							// $session->abortTransaction();
+									// echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
+									return $orderInsertID;
+							    }else{
+								   $session->abortTransaction();
+								   echo outPut(0,lang('BAD_REQUEST_CODE'),'Error: Unable to capture payment',[]);
+								   die();
+							    }
+
+							else:
+								throw new Exception(lang('TRY_AGAIN'), 1);
+							endif;
+
+						elseif( !empty($userDetails) && $userDetails['status'] == 'I' ):
+							throw new Exception(lang('ACCOUNT_INACIVE'), 1);
+						elseif( !empty($userDetails) && $userDetails['status'] == 'B' ):
+							throw new Exception(lang('ACCOUNT_BLOCKED'), 1);
+						elseif( !empty($userDetails) && $userDetails['status'] == 'D' ):
+							throw new Exception(lang('ACCOUNT_DELETED'), 1);
+						else:
+							throw new Exception(lang('USER_ID_INCORRECT'), 1);
+						endif;
+						// user's related validation end here..
+
+					elseif(!empty($productDATA)  && $productDATA['status'] == 'I'):
+						throw new Exception(lang('PRODUCT_OUT_OF_STOCK'), 1);
+					elseif(!empty($productDATA)  && $productDATA['status'] == 'A' && $currentDat > $drawDateTime):
+						throw new Exception(lang('INVALID_DRAWDATE'), 1);
+					else:
+						throw new Exception(lang('PRODUCT_NOT_FOUND'), 1);
+					endif;
+
+				else:
+					throw new Exception(lang('TRY_AGAIN'), 1);
 				endif;
+				 
+			else:
+				$error = 'Y';
+				throw new Exception(lang('ALREADY_ORDER_PLACED'));
 			endif;
 
-			// Order capturing in order uw_loadbalance table..
-			$fromuserparam["load_balance_id"]		 =	(int)$this->geneal_model->getNextSequence('uw_loadBalance');
-			$fromuserparam["order_oid"] 			 =	new MongoDB\BSON\ObjectId($o_id);
-			$fromuserparam["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_oid);
-			$fromuserparam["user_id_deb"]			 =	(int)$UserData['users_id'];
-			$fromuserparam["order_id"] 				 =	$orderInsertID['order_id'];
-			$fromuserparam["user_id_cred"] 			 =	(int)0;
-			$fromuserparam["upoints"] 				 =	(float)$orderInsertID['total_price'];
-			$fromuserparam["availableArabianPoints"] =	(float)$orderInsertID['availableArabianPoints'];
-			$fromuserparam["end_balance"] 			 =	(float)$orderInsertID['end_balance'];
-			$fromuserparam["record_type"] 			 =	'Debit';
-			$fromuserparam["narration"]				 =	'Order';
-			$fromuserparam["remarks"]				 =	'Ticket ID : '.$orderInsertID['order_id'];
-			$fromuserparam["creation_ip"] 	 		 =  currentIp();
-			$fromuserparam["created_at"] 			 =	date('Y-m-d H:i');
-			$fromuserparam["created_by"] 			 =	(int)$UserData['users_id'];
-			$fromuserparam["status"] 				 =	"A";
-			// $fromuserinsertResult = $this->geneal_model->addData('uw_loadBalance', $fromuserparam);
-			$fromuserinsertResult = $this->mongodb_client->insertDocument('uw_loadBalance', $fromuserparam, $session);
-			if($fromuserinsertResult || $FirstpurchaseinsertResult ){
-				$session->commitTransaction();
-			   // $session->abortTransaction();
-				// echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
-				return $orderInsertID;
-		   }else{
-			   $session->abortTransaction();
-			   echo outPut(0,lang('BAD_REQUEST_CODE'),'Error: Unable to capture payment',[]);
-			   die();
-		   }
-			
-		} catch (Exception $e) {
-			$session->abortTransaction();
-			echo $e;
-			echo outPut(0,lang('BAD_REQUEST_CODE'),'Error: ',$e);
-			die();
-		}
-		
-		/* Order capturing code start here.  End */
-	    
+
+		 	
+	 	} catch (Exception $e) {
+	 		if($accesstype == 'web' && $error  == 'Y'):
+	 			$this->session->set_flashdata('alert_error',$e->getMessage());
+	    		redirect('/');die();
+	 		else:
+				echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+	 		endif;
+	 	}
 	   
 	}
 
@@ -2958,6 +2957,7 @@ class Common_model extends CI_Model
            "selection_values" => 1,
            "created_at" => 1,
            'draw_date_time' => array( '$concat' => array('$drawData.draw_date', ' ', '$drawData.draw_time') ),
+                    
            'app_image'	=> '$productData.app_image',
            'product_image' => '$productData.product_image',
            'text_field_1'  => '$productData.text_field_1',
@@ -2966,7 +2966,14 @@ class Common_model extends CI_Model
            'straight_game_name'  => '$productData.straight_game_name',
            'rumble_game_name'    => '$productData.rumble_game_name',
            'reverse_game_name'   => '$productData.reverse_game_name',
-           'draw' => 1,
+           'current_draw_id'     => '$productData.draw_id',
+           'draw' => array(
+			    '$filter' => array(
+			        'input' => '$draw', // Input array to filter
+			        'as' => 'drawItem', // Alias for elements in the array
+			        'cond' => array('$eq' => array('$$drawItem.status', 1)) // Condition to include only items with status 1
+			    )
+			),
            'winner_type' => 1,
            'delivery_charge' => 1,
            'reffle_prefix' 	 => '$productData.reffle_prefix',
@@ -2981,6 +2988,46 @@ class Common_model extends CI_Model
            'straight_settings_default_check'  => '$productData.straight_settings_default_check',
            'rumble_settings_default_check'    => '$productData.rumble_settings_default_check',
            'reverse_settings_default_check'   => '$productData.reverse_settings_default_check',
+           "winning_status" => array(
+			    '$cond' => array(
+			        'if' => array(
+						    '$and' => array(
+						        array('$ne' => array('$draw', [])), // Check if draw array is not empty
+						        array(
+						            '$gt' => array( // Ensure there are elements after filtering
+						                array(
+						                    '$size' => array(
+						                        '$filter' => array(
+						                            'input' => '$draw', // Input array to filter
+						                            'as' => 'drawItem', // Alias for elements in the array
+						                            'cond' => array('$eq' => array('$$drawItem.status', 1)) // Include only items with status 0
+						                        )
+						                    )
+						                ),
+						                0
+						            )
+						        )
+						    )
+						),
+			        'then' => 'Won',
+			        'else' => array(
+
+			        	'$cond' => array(
+					         	'if' => array(
+							       '$and' => array(
+							       		array('$eq' => array('$draw_id', '$productData.draw_id')), 
+							        	array('$eq' => array('$draw', [])), // Check if draw array is not empty
+								       
+							    	)
+								),
+						        'then' => 'Draw is going on',// Default case
+						        'else' => lang('NOT_WINNER'),
+					    )
+
+
+			         ) // Default case
+			    )
+			),  
         );
 
         if($whereCon):
@@ -3004,6 +3051,8 @@ class Common_model extends CI_Model
 					  );
         $unwind 	  = array('$productData','$drawData'); 
  		$result       = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$startIndex,$itemsPerPage);
+ 		
+
  		return $result;
 	}
 
@@ -3403,48 +3452,48 @@ class Common_model extends CI_Model
 		    $winningBalance 	 	= $userDetails['winningBalance'];
 			/* User Details code End */
 			
-			foreach($winningHistory as $item):
-				$viewAfterDateTime = date('Y-m-d H:i:s' , strtotime($item['created_at']. ' +30 Minutes'));
-				$currentDate       = date('Y-m-d H:i:s');
-				if($viewAfterDateTime <= $currentDate &&  empty($item['redeem_status']) && $item['redeem_status'] != 'paid'):
+			// foreach($winningHistory as $item):
+			// 	$viewAfterDateTime = date('Y-m-d H:i:s' , strtotime($item['created_at']. ' +30 Minutes'));
+			// 	$currentDate       = date('Y-m-d H:i:s');
+			// 	if($viewAfterDateTime <= $currentDate &&  empty($item['redeem_status']) && $item['redeem_status'] != 'paid'):
 
-					$totalAmount += $item['amount'];
-					$tickect_id   = $item['order_id'];
+			// 		$totalAmount += $item['amount'];
+			// 		$tickect_id   = $item['order_id'];
 					
-					$updateParams['redeem_status'] 	= 'paid';
-					$updateParams['redeem_by_mode'] = 'UPoints';
-					$updateParams["modified_at"]    = date('Y-m-d H:i');
-					$updateParams['seller_id'] 		= (int)$USERID;
-					$updateParams['created_ip'] 	= $this->input->ip_address();;
-					$WInnner_whereCon    			= array('order_id' => $tickect_id , 'status' => (int)'1');
-					$updatedstatus 					= $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $updateParams,$WInnner_whereCon);
-				endif;
-			endforeach;
+			// 		$updateParams['redeem_status'] 	= 'paid';
+			// 		$updateParams['redeem_by_mode'] = 'UPoints';
+			// 		$updateParams["modified_at"]    = date('Y-m-d H:i');
+			// 		$updateParams['seller_id'] 		= (int)$USERID;
+			// 		$updateParams['created_ip'] 	= $this->input->ip_address();;
+			// 		$WInnner_whereCon    			= array('order_id' => $tickect_id , 'status' => (int)'1');
+			// 		$updatedstatus 					= $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $updateParams,$WInnner_whereCon);
+			// 	endif;
+			// endforeach;
 
 			// if($updatedstatus):
-				$loadBalanceParam['load_balance_id'] =   (int)$this->geneal_model->getNextSequence('uw_loadBalance');
-                $loadBalanceParam['user_oid']        =   new MongoDB\BSON\ObjectId($userDetails['_id']['$id']);
-                $loadBalanceParam['user_id_deb']     =   (int)0;
-                $loadBalanceParam['user_id_cred']    =   (int)$USERID;
-                $loadBalanceParam['record_type']     =   'Credit';
-                $loadBalanceParam['narration']       =   'Winning Amount';
-                $loadBalanceParam['remarks']         =   'Prize amount ('.$totalAmount.') added to Winning balance';
-             	$loadBalanceParam["availableArabianPoints"] =   (float)$availableArabianPoints;
-				$loadBalanceParam["end_balance"] 		    =   (float)$availableArabianPoints + $totalAmount;
-                $loadBalanceParam['upoints']         =   (float)$totalAmount;
-                $loadBalanceParam['creation_ip']     =   $this->input->ip_address();;
-                $loadBalanceParam['created_at']      =   date('Y-m-d H:i');
-                $loadBalanceParam['created_by']      =   (int)$id;
-                $loadBalanceParam['status']          =   'A';
-                $this->geneal_model->addData('uw_loadBalance', $loadBalanceParam);
+			// 	$loadBalanceParam['load_balance_id'] =   (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+            //     $loadBalanceParam['user_oid']        =   new MongoDB\BSON\ObjectId($userDetails['_id']['$id']);
+            //     $loadBalanceParam['user_id_deb']     =   (int)0;
+            //     $loadBalanceParam['user_id_cred']    =   (int)$USERID;
+            //     $loadBalanceParam['record_type']     =   'Credit';
+            //     $loadBalanceParam['narration']       =   'Winning Amount';
+            //     $loadBalanceParam['remarks']         =   'Prize amount ('.$totalAmount.') added to Winning balance';
+            //  	$loadBalanceParam["availableArabianPoints"] =   (float)$availableArabianPoints;
+			// 	$loadBalanceParam["end_balance"] 		    =   (float)$availableArabianPoints + $totalAmount;
+            //     $loadBalanceParam['upoints']         =   (float)$totalAmount;
+            //     $loadBalanceParam['creation_ip']     =   $this->input->ip_address();;
+            //     $loadBalanceParam['created_at']      =   date('Y-m-d H:i');
+            //     $loadBalanceParam['created_by']      =   (int)$id;
+            //     $loadBalanceParam['status']          =   'A';
+            //     $this->geneal_model->addData('uw_loadBalance', $loadBalanceParam);
 
-                //Crediting winning Amount
-		        $param['totalArabianPoints']    	= (float)$totalArabianPoints + $totalAmount;
-		        $param['availableArabianPoints']    = (float)$availableArabianPoints + $totalAmount;
-		        $param['totalwinningBalance']       = (float)$totalwinningBalance + $totalAmount;
-		        $param['winningBalance']            = (float)$winningBalance + $totalAmount;
-		        $param['update_date']               = date('Y-m-d h:m');
-		        $this->common_model->editData('uw_users',$param, 'users_id',(int)$USERID);
+            //     //Crediting winning Amount
+		    //     $param['totalArabianPoints']    	= (float)$totalArabianPoints + $totalAmount;
+		    //     $param['availableArabianPoints']    = (float)$availableArabianPoints + $totalAmount;
+		    //     $param['totalwinningBalance']       = (float)$totalwinningBalance + $totalAmount;
+		    //     $param['winningBalance']            = (float)$winningBalance + $totalAmount;
+		    //     $param['update_date']               = date('Y-m-d h:m');
+		    //     $this->common_model->editData('uw_users',$param, 'users_id',(int)$USERID);
 			// endif;
 		endif;
 
@@ -4354,6 +4403,157 @@ class Common_model extends CI_Model
 	 	
 		return $resultData;
 	}
+
+	/***********************************************************************
+	** Function name : getCashSummery2
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used to getCashSummery2 
+	** Date 		 : 13 November 2024
+	************************************************************************/
+	public function getCashSummery2($UserData ='')
+	{
+	    $tblName = 'uw_loadBalance';
+		$whereCondition['user_oid']    = new MongoDB\BSON\ObjectId($UserData['_id']->{'$id'});
+
+		if($UserData['from']):
+			$whereCondition['created_at']['$gte']    =  $UserData['from'];
+		endif;
+		if($UserData['to']):
+			$whereCondition['created_at']['$lte']    =  $UserData['to'];
+		endif;
+		 
+		if($this->input->post('search_by') && $this->input->post('search_value')):
+			$whereCondition[$this->input->post('search_by')] = is_numeric($this->input->post('search_value'))?(int)$this->input->post('search_value') : $this->input->post('search_value');
+		endif;
+
+		// Define the aggregation pipeline
+		$pipeline = [
+		    // Match stage to filter documents based on the condition
+		    ['$match' => $whereCondition],
+		    // Group stage to calculate counts and sums for each coupon status
+		    ['$group' => [
+		        '_id' => '$users_id',
+	           
+	           'total_upoints_sold'       => array(
+				    '$sum' => array(
+				        '$cond' => array(
+				            array(
+				                '$and' => array(
+				                    array('$in' => array('$narration', array('Recharge', 'Recharge Coupon'))),
+				                    array('$eq' => array('$record_type', 'Debit')),
+				                    array('$eq' => array('$status', 'A')),
+				                ),
+				            ),
+				            '$upoints',
+				            0
+				        )
+				    )
+				),
+	           'total_upoints_commission' => array(
+				    '$sum' => array(
+				        '$cond' => array(
+				            array(
+				                '$and' => array(
+				                    array('$in' => array('$narration', array('Recharge Commission'))),
+				                    array('$eq' => array('$record_type', 'Credit')),
+				                    array('$eq' => array('$status', 'A')),
+				                ),
+				            ),
+				            '$upoints',
+				            0
+				        )
+				    )
+				),
+	           'total_ticket_redeemed'    => array(
+				    '$sum' => array(
+				        '$cond' => array(
+				            array(
+				                '$and' => array(
+				                    // array('$eq' => array('$narration'  , 'Cash Prize Redeem')),
+				                    array('$in' => array('$narration', array('Recharge Commission' ,'Redeem Prize'))),
+				                    array('$eq' => array('$user_type', 'Users')),
+				                    // array('$eq' => array('$record_type', 'Credit')),
+				                    array('$eq' => array('$status', 'A')),
+
+				                )
+				            ),
+				            '$upoints',
+				            0
+				        )
+				    )
+				),
+	           'total_ticket_redeemed_commission' => array(
+				    '$sum' => array(
+				        '$cond' => array(
+				            array(
+				                '$and' => array(
+				                    // array('$eq' => array('$narration'  , 'Cash Voucher Redeem')),
+				                    array('$in' => array('$narration', array('Cash Voucher Redeem' ,'Redeem Prize Commission'))),
+				                    array('$eq' => array('$user_type', 'Users')),
+				                    // array('$eq' => array('$record_type', 'Credit')),
+				                    array('$eq' => array('$status', 'A')),
+				                )
+				            ),
+				            '$upoints',
+				            0
+				        )
+				    )
+				),
+		       'referrel_commission' => array(
+				    '$sum' => array(
+				        '$cond' => array(
+	                     	array(
+				                '$and' => array(
+				                    array('$in' => array('$narration', array('Referrel Commission'))),
+				                    array('$eq' => array('$status', 'A')),
+				                ),
+				            ),
+				            '$upoints',
+				            0
+				        )
+				    )
+				),
+		    ]],
+
+
+		    // ['$addFields' => [
+		    //     'total_due' => [
+	        //     	'$subtract' => [ [ '$add' => ['$total_upoints_sold'] ] ,  [ '$add' => [ '$total_ticket_redeemed'] ] ]
+		    //     ]
+		    // ]],
+
+		    ['$addFields' => [
+		        'total_due' => [
+	            	'$subtract' => [ 
+	            		[ '$subtract' => ['$total_upoints_sold' ,'$total_upoints_commission' ] ] , 
+	            		[ '$add' => [ [ '$add' => [ '$total_ticket_redeemed','$total_ticket_redeemed_commission'] ] ,'$referrel_commission' ] ] , 
+		       		 ]
+		    	]
+		      ]
+		    ],
+
+		    
+		    // Project stage to select specific fields
+		     array('$project' =>  array(		        
+		    	'_id'         				 		   => 0,
+		    	'total_upoints_sold'      		   	   => 1,
+		    	'total_upoints_commission'      	   => 1,
+		    	'total_ticket_redeemed' 			   => 1, // total tickects redeemed..
+		    	'total_ticket_redeemed_commission' 	   => 1, // total tickects redeemed..
+		    	'referrel_commission' 			       => 1, // referral commission..
+		    	'total_due'      	   				   => 1,
+		    ))
+
+
+		];
+
+
+		// Execute the aggregation
+		$resultData = $this->mongo_db->aggregate($tblName, $pipeline, ['batchSize' => 10]);
+		// $resultData['0']['redeemed_referrel_amount'] = (int)$UserData['redeemed_referrel_amount'];
+	 	
+		return $resultData;
+	}
 	
 	/***********************************************************************
 	** Function name : getRaffleSummery
@@ -4887,4 +5087,175 @@ class Common_model extends CI_Model
 			
 		}
 	}
+
+	/***********************************************************************
+	** Function name : getOrderDetails
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used to get order Details.
+	** Date          : 29 June 2024
+	************************************************************************/
+	public function getOrderDetail($whereCon="")
+	{
+		$SelectFields = array(
+		  	"_id"			=> 1,
+		    "draw_id" 		=> 1,
+		    "order_id" 		=> 1,
+		    "created_at" 	=> 1,
+		    "pos_number" 	=> 1,
+		    "status" 		=> 1,
+		    "product_id"    => 1,
+		    "draw_dateTime" => array(
+	        	'$concat'   => array('$draw.draw_date', ' ', '$draw.draw_time')
+		    ),
+		    "current_draw_id" => array('$arrayElemAt' => array('$products.draw_id', 0)),
+		);
+
+		if($whereCon['where']):
+			$whereCondition = $whereCon['where'];
+		endif;
+
+		$lookup        = array( 
+								array('from'=>'uw_products_draw_records','localField'=>'draw_id','foreignField'=>'draw_id','as'=>'draw'),
+								array('from'=>'uw_products','localField'=>'product_id','foreignField'=>'products_id','as'=>'products')
+							);
+    	$sortBy        = array('sequence_id' => 1);
+		$groupBy  	   = array();
+		$unwind        = array('$draw');
+		$tblName       = "uw_lotto_orders";
+	    $getOrderDetail= $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind);
+
+
+	    return $getOrderDetail[0];
+	    die();
+	}
+
+	/***********************************************************************
+	** Function name : orderHistory
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used to get orderHistory 
+	** Date 		 : 17 June 2025
+	** Updated By    :  
+	** Updated Date  :  
+	************************************************************************/
+	public function orderHistory($whereCon="")
+	{  	
+		 
+		$SelectFields = array(
+           'order_id'         => 1,
+           'product_qty'      => 1, 
+           'product_title'    => 1,
+           'prize_title' 	  => 1,
+           'status' 		  => 1,
+           'ticket' 		  => 1,
+           'created_at' 	  => 1,
+           'total_price' 	  => 1,
+           'order_code'   	  => 1,
+           'selection_values' => 1,
+           'is_printed' 	  => 1,
+		   'draw_id' 		  => 1,
+		   'draw_dateTime'    => array(
+	        	'$concat'     => array('$draw.draw_date', ' ', '$draw.draw_time')
+		    ),
+		    'current_draw_id' => array('$arrayElemAt' => array('$products.draw_id', 0)),
+        );
+
+		if($whereCon['where']):
+			$whereCondition = $whereCon['where'];
+		endif;
+
+		if(empty($whereCon['where']['created_at'])):
+			$per_page = 1000;
+			$page = 0;
+		endif;
+
+		$lookup        = array( 
+								array('from'=>'uw_products_draw_records','localField'=>'draw_id','foreignField'=>'draw_id','as'=>'draw'),
+								array('from'=>'uw_products','localField'=>'product_id','foreignField'=>'products_id','as'=>'products')
+							);
+    	$sortBy        = array('sequence_id' => -1);
+		$groupBy  	   = array();
+		$unwind        = array('$draw');
+		$tblName       = "uw_lotto_orders";
+	    $getOrderDetail= $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$page,$per_page);
+	    return $getOrderDetail;
+	    die();
+	}
+
+	/* * *********************************************************************
+	 * * Function name  : bonusPoints
+	 * * Developed By 	: Dilip Halder
+	 * * Purpose        : This function used for signup bonusPoints
+	 * * Date           : 08 July  2025
+	 * * Updated By     :  
+	 * * Date           :  
+	 * * **********************************************************************/
+	public function bonusPoints($bonus='')
+	{	
+		$user_OId = $bonus['_id']->{'$id'}?$bonus['_id']->{'$id'}:$bonus['_id']['$id'];
+
+		$tblName            = 'uw_loadBalance';
+		$whereCon['where']  = array('user_oid' => new MongoDB\BSON\ObjectId($user_OId)  , 'narration' => 'Signup Bonus' );
+		$loadBalance 		= $this->common_model->getData('single',$tblName,$whereCon);
+
+		if(empty($loadBalance)):
+			$signupBonusParam['totalArabianPoints'] = $bonus['totalArabianPoints'] + SIGNUPBONUS;
+			$signupBonusParam['availableArabianPoints'] = $bonus['availableArabianPoints'] + SIGNUPBONUS;
+			$this->common_model->editData('uw_users', $signupBonusParam ,'_id', new MongoDB\BSON\ObjectId($user_OId) );
+			// Signup bonus points..
+			$signupBonus = SIGNUPBONUS;
+		   /* Load Balance Table -- after Sign Up*/
+         	$Cashparam["load_balance_id"]       = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+	        $Cashparam["user_oid"]        		= new MongoDB\BSON\ObjectId($user_OId);
+	        $Cashparam["user_id_cred"]          = (int)$bonus['users_id'];
+	        $Cashparam["upoints"]       		= (float)SIGNUPBONUS;
+	        $Cashparam["record_type"]           = 'Credit';
+	        $Cashparam["narration"]  			= 'Signup Bonus';
+	        $Cashparam["remarks"]  				= '';
+	        $Cashparam["availableArabianPoints"]= (float)$bonus['availableArabianPoints'];
+	        $Cashparam["end_balance"] 			= (float)$bonus['availableArabianPoints'] + SIGNUPBONUS;;
+	        $Cashparam["creation_ip"]           = currentIp();
+	        $Cashparam["created_at"]            = date('Y-m-d H:i');
+	        $Cashparam["created_by"]            = (int)$bonus['users_id'];
+	        $Cashparam["status"]                = "A";
+	        $this->geneal_model->addData('uw_loadBalance', $Cashparam);
+		endif;
+
+        $referredBy = $bonus['referred_by'];
+        if(!empty($referredBy)):
+			$RaffletblName = 'uw_users';
+			$referredWhere['where']  =	array( '_id' => new MongoDB\BSON\ObjectId($referredBy) );
+			$RaferData				 =	$this->common_model->getData('single',$RaffletblName, $referredWhere);
+			if(!empty($RaferData)):
+				if($RaferData['users_type'] == 'Users'):
+					$RaferDataParam['raffered_count']     = $RaferData['raffered_count'] + 1;
+					$RaferDataParam['raffered_date']      =  date('Y-m-d');
+				endif;
+				$RaferDataParam['availableArabianPoints'] = $RaferData['availableArabianPoints'] + REFFERLBONUS;
+				$this->common_model->editData($RaffletblName, $RaferDataParam ,'_id', new MongoDB\BSON\ObjectId($referredBy) );
+
+				// First Commission amount  releasing for btb user..
+				$raffleParam["load_balance_id"]		 	= (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+				$raffleParam["user_oid"] 			 	= new MongoDB\BSON\ObjectId($referredBy);
+				$raffleParam["request_id"] 			 	= (int)$RaferData['users_id'];
+				$raffleParam["request_oid"] 			= new MongoDB\BSON\ObjectId($user_OId);
+				$raffleParam["user_id_deb"]			 	= (int)0;
+				$raffleParam["user_id_cred"] 			= (int)$RaferData['users_id'];
+				$raffleParam["upoints"] 			    = (float)REFFERLBONUS;
+				$raffleParam["availableArabianPoints"]  = (float)$RaferData['availableArabianPoints'];
+				$raffleParam["end_balance"] 		 	= (float)$RaferData['availableArabianPoints'] + REFFERLBONUS;
+				$raffleParam["record_type"] 		 	= 'Credit';
+				$raffleParam["narration"]			 	= 'Referrel Commission';
+				$raffleParam["remarks"]				 	= 'Referral Signup of ('.$bonus['users_mobile'].')';
+				$raffleParam["creation_ip"] 	 	 	= currentIp();
+				$raffleParam["created_at"] 			 	= date('Y-m-d H:i');
+				$raffleParam["created_by"] 			 	= (int)$UserData['users_id'];
+				$raffleParam["status"] 				 	= "A";
+				// echo "<pre>";print_r($raffleParam);die();
+				$FirstpurchaseinsertResult = $this->common_model->addData('uw_loadBalance', $raffleParam);
+			endif;
+			// $param['referrel_amount'] =  $USERDATA['referrel_amount'];
+		endif;
+		// Raferral bonus points..
+	}
+	
 }	
