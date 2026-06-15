@@ -34,21 +34,45 @@ class Enablesms extends CI_Controller {
 		if($this->input->post('SaveChanges')):
 			$error					=	'NO';
 
-			$this->form_validation->set_rules('digitizebird', 'Digitizebird', 'trim');
-			$this->form_validation->set_rules('smscountry', 'Smscountry', 'trim');
-			$this->form_validation->set_rules('sms_country_available_country', 'Country code', 'trim');
-			$this->form_validation->set_rules('digitizebird_available_country', 'Country Code', 'trim');
+			$this->form_validation->set_rules('smscountry', 'Smscountry', 'trim|required');
+			$this->form_validation->set_rules('sms_country_available_country', 'Country code', 'trim|required');
+			$this->form_validation->set_rules('digitizebird', 'Digitizebird', 'trim|required');
+			$this->form_validation->set_rules('digitizebird_available_country', 'Country Code', 'trim|required');
 
-			
+			$this->form_validation->set_rules('ndm', 'NDM Code', 'trim|required');
+			$this->form_validation->set_rules('ndm_available_country', 'Country Code', 'trim|required');
+			$this->form_validation->set_rules('whatsapp', 'WhatsApp', 'trim|required');
+			$this->form_validation->set_rules('email', 'Email', 'trim|required');
+			$this->form_validation->set_rules('default_sms', 'Default SMS Gateway', 'trim|required');	
 
 			if($this->form_validation->run() && $error == 'NO'): 
 
-				$param['digitizebird']				= 	stripslashes($this->input->post('digitizebird'));
-				$param['smscountry']				= 	stripslashes($this->input->post('smscountry'));
-				$param['sms_country_available_country']			= 	stripslashes($this->input->post('sms_country_available_country'));
-				$param['digitizebird_available_country']			= 	stripslashes($this->input->post('digitizebird_available_country'));
+				$param['smscountry']    = stripslashes($this->input->post('smscountry'));
+				$param['digitizebird']  = stripslashes($this->input->post('digitizebird'));
+				$param['ndm']		    = stripslashes($this->input->post('ndm'));
+				$param['digitizebird']  = stripslashes($this->input->post('digitizebird'));
 
-				if($this->input->post('CurrentDataID') ==''):
+				$param['sms_country_available_country']	 = stripslashes($this->input->post('sms_country_available_country'));
+				$param['digitizebird_available_country'] = stripslashes($this->input->post('digitizebird_available_country'));
+				$param['ndm_available_country']          = stripslashes($this->input->post('ndm_available_country'));
+				
+				$param['whatsapp']       = stripslashes($this->input->post('whatsapp'));
+				$param['email']          = stripslashes($this->input->post('email'));
+				$param['default_sms']    = stripslashes($this->input->post('default_sms'));
+
+				//
+				$oid = '';
+				if(!empty($data['EDITDATA']['_id']->{'$id'})):
+					 $oid = $data['EDITDATA']['_id']->{'$id'};
+				endif;
+				 
+				if(!empty($oid)):
+					$param['update_ip']			=	currentIp();
+					$param['update_date']		=	(int)$this->timezone->utc_time();//currentDateTime();
+					$param['updated_by']		=	(int)$this->session->userdata('UW_ADMIN_ID');
+					$this->common_model->editData('uw_enablesms',$param,'_id',new MongoDB\BSON\ObjectID($oid));
+					$this->session->set_flashdata('alert_success',lang('updatesuccess'));
+				else:
 					$param['enablesms_id']	=	(int)$this->common_model->getNextSequence('uw_enablesms');
 					$param['creation_ip']		=	currentIp();
 					$param['creation_date']		=	(int)$this->timezone->utc_time();//currentDateTime();
@@ -56,14 +80,6 @@ class Enablesms extends CI_Controller {
 					$param['status']			=	'A';
 					$alastInsertId				=	$this->common_model->addData('uw_enablesms',$param);
 					$this->session->set_flashdata('alert_success',lang('addsuccess'));
-				else:
-					$aboutId					=	$this->input->post('CurrentDataID');
-					$param['update_ip']			=	currentIp();
-					$param['update_date']		=	(int)$this->timezone->utc_time();//currentDateTime();
-					$param['updated_by']		=	(int)$this->session->userdata('UW_ADMIN_ID');
-					
-					$this->common_model->editData('uw_enablesms',$param,'enablesms_id',(int)$aboutId);
-					$this->session->set_flashdata('alert_success',lang('updatesuccess'));
 				endif;
 				redirect(correctLink('CMSENABLEPAYMENT',getCurrentControllerPath('index')));
 			endif;

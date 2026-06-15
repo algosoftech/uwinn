@@ -1,0 +1,667 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Allhourlyorders extends CI_Controller {
+
+	public function __construct()
+	{
+		parent::__construct();
+		error_reporting(E_ALL ^ E_NOTICE);
+		$this->load->model(array('admin_model', 'emailtemplate_model', 'emailsendgrid_model', 'sms_model', 'notification_model', 'order_model'));
+		$this->lang->load('statictext', 'admin');
+		$this->load->helper('common');
+		$this->load->library('mongodb_client');
+	}
+
+	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 + + Function name  : index
+	 + + Developed By   : DILIP HALDER
+	 + + Purpose        : List Tambola orders (tambola_orders)
+	 + + Date           : 02 February 2026
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+	public function index()
+	{
+		$this->admin_model->authCheck('view_data');
+		$data['error']           = '';
+		$data['activeMenu']      = 'hourlygame';
+		$data['activeSubMenu']   = 'allhourlyorders';
+
+		if ($this->input->get('fromDate') !== null && $this->input->get('fromDate') !== '') {
+			$fromDate = date('Y-m-d H:i', strtotime($this->input->get('fromDate')));
+		} else {
+			$fromDate = date('Y-m-d H:i', strtotime(date('Y-m-d') . ' 00:00:00'));
+		}
+		if ($this->input->get('toDate') !== null && $this->input->get('toDate') !== '') {
+			$toDate = date('Y-m-d H:i', strtotime($this->input->get('toDate')));
+		} else {
+			$toDate = date('Y-m-d H:i', strtotime(date('Y-m-d') . ' 23:59:00'));
+		}
+		
+		$searchField = $this->input->get('searchField');
+		$searchValue = $this->input->get('searchValue');
+		$whereCon    = array('where' => array(
+			'created_at' => array(
+				'$gte' => (int) strtotime($fromDate),
+				'$lte' => (int) strtotime($toDate),
+			),
+		));
+
+		if (!empty($searchField) && $searchValue !== '' && $searchValue !== null) {
+			if ($searchField === 'order_id' || $searchField === 'users.store_name') {
+				$whereCon['where'][$searchField] = array('$regex' => $searchValue, '$options' => 'i');
+			}elseif($searchField == 'winning_status'){
+				$whereCon['where']['winning_status'] =  strtolower($searchValue);
+			}
+
+			elseif($searchField == 'users_mobile'){
+				$whereConUser['where']['users_mobile'] =  (int) $searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}
+			}
+			elseif($searchField == 'users_email'){
+				$whereConUser['where']['users_email'] =  $searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}else{
+					$whereCon['where']['users_oid'] = 'default';
+				}
+			}
+			elseif($searchField == 'pos_number'){
+				$whereConUser['where']['pos_number'] =  (int)$searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}else{
+					$whereCon['where']['users_oid'] = 'default';
+				}
+			}
+			elseif($searchField == 'settler_pos_number'){
+				$whereConUser['where']['pos_number'] = is_numeric($searchValue) ? (int) $searchValue : $searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['settler_users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}else{
+					$whereCon['where']['settler_users_oid'] = 'default';
+				}
+			
+			} 
+			elseif($searchField == 'settler_mobile'){
+				$whereConUser['where']['users_mobile'] =  (int) $searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['settler_users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}else{
+					$whereCon['where']['settler_users_oid'] = 'default';
+				}
+			}
+			else {
+				$whereCon['where'][$searchField] = is_numeric($searchValue) ? (int) $searchValue : $searchValue;
+			}
+		}
+		// echo "<pre>"; print_r($whereCon);die();
+		$data['searchField'] = $searchField;
+		$data['searchValue'] = $searchValue;
+		$data['fromDate']    = $fromDate;
+		$data['toDate']      = $toDate;
+
+		$shortField   = array('created_at' => -1);
+		$baseUrl      = getCurrentControllerPath('index');
+		$tblName      = 'uw_hourly_orders';
+
+		$this->session->set_userdata('ALLHOURLYORDERDATA', currentFullUrl());
+		$qStringdata  = explode('?', currentFullUrl());
+		$suffix       = isset($qStringdata[1]) && $qStringdata[1] ? '?' . $qStringdata[1] : '';
+		$totalRows    = $this->common_model->getHourlyGameOrderData('count', $tblName, $whereCon);
+		
+		if($this->input->get('showLength') == 'All'):
+			$perPage	 					= 	$totalRows;
+			$data['perpage'] 				= 	$this->input->get('showLength');  
+		elseif($this->input->get('showLength')):
+			$perPage	 					= 	$this->input->get('showLength'); 
+			$data['perpage'] 				= 	$this->input->get('showLength'); 
+		else:
+			$perPage	 					= 	SHOW_NO_OF_DATA;
+			$data['perpage'] 				= 	SHOW_NO_OF_DATA; 
+		endif;
+		$uriSegment 						= 	getUrlSegment();
+	    $data['PAGINATION']					=	adminPagination($baseUrl,$suffix,$totalRows,$perPage,$uriSegment);
+		if($this->uri->segment(getUrlSegment())):
+			$page = $this->uri->segment(getUrlSegment());
+		else:
+			$page = 0;
+		endif;
+		$data['forAction'] 					= 	$baseUrl; 
+		if($totalRows):
+			$first							=	(int)($page)+1;
+			$data['first']					=	$first;
+			
+			if($data['perpage'] == 'All'):
+				$pageData 					=	$totalRows;
+			else:
+				$pageData 					=	$data['perpage'];
+			endif;
+			
+			$last							=	((int)($page)+$pageData)>$totalRows?$totalRows:((int)($page)+$pageData);
+			$data['noOfContent']			=	'Showing '.$first.'-'.$last.' of '.$totalRows.' items';
+		else:
+			$data['first']					=	1;
+			$data['noOfContent']			=	'';
+		endif;
+		$data['ALLDATA'] = $this->common_model->getHourlyGameOrderData('multiple', $tblName, $whereCon, $shortField, $perPage, $page);
+		// echo "<pre>"; print_r($data);die();
+		$this->layouts->set_title('Hourly Game Orders | UWINN');
+		$this->layouts->admin_view('hourlygame/allhourlyorders/index', array(), $data);
+	}
+	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 + + Function name  : addeditdata (view single order)
+	 + + Developed By   : DILIP HALDER
+	 + + Purpose        : View Tambola order details
+	 + + Date           : 02 February 2026
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+	public function addeditdata($orderId = '')
+	{
+		$this->admin_model->authCheck('view_data');
+		$data['error']         = '';
+		$data['activeMenu']    = 'hourlygame';
+		$data['activeSubMenu'] = 'allhourlyorders';
+
+		if (empty($orderId)) {
+			$this->session->set_flashdata('error', 'Order ID required.');
+			redirect(getCurrentControllerPath('index'));
+			return;
+		}
+
+		$shortField = array('created_at' => -1);
+		$whereCon['where']['_id'] =  new MongoDB\BSON\ObjectID($orderId);
+		$tblName   = 'uw_hourly_orders';	
+		$orderData = $this->common_model->getHourlyGameOrderData('single', $tblName, $whereCon);
+		$data['order'] =$orderData[0];
+		$this->layouts->set_title('Hourly Game Order Details | UWINN');
+		$this->layouts->admin_view('hourlygame/allhourlyorders/addeditdata', array(), $data);
+	}
+
+	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 + + Function name  : cancelationorder
+	 + + Developed By   : DILIP HALDER
+	 + + Purpose        : Update Tambola order status (CL = Cancelled)
+	 + + Date           : 02 February 2026
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+	public function cancelationorder($orderId = '', $statusType = '')
+	{
+		try {
+
+			$this->admin_model->authCheck('edit_data');
+			$tblName = 'uw_hourly_orders';
+			$orderData  = $this->common_model->getDataByParticularField($tblName,'_id',new MongoDB\BSON\ObjectID($orderId));
+			// echo "<pre>"; print_r($orderData);die();
+ 
+			// If cancelling (CL), check if already cancelled and handle refund
+			if ($statusType === 'CL') {
+				if (isset($orderData['status']) && $orderData['status'] === 'CL') {
+					throw new Exception('Order is already cancelled.');
+				}
+ 
+				// Use MongoDB transaction for cancellation (refund + status update)
+				// $this->session->sess_regenerate();
+				// $session = $this->mongodb_client->client->startSession();
+				// $session->startTransaction();
+
+				// Update order status to CL
+				$param1 = array(
+					'status'      => 'CL',
+					'update_ip'   => currentIp(),
+					'update_date' => (int) $this->timezone->utc_time(),
+					'refund_date' => (int) $this->timezone->utc_time(),
+					'updated_by'  => (int) $this->session->userdata('ADMIN_ID'),
+				);
+				
+				$update1 = $this->common_model->editData($tblName, $param1, '_id', new MongoDB\BSON\ObjectID($orderId));
+				// $cancelWhereCon = array('_id' => new MongoDB\BSON\ObjectID($orderId) );
+				// $update1 = $this->mongodb_client->updateDocument($tblName, $cancelWhereCon, ['$set' => $param1], $session);
+				$cancelWhereCon2 = array('order_oid' => new MongoDB\BSON\ObjectID($orderId));
+				$update2 = $this->common_model->editMultipleDataByMultipleCondition('uw_hourly_tickets', $param1, $cancelWhereCon2);
+				// $update2 =$this->mongodb_client->updateDocument($tblName, $cancelWhereCon, ['$set' => $param1], $session);
+
+				// Get user data
+				$tblNameUser = 'uw_users';
+				$whereConUser['where'] = array('users_id' => (int) $orderData['users_id'], 'status' => 'A');
+				$shortFieldUser = array('users_id' => -1);
+				$userData = $this->common_model->getData('single', $tblNameUser, $whereConUser, $shortFieldUser, '0', '0');
+
+				// if (empty($userData)) {
+				// 	$session->abortTransaction();
+				// 	throw new Exception('User not found or inactive.');
+				// }
+
+				// Send notification
+				// $userid = (int) $orderData['users_id'];
+				// $message = 'Tambola Order ID ' . $orderId . ' has been cancelled. Refund will be processed.';
+				// $title = 'Tambola Order Cancelled (' . $orderId . ')';
+				// $this->common_model->saveNotifications($userid, $title, $message, $orderId);
+
+				// Refund wallet statement - Credit transaction
+				$user_oid     = isset($userData['_id']->{'$id'}) ? $userData['_id']->{'$id'} : (string) $userData['_id'];
+				$refundAmount = (float) ($orderData['total_price'] ?? 0);
+				
+				if ($refundAmount > 0) {
+					$refundparam = array(
+						'load_balance_id'        => (int) $this->common_model->getNextSequence('loadBalance'),
+						'order_oid'              => new MongoDB\BSON\ObjectID($orderData['_id']->{'$id'}),
+						'user_oid'              => new MongoDB\BSON\ObjectID($user_oid),
+						'product_oid'            => new MongoDB\BSON\ObjectID((string)$orderData['products_oid']),
+						'user_id_cred'           => (int) $userData['users_id'],
+						'user_id_deb'            => (int) 0,
+						'order_id'               => $orderData['order_id'],
+						'upoints'                => (float) $refundAmount,
+						'availableArabianPoints' => (float) ($userData['availableArabianPoints'] ?? 0),
+						'end_balance'            => (float) ($userData['availableArabianPoints'] ?? 0) + (float) $refundAmount,
+						'record_type'            => 'Credit',
+						'narration'              => 'Hourly Game Order Cancelled',
+						'remarks'                => 'Order ID: ' .$orderData['order_id'],
+						'creation_ip'            => $this->input->ip_address(),
+						'created_at'             => date('Y-m-d H:i:s'),
+						'created_by'             => (int) $this->session->userdata('UW_ADMIN_ID'),
+						'status'                 => 'A',
+					);
+					$update3 = $this->common_model->addData('uw_loadBalance', $refundparam);
+					// $update2 = $this->mongodb_client->insertDocument('loadBalance', $refundparam, $session);
+
+					$refundparam = (float)($userData['availableArabianPoints']+$refundAmount);
+
+					$wherecon22['where'] = array('order_oid'=> new MongoDB\BSON\ObjectID($orderId)  , 'narration'  =>  "Hourly Game Commission"); 
+					$commission        = $this->common_model->getData('single','uw_loadBalance',$wherecon22 );
+
+					if(!empty($commission)):
+						$commissionAmount = $commission['upoints'];
+						$commissionParam  = array(
+							'load_balance_id'        => (int) $this->common_model->getNextSequence('loadBalance'),
+							'order_oid'              => new MongoDB\BSON\ObjectID($orderData['_id']->{'$id'}),
+							'user_oid'              => new MongoDB\BSON\ObjectID($user_oid),
+						    'product_oid'            => new MongoDB\BSON\ObjectID((string)$orderData['products_oid']),
+							'user_id_cred'           => (int)0,
+							'user_id_deb'            => (int)$userData['users_id'],
+							'order_id'               => $orderData['order_id'],
+							'upoints'                => (float) $commissionAmount,
+							'availableArabianPoints' => (float) $userData['availableArabianPoints']+$refundAmount ,
+							'end_balance'            => (float) ($userData['availableArabianPoints']+$refundAmount) - (float)$commissionAmount,
+							'record_type'            => 'Debit',
+							'narration'              => 'Hourly Game Commission Cancelled',
+							'remarks'                => 'Order ID: ' .$orderData['order_id'],
+							'creation_ip'            => $this->input->ip_address(),
+							'created_at'             => date('Y-m-d H:i:s'),
+							'created_by'             => (int) $this->session->userdata('UW_ADMIN_ID'),
+							'status'                 => 'A',
+						);
+						$update4     = $this->common_model->addData('uw_loadBalance', $commissionParam);
+						// $update3     = $this->mongodb_client->insertDocument('loadBalance', $commissionParam, $session);
+						$refundparam = (float)($userData['availableArabianPoints']+$refundAmount)- (float)$commissionAmount;
+					endif;
+					
+					// Update user's availableArabianPoints
+					$paramUser      = array('availableArabianPoints' => $refundparam);
+					$update5        = $this->common_model->editData('uw_users', $paramUser, '_id', new MongoDB\BSON\ObjectID($user_oid));
+					// $creditWhereCon = array('_id' =>  new MongoDB\BSON\ObjectID($user_oid) );
+					// $update4        = $this->mongodb_client->updateDocument('users', $creditWhereCon, ['$set' => $paramUser], $session);
+				}
+
+				// Commit transaction
+				// $session->commitTransaction();
+				// $this->mongodb_client->commitTransaction($session);
+				$this->session->set_flashdata('alert_success', 'Hourly Game order cancelled successfully. Refund processed.');
+				redirect(correctLink('ALLHOURLYORDERDATA', getCurrentControllerPath('index')));
+			} else {
+				// For A (Active) or I (Inactive) - simple status update without refund
+				$param = array(
+					'status'      => $statusType,
+					'update_date' => (int) $this->timezone->utc_time(),
+					'updated_by'  => (int) $this->session->userdata('UW_ADMIN_ID'),
+				);
+				$this->common_model->editData('uw_hourly_orders', $param, 'order_id', $orderId);
+
+				$this->session->set_flashdata('alert_success', 'Order status updated successfully.');
+				redirect(correctLink('ALLHOURLYORDERDATA', getCurrentControllerPath('index')));
+			}
+		} catch (Exception $e) {
+			$this->session->set_flashdata('alert_error', $e->getMessage());
+			redirect(correctLink('ALLHOURLYORDERDATA', getCurrentControllerPath('index')));
+		}
+	}
+
+	 
+	 /***********************************************************************
+	** Function name 	: exportexcel
+	** Developed By 	: Dilip halder
+	** Purpose  		: This function used for export order data
+	** Date 			: 13 March 2026
+	************************************************************************/
+	/**
+	 * Build tambola_orders filter from POST (same rules as index() GET): created_at range + optional search.
+	 */
+	private function _tambola_export_where_from_post()
+	{
+		$fromPost = $this->input->post('fromDate');
+		$toPost   = $this->input->post('toDate');
+		if ($fromPost !== null && $fromPost !== '') {
+			$fromDate = date('Y-m-d H:i', strtotime($fromPost));
+		} else {
+			$fromDate = date('Y-m-d H:i', strtotime(date('Y-m-d') . ' 00:01:00'));
+		}
+		if ($toPost !== null && $toPost !== '') {
+			$toDate = date('Y-m-d H:i', strtotime($toPost));
+		} else {
+			$toDate = date('Y-m-d H:i', strtotime(date('Y-m-d') . ' 23:59:00'));
+		}
+
+		$searchField = $this->input->post('searchField');
+		$searchValue = $this->input->post('searchValue');
+
+		$whereCon = array('where' => array(
+			'created_at' => array(
+				'$gte' => (int) strtotime($fromDate),
+				'$lte' => (int) strtotime($toDate),
+			),
+		));
+
+		if (!empty($searchField) && $searchValue !== '' && $searchValue !== null) {
+			if ($searchField === 'order_id' || $searchField === 'users.store_name') {
+				$whereCon['where'][$searchField] = array('$regex' => $searchValue, '$options' => 'i');
+			}elseif($searchField == 'winning_status'){
+				$whereCon['where']['winning_status'] =  strtolower($searchValue);
+			}
+			elseif($searchField == 'users_mobile'){
+				$whereConUser['where']['users_mobile'] =  (int) $searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}
+			}
+			elseif($searchField == 'users_email'){
+				$whereConUser['where']['users_email'] =  $searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}else{
+					$whereCon['where']['users_oid'] = 'default';
+				}
+			}
+			elseif($searchField == 'pos_number'){
+				$whereConUser['where']['pos_number'] =  (int)$searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}else{
+					$whereCon['where']['users_oid'] = 'default';
+				}
+			}
+			elseif($searchField == 'settler_pos_number'){
+				$whereConUser['where']['pos_number'] = is_numeric($searchValue) ? (int) $searchValue : $searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['settler_users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}else{
+					$whereCon['where']['settler_users_oid'] = 'default';
+				}
+			
+			} 
+			elseif($searchField == 'settler_mobile'){
+				$whereConUser['where']['users_mobile'] =  (int) $searchValue;
+				$userData = $this->common_model->getData('single', 'uw_users', $whereConUser);
+				if(!empty($userData)){
+					$whereCon['where']['settler_users_oid'] = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+				}else{
+					$whereCon['where']['settler_users_oid'] = 'default';
+				}
+			}
+			else {
+				$whereCon['where'][$searchField] = is_numeric($searchValue) ? (int) $searchValue : $searchValue;
+			}
+		}
+
+
+		return array(
+			'whereCon'    => $whereCon,
+			'fromDate'    => $fromDate,
+			'toDate'      => $toDate,
+			'searchField' => $searchField,
+			'searchValue' => $searchValue,
+		);
+	}
+
+	function exportexcel()
+	{	
+		$this->admin_model->authCheck('view_data');
+		$data['error'] 			 = '';
+		$data['activeMenu'] 	 = 'hourlygame';
+		$data['activeSubMenu'] 	 = 'allhourlyorders';
+		
+		//Generating Logs
+	    $this->common_model->generateLogs();
+
+		$built = $this->_tambola_export_where_from_post();
+
+		
+		$whereCondition = $built['whereCon'];
+		$fromDate = $built['fromDate'];
+		$toDate = $built['toDate'];
+		$searchField = $built['searchField'];
+		$searchValue = $built['searchValue'];
+
+		$tblName   = 'uw_hourly_orders';
+		$totalRows = (int) $this->common_model->getHourlyGameOrderData('count', $tblName, $whereCondition);
+		$itemsPerPage = 5000;
+		// At least one "page" so the export view always runs one AJAX batch (empty [] if no rows).
+		$totalPages = $totalRows > 0 ? max(1, (int) ceil($totalRows / $itemsPerPage)) : 1;
+
+		$data['current_page']   = 1;
+		$data['total_page'] 	= $totalPages;
+		$data['searchField'] 	= $searchField;
+		$data['searchValue'] 	= $searchValue;
+		$data['fromDate'] 		= $fromDate;
+		$data['toDate'] 		= $toDate;
+		$data['cancelled_order'] = '';
+		$postedExportType = $this->input->post('exportType');
+		if (is_array($postedExportType) && !empty($postedExportType[0])) {
+			$data['exportType'] = strtolower(trim((string) $postedExportType[0]));
+		} else {
+			$data['exportType'] = 'draw';
+		}
+		$this->layouts->set_title('Export CSV | Hourly Game Orders | UWINN');
+		$this->layouts->admin_view('hourlygame/allhourlyorders/exportexcel',array(),$data);
+	}	// END OF FUNCTION
+
+	/***********************************************************************
+	** Function name 	: exportexcelApi
+	** Developed By 	: Dilip halder
+	** Purpose  		: This function used for export order data
+	** Date 			: 23 July 2024
+	************************************************************************/
+	function exportexcelApi(){
+		
+		$this->admin_model->authCheck('view_data');
+		$data['error'] 		   = '';
+		$data['activeMenu']    = 'hourlygame';
+		$data['activeSubMenu'] = 'allhourlyorders';
+
+		$built = $this->_tambola_export_where_from_post();
+		$whereCondition = $built['whereCon'];
+
+		$page = (int) $this->input->post('pageno');
+		if ($page < 1) {
+			$page = 1;
+		}
+ 		$itemsPerPage = 5000;
+ 		$startIndex  = ($page - 1) * $itemsPerPage;
+ 		$shortField  = array('created_at' => -1);
+ 		$resultType  = 'multiple';
+		$tblName     = "uw_hourly_orders";
+
+		$exportType = strtolower(trim((string) $this->input->post('exportType')));
+		if (!in_array($exportType, array('accounts', 'winners', 'draw'), true)) {
+			$exportType = 'draw';
+		}
+		if ($exportType === 'draw') {
+			$whereCondition['where']['status'] = array('$nin' => array('CL', 'Cancelled'));
+		} elseif ($exportType === 'winners') {
+			$whereCondition['where']['is_winner'] = 'Y';
+		}
+		$OrderData   = $this->common_model->getHourlyGameOrderData($resultType, $tblName, $whereCondition, $shortField, $itemsPerPage, $startIndex);
+		
+
+		$CSVData = array();
+		if (is_array($OrderData)) {
+			foreach ($OrderData as $index => $itemsArray) {
+				$status = 'N/A';
+				if (isset($itemsArray['status'])) {
+					if ($itemsArray['status'] === 'CL') {
+						$status = 'Cancelled';
+					} elseif ($itemsArray['status'] === 'A') {
+						$status = 'Success';
+					} elseif ($itemsArray['status'] === 'Redeemed') {
+						$status = 'Redeemed';
+					}
+				}
+
+				$baseRow = array();
+				$baseRow['POS No.']       = !empty($itemsArray['seller_pos_number']) ? $itemsArray['seller_pos_number'] : 'N/A';
+				$baseRow['Order ID']      = !empty($itemsArray['order_id']) ? $itemsArray['order_id'] : 'N/A';
+				$baseRow['Product Name']  = !empty($itemsArray['products_name']) ? $itemsArray['products_name'] : 'N/A';
+				$baseRow['Store Name']    = !empty($itemsArray['seller_store_name']) ? $itemsArray['seller_store_name'] : 'N/A';
+				$baseRow['Seller Name']   = !empty($itemsArray['seller_users_name']) ? $itemsArray['seller_users_name'] : 'N/A';
+				$baseRow['Seller Mobile'] = !empty($itemsArray['seller_users_mobile']) ? $itemsArray['seller_users_mobile'] : 'N/A';
+				$baseRow['Bind With']     = !empty($itemsArray['seller_users_bind_person_name']) ? $itemsArray['seller_users_bind_person_name'] : 'N/A';
+				$baseRow['Total Amount']    = !empty($itemsArray['total_price']) ? (float) $itemsArray['total_price'] : 0.00;
+				$baseRow['Payment Status']  = $status;
+				$purchaseDate = !empty($itemsArray['created_at']) ? date('d-m-Y H:i', $itemsArray['created_at']) : 'N/A';
+
+				if ($exportType === 'draw' && isset($itemsArray['status']) && in_array($itemsArray['status'], array('CL', 'Cancelled'), true)) {
+					continue;
+				}
+
+				$ticketRows = array();
+				if (!empty($itemsArray['tickets']) && is_array($itemsArray['tickets'])) {
+					foreach ($itemsArray['tickets'] as $ticketRow) {
+						$ticketValue = 'N/A';
+						$pointsValue = 'N/A';
+						$couponTypeValue = 'N/A';
+						$normalizedCouponType = '';
+
+						$ticketValue     = preg_replace('/\s+/', '', (string) $ticketRow->ticket);
+						$couponTypeValue = strtolower(trim((string) $ticketRow->type));
+
+						$csvRow = $baseRow;
+						$csvRow['Straight Amount'] = '0';
+						$csvRow['Rumble Amount']   = '0';
+						$csvRow['Chance Amount']   = '0';
+						if ($couponTypeValue === 'straight') {
+							$csvRow['Straight Amount'] = '1';
+						} elseif ($couponTypeValue === 'rumble') {
+							$csvRow['Rumble Amount'] = '1';
+						} elseif ($couponTypeValue === 'chance') {
+							$csvRow['Chance Amount'] = '1';
+						}
+
+						if ($exportType === 'draw') {
+							unset($csvRow['Total Amount']);
+							$paymentStatusValue = isset($csvRow['Payment Status']) ? $csvRow['Payment Status'] : 'N/A';
+							unset($csvRow['Payment Status']);
+							$csvRow['Payment Status'] = $paymentStatusValue;
+							$csvRow['Purchase Date'] = $purchaseDate;
+							$csvRow['Coupons'] = $ticketValue;
+							$ticketRows[] = $csvRow;
+						}
+					}
+				}
+
+				if ($exportType === 'accounts') {
+					$accountRow = $baseRow;
+					$paymentStatusValue = isset($accountRow['Payment Status']) ? $accountRow['Payment Status'] : 'N/A';
+					$totalAmountValue = isset($accountRow['Total Amount']) ? (float) $accountRow['Total Amount'] : 0.00;
+					unset($accountRow['Total Amount']);
+					unset($accountRow['Payment Status']);
+					$accountRow['Payment Status'] = $paymentStatusValue;
+					$accountRow['Purchase Date'] = $purchaseDate;
+					$accountRow['Total Amount'] = (float) $totalAmountValue;
+					$CSVData[] = $accountRow;
+				} elseif ($exportType === 'winners') {
+					$winnerRow = $baseRow;
+					$redeemingDate = 'N/A';
+					if (!empty($itemsArray['redeemed_at'])) {
+						$redeemingDate = date('d-m-Y H:i', (int)$itemsArray['redeemed_at']);
+					}
+					$winnerRow['Winner Type']      = !empty($itemsArray['winner_type']) ? $itemsArray['winner_type'] : 'N/A';
+					$winnerRow['Winning Amount']   = !empty($itemsArray['winning_amount']) ? (float) $itemsArray['winning_amount'] : 0.00;
+					$winnerRow['Winning Status']   = !empty($itemsArray['winning_status']) ? $itemsArray['winning_status'] : 'unpaid';
+					$winnerRow['Redeemed By']      = !empty($itemsArray['settler_full_name']) ? $itemsArray['settler_full_name'] : 'N/A';
+					$winnerRow['Redeemed POS ID']  = !empty($itemsArray['settler_pos_number']) ? $itemsArray['settler_pos_number'] : 'N/A';
+					$winnerRow['Redeemed Date']    = !empty($redeemingDate) ? $redeemingDate : 'N/A';
+					$winnerRow['Purchase Date']    = $purchaseDate;
+					$CSVData[] = $winnerRow;
+				} elseif (!empty($ticketRows)) {
+					$CSVData = array_merge($CSVData, $ticketRows);
+				}
+			}
+		}
+
+		$this->output->set_content_type('application/json');
+		echo json_encode($CSVData);
+		die();
+	}
+
+	private function formatLottoTicketCoupons($orderRow = array())
+	{
+		if (empty($orderRow['tickets']) || !is_array($orderRow['tickets'])) {
+			return 'N/A';
+		}
+
+		$coupons = array();
+		foreach ($orderRow['tickets'] as $ticketRow) {
+			$ticketValue = '';
+			if (is_object($ticketRow) && isset($ticketRow->ticket)) {
+				$ticketValue = (string) $ticketRow->ticket;
+			} elseif (is_array($ticketRow) && isset($ticketRow['ticket'])) {
+				$ticketValue = (string) $ticketRow['ticket'];
+			}
+
+			$ticketValue = trim($ticketValue);
+			if ($ticketValue !== '') {
+				$coupons[] = preg_replace('/\s+/', '', $ticketValue);
+			}
+		}
+
+		if (empty($coupons)) {
+			return 'N/A';
+		}
+
+		return implode(' | ', $coupons);
+	}
+
+	private function currentAdminShouldSeeCoupons()
+	{
+		if ($this->session->userdata('ADMIN_TYPE') === 'Super Admin') {
+			// return false;
+			return 'Y';
+		}
+		$adminId = (int) $this->session->userdata('ADMIN_ID');
+		if ($adminId < 1) {
+			return true;
+		}
+		$row = $this->common_model->getDataByParticularField('admin', 'admin_id', $adminId);
+		if (empty($row)) {
+			return true;
+		}
+		if (is_object($row)) {
+			$row = json_decode(json_encode($row), true);
+		}
+		if (!is_array($row)) {
+			return true;
+		}
+		if(isset($row['permission_show_coupons']) && $row['permission_show_coupons'] === 'Y'){
+			return 'Y';
+		} else {
+			return 'N';
+		}
+	}
+}

@@ -229,14 +229,14 @@ $(function(){
                                       <ul class="dropdown-menu" role="menu">
                                         <li>
                                           <?php if($ALLDATAINFO['status'] == 1): ?>
-                                            <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['voucher_id'].'/0')?>" onClick="return confirm('Do you want to change status');" ><i class="fas fa-thumbs-down"></i>Inactive</a>
+                                            <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/0')?>" onClick="return confirm('Do you want to change status');" ><i class="fas fa-thumbs-down"></i>Inactive</a>
                                           <?php elseif($ALLDATAINFO['status'] == 0): ?>
-                                            <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['voucher_id'].'/1')?>" onClick="return confirm('Do you want to change status');"><i class="fas fa-thumbs-up"></i> Active</a>
+                                            <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/1')?>" onClick="return confirm('Do you want to change status');"><i class="fas fa-thumbs-up"></i> Active</a>
                                           <?php endif; ?>
                                         </li>
                                         <?php if($ALLDATAINFO['soft_delete'] == 0): ?>
                                           <li> 
-                                              <a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['voucher_id'])?>" onClick="return confirm('Do you want to delete');" ><i class="fas fa-trash"></i>Delete</a> 
+                                              <a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['_id']->{'$id'})?>" onClick="return confirm('Do you want to delete');" ><i class="fas fa-trash"></i>Delete</a> 
                                           </li>
                                         <?php endif; ?>
                                       </ul>

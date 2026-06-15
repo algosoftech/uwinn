@@ -45,12 +45,92 @@ class Orders extends CI_Controller {
 		$data['activeMenu'] 				= 	'statistics_report';
 		$data['activeSubMenu'] 				= 	'orders';
 		
+
+		//Product List
+		$wherePCon['where']['status']  = "A";
+		$wherePCon['where']['enable_raffle_ticket']  = array('$ne'=> 'Enable' );
+		$data['ALLPRODUCT'] = $this->common_model->getData('multiple','uw_products',$wherePCon,array('title' => -1));
+		// echo "<pre>";print_r($data['ALLPRODUCT']);die();
+
+		
+		$whereHGCon['where']['status'] = 'A';
+		$data['ALLHOURLYGAME'] = $this->common_model->getData('multiple','uw_hourly_games',$whereHGCon,array('title' => 1));
+		
 		if($this->input->get('clearAllSearch')){
 			redirect(correctLink('MASTERDATAORDERTYPE',getCurrentControllerPath('index')));
 		}
 
+		// Initialize filters and mode
+		$whereCondition        = array();
+		$data['productIds']    = array();
+		$data['hourlyGameIds'] = array();
+		$searchMode       = 'default';
+		$activeFilterType = strtolower(trim((string)$this->input->get('activeFilterType')));
+
+		// echo "<pre>";
+		// print_r($activeFilterType);
+		// die();
+
+
+		
+		if($this->input->get('productIds')){
+			$productIds = $this->input->get('productIds') ? $this->input->get('productIds') : array();
+			$productIds = array_values(array_filter((array)$productIds, function($id){
+				return $id !== '' && $id !== null;
+			}));
+			$productIds = array_map(function($id) {
+				return ($id <= PHP_INT_MAX) ? (int)$id : $id;
+			}, $productIds);
+			$data['productIds'] = $productIds;
+		} 
+		if($this->input->get('hourlyGameIds')){
+			$hourlyGameIds = $this->input->get('hourlyGameIds') ? $this->input->get('hourlyGameIds') : array();
+			$data['hourlyGameIds'] = array_values(array_filter((array)$hourlyGameIds, function($id){
+				return $id !== '' && $id !== null;
+			}));
+		}
+		
+
+		// Strict filter isolation by active type from UI.
+		if($activeFilterType === 'hourly' && !empty($data['hourlyGameIds'])) {
+			$searchMode = 'hourly';
+		} elseif($activeFilterType === 'product' && !empty($data['productIds'])) {
+			$searchMode = 'product';
+		} elseif(!empty($data['productIds'])) {
+			$searchMode = 'product';
+		} elseif(!empty($data['hourlyGameIds'])) {
+			$searchMode = 'hourly';
+		}
+
+		if($searchMode === 'product') {
+			$whereCondition['product_id']['$in'] = $data['productIds'];
+		} elseif($searchMode === 'hourly') {
+			$hourlyFilterIds = $data['hourlyGameIds'];
+			$coutHrGame = count($hourlyFilterIds);
+			
+
+			$hourlyGamePID = array();
+			foreach($data['ALLHOURLYGAME'] as $hourlyGame):
+				if(in_array($hourlyGame['products_id'], $hourlyFilterIds)):
+					$hourlyGamePID[] = $hourlyGame['_id']->{'$id'};
+				endif;
+			endforeach;
+
+			if($coutHrGame > 1):
+				$whereCondition['products_oid'] = array('$in' => array_map(function ($id) {
+					return new \MongoDB\BSON\ObjectId($id);
+				}, $hourlyGamePID));
+			else:
+				$whereCondition['products_oid'] = new \MongoDB\BSON\ObjectId($hourlyGamePID[0]);
+			endif;
+		}
+
+		
+		
+		
 		// Where conditions section.
 		if($this->input->get('searchField') && $this->input->get('searchValue')):
+			
 			$sField							=	$this->input->get('searchField');
 			$sValue							=	$this->input->get('searchValue');
 			$data['searchField'] 			= 	$sField;
@@ -85,25 +165,55 @@ class Orders extends CI_Controller {
 				endif;
 			endif;
 		else:
-		    // $whereCondition['order_status'] = 	array('$ne'=>'Initialize');	
-		    $whereCondition['order_status'] = 	 "Success";	
-		    $whereCondition['status'] 		= 	'A';	
+		    if($searchMode === 'hourly'):
+		    	// Hourly order status values can be A / REDEEMED / CL in this collection.
+		    	$whereCondition['status'] = array('$in' => array('A', 'Redeemed'));
+		    else:
+		    	$whereCondition['order_status'] = "Success";
+		    	$whereCondition['status'] = 'A';
+		    endif;
 		endif;
 
+		
+
+		// Initialize date variables
+		$StartDate = '';
+		$EndDate = '';
+		$data['fromDate'] = '';
+		$data['toDate'] = '';
+		
 		if($this->input->get('fromDate')):
-			$data['fromDate'] 	=   date('Y-m-d H:i', strtotime($this->input->get('fromDate')));  //2023-03-16 15:13
-			// $StartDate 			= 	strtotime($data['fromDate']);
-			$StartDate 			= 	 $data['fromDate'];
+			$normalizedFromDate = date('Y-m-d H:i', strtotime($this->input->get('fromDate')));  // 2023-03-16 15:13
+			if($searchMode === 'hourly'):
+				$normalizedFromDate = date('Y-m-d H:i:00', strtotime($normalizedFromDate));
+			endif;
+			$data['fromDate'] 	= date('Y-m-d\TH:i:s', strtotime($normalizedFromDate)); // For datetime-local input display
+			$StartDate 			= $normalizedFromDate;
 		endif;
 		if($this->input->get('toDate')):
-			$data['toDate'] 	=   date('Y-m-d H:i', strtotime($this->input->get('toDate')));  //2023-03-16 15:13
-			// $EndDate 			= 	strtotime($data['toDate']);
-			$EndDate 			= 	$data['toDate'];
+			$normalizedToDate 	= date('Y-m-d H:i', strtotime($this->input->get('toDate')));  // 2023-03-16 15:13
+			if($searchMode === 'hourly'):
+				$normalizedToDate = date('Y-m-d H:i:59', strtotime($normalizedToDate));
+			endif;
+			$data['toDate'] 	= date('Y-m-d\TH:i:s', strtotime($normalizedToDate)); // For datetime-local input display
+			$EndDate 			= $normalizedToDate;
 		endif;
- 
+
+		// Hourly mode base filter by game window range
+		// if($searchMode === 'hourly' && $StartDate && $EndDate):
+		// 	$whereCondition['start_date'] = array('$lte' => strtotime($EndDate));
+		// 	$whereCondition['expiry_date'] = array('$gte' => strtotime($StartDate));
+		// endif;
 		$dateArray = array();
+		
 		if($StartDate && $EndDate):
-		  $hours = round((strtotime($EndDate) - strtotime($StartDate) ) / (60 * 60));
+		//    $hours = round((strtotime($EndDate) - strtotime($StartDate) ) / (60 * 60));
+			$hours =  (strtotime($EndDate) - strtotime($StartDate) ) / (60 * 60);
+			if(is_float($hours)):
+			$hours = (int) ceil($hours);
+			else:
+			$hours = (int) $hours;
+			endif;
 		  for($i =0; $i <=$hours; $i++):
 	    	
 		  	$Minutes = date('i', strtotime($StartDate) ) ;
@@ -112,7 +222,16 @@ class Orders extends CI_Controller {
 		  		$format = 'Y-m-d H:00';
 		  	else:
 		  		$format = 'Y-m-d H:30';
-		  	endif;
+			endif;
+
+			if($i == 0){
+				$format = date('Y-m-d H:i', strtotime($StartDate));
+			}
+
+			if($i == $hours){
+				$format = date('Y-m-d H:i', strtotime($EndDate));
+			}
+			 
     		$date  = date($format, strtotime($StartDate . "{$i} hours") );
 			$dateArray[] = $date;
 		  endfor;
@@ -137,13 +256,30 @@ class Orders extends CI_Controller {
 
 		$pairs = array();
 		$HourReport = array();
+		$tblName = ($searchMode === 'hourly') ? "uw_hourly_orders" : "uw_lotto_orders";
+		$data['forAction'] = getCurrentControllerPath('index');
 		for ($i = 0; $i < count($dateArray) - 1; $i++):
 		    // $pairs[] = array($dateArray[$i], $dateArray[$i + 1]);
 			$SelectFields = array(
 			  'status' =>  1,
+			//   'product_qty' => 1,
+			  "product_qty"=> array(
+					'$convert' => array(
+						'input' => '$product_qty',
+						'to' => 'int',
+						'onError' => 0,
+						'onNull' => 0,
+					),
+				),
 			  'created_at' => 1,
 			  'total_price'=> 1,
 			  'product_id' => 1,
+			  'products_id' => 1,
+			  'products_oid' => 1,
+			  'product_title' => 1,
+			  'products_name' => 1,
+			  'start_date' => 1,
+			  'expiry_date' => 1,
 			  'user_id' => 1,
 			  'user_phone' => 1,
 			  'user_email' => 1,
@@ -153,48 +289,112 @@ class Orders extends CI_Controller {
 			  'order_status'=> 1
 			);
 			
-			$StartDateTime = date('Y-m-d H:i', strtotime($dateArray[$i] . ' +1 minutes'));
-			$EndDateTime = $dateArray[$i + 1];
+			// Create a copy of whereCondition for this iteration and add date range
+			$iterWhereCondition = $whereCondition;
+			if($searchMode === 'hourly'):
+				$StartDateTime = strtotime($dateArray[$i]);
 
-			if($whereCon['where']):
-				$whereCondition = array(
-					$whereCon['where'],
-					'created_at' => array(
-		                // '$gt' => "2024-05-09 13:00",
-		                // '$lt' => "2024-05-09 13:30"
-		                '$gte' => $StartDateTime,
-		                '$lte' => $EndDateTime
-		            )
 
-				);
+				if($hours-$i == 1):
+					$EndDateTime = strtotime($dateArray[$i + 1] );
+				else:
+					$EndDateTime = strtotime($dateArray[$i + 1] . ' -1 minutes');
+				endif;
+				
+				// $EndDateTime = strtotime($dateArray[$i + 1] . ' -1 minutes');
+				
+				$stDateTime = date('Y-m-d H:i:00', $StartDateTime);	;
+				$edDateTime = date('Y-m-d H:i:59', $EndDateTime);
+				$stDateTime = strtotime($stDateTime); //comment for testing
+				$edDateTime = strtotime($edDateTime); //comment for testing
+				$iterWhereCondition['created_at'] = array('$gte' =>  $stDateTime, '$lte' => $edDateTime );
 			else:
-				$whereCondition['created_at'] = array( '$gte' => $StartDateTime, '$lte' => $EndDateTime);
+				// if($i == 0){
+				// 	$StartDateTime = date('Y-m-d H:i', strtotime($dateArray[$i]));
+				// 	$EndDateTime = $dateArray[$i + 1];
+				// }
+				// if($i == $hours){
+				// 	echo "last";
+				// 	$StartDateTime = date('Y-m-d H:i', strtotime($dateArray[$i] . ' +1 minutes'));
+				// 	$EndDateTime = $dateArray[$i + 1];
+				// }
+				
+				$EndDateTime = $dateArray[$i + 1];
+				if($i == 0):
+					$iterWhereCondition['created_at'] = array(
+						'$gte' => date('Y-m-d H:i', strtotime($dateArray[$i])),
+						'$lte' => $EndDateTime
+					);
+				else:
+					$iterWhereCondition['created_at'] = array(
+						'$gt' => $dateArray[$i],
+						'$lte' => $EndDateTime
+					);
+				endif;
+
+				
+				
 			endif;
 
 			$groupBy = array(
 	            '_id' => '$status', 
-	            'total_order' => array('$sum' => 1) ,
+	            // 'total_order' => array('$sum' => 1) ,
+	            'total_order' => array('$sum' => '$product_qty') ,
 	            'sales' => array('$sum' => '$total_price')  
         	);
 
+		if($searchMode === 'hourly'):
+			$SelectFields = array(
+				'status' =>  1,
+				'qty' => 1,
+				'created_at' => 1,
+				'total_price'=> 1,
+				'products_oid' => 1,
+				'products_name' => 1,
+				'start_date' => 1,
+				'expiry_date' => 1,
+				'user_id' => 1,
+				'is_winner' => 1,
+				'winning_amount' => 1,
+			);
+			$groupBy = array(
+				'_id'         => '$products_name', 
+				'total_order' => array('$sum' => '$qty') ,
+				'product_name' => array('$first' => '$products_name'),
+				'sales'       => array('$sum' => '$total_price'),
+				'winning_amount' => array('$sum' => array(
+					'$cond' => array(
+						'if' => array('$eq' => array('$is_winner', 'Y')),
+						'then' => array('$ifNull' => array('$winning_amount', 0)),
+						'else' => 0
+					)
+				))
+			);
+		endif;
+
         	$sortBy       = array('_id' => -1);
-			$tblName      = "uw_lotto_orders";
-
-
+			$hourResult = $this->geneal_model->GetGroupData($tblName,$SelectFields,$iterWhereCondition,$groupBy,$sortBy);
+			if(is_array($hourResult)):
+				$bucketStartTime = ($i == 0)
+					? date('Y-m-d H:i', strtotime($dateArray[$i]))
+					: $dateArray[$i];
+				foreach($hourResult as $hrKey => $hrRow):
+					$hourResult[$hrKey]['start_time'] = $bucketStartTime;
+					$hourResult[$hrKey]['end_time'] = $EndDateTime;
+				endforeach;
+			endif;
+			$HourReport[] = $hourResult;
 			
-			// echo "<pre>";
-			// print_r($whereCondition);
-			// die();
-			$HourReport[] =  $this->geneal_model->GetGroupData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy);
-
-
+			
 		endfor;
-
-
+		
+		// echo "<pre>";
+		// print_r($iterWhereCondition);
+		// die();
+		
 		$HourReport = array_filter($HourReport);
 		$data['HourReport']	= $HourReport;
-
-
+		$data['searchMode']	= $searchMode;
 		$this->layouts->set_title('Statistics Report | Order | UWINN');
 		$this->layouts->admin_view('statistics/orders/index',array(),$data);
 	}	// END OF FUNCTION
@@ -235,7 +435,7 @@ class Orders extends CI_Controller {
 		$baseUrl 							= 	getCurrentControllerPath('statistics_report/orders/getStatisticsByUserID');
 		$this->session->set_userdata('ALLRECHARGEDATA',currentFullUrl());
 		$qStringdata						=	explode('?',currentFullUrl());
-		$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
+		$suffix								= 	!empty($qStringdata[1]) ? '?'.$qStringdata[1] : '';
 		$tblName 							= 	'da_orders';
 		$con 								= 	'';
 		

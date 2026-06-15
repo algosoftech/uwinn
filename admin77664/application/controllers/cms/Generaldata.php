@@ -136,6 +136,7 @@ class Generaldata extends CI_Controller {
 			$this->form_validation->set_rules('comming_soon_text', 'Comming soon Product', 'trim');
 			$this->form_validation->set_rules('home_botttom_slider_header', 'Slider Heading', 'trim');
 			$this->form_validation->set_rules('prize_title', 'Prize Title', 'trim');
+			$this->form_validation->set_rules('hourly_game_blank_page_title', 'Hourly Game Blank Page Title', 'trim');
 			$this->form_validation->set_rules('enable_u_points_in_pos', 'Enable U Points in POS', 'trim');
 			$this->form_validation->set_rules('show_merchant_name', 'Show Merchant Name', 'trim|required');
 			$this->form_validation->set_rules('show_merchant_id', 'Show Merchant Id', 'trim|required');
@@ -150,6 +151,10 @@ class Generaldata extends CI_Controller {
 			$this->form_validation->set_rules('recharge_topup_start_time', 'Recharge Topup End Time', 'trim|required');
 			$this->form_validation->set_rules('recharge_topup_end_time', 'Recharge Topup End Time', 'trim|required');
 			$this->form_validation->set_rules('recharge_topup_msg', 'Recharge Topup Message', 'trim|required');
+			$this->form_validation->set_rules('enable_raffle_entries', 'Enable Raffle Entries', 'trim|required');
+
+			$this->form_validation->set_rules('b2b_mobile_qr_code','Show QR Code', 'trim|required');
+			$this->form_validation->set_rules('b2b_mobile_qr_code_time_sec','Show QR Time', 'trim|required');
 
 			if($this->form_validation->run() && $error == 'NO'): 
 
@@ -186,7 +191,8 @@ class Generaldata extends CI_Controller {
 				$param['delivery_charge']		= 	stripslashes($this->input->post('delivery_charge'));
 				$param['drawdata_pin']			= 	stripslashes($this->input->post('drawdata_pin'));
 				$param['comming_soon_pro_btn']	= 	stripslashes($this->input->post('comming_soon_pro_btn'));
-				$param['prize_title'] 				 = 	stripslashes($this->input->post('prize_title'));
+				$param['prize_title'] 				   = stripslashes($this->input->post('prize_title'));
+				$param['hourly_game_blank_page_title'] = stripslashes($this->input->post('hourly_game_blank_page_title'));
 				$param['comming_soon_text']			 = 	stripslashes($this->input->post('comming_soon_text'));
 				$param['home_botttom_slider_header'] = 	stripslashes($this->input->post('home_botttom_slider_header'));
 				$param['enable_u_points_in_pos'] 	 = 	stripslashes($this->input->post('enable_u_points_in_pos'));
@@ -203,7 +209,9 @@ class Generaldata extends CI_Controller {
 				$param['recharge_topup_start_time']  = $this->input->post('recharge_topup_start_time');
 				$param['recharge_topup_end_time'] 	 = $this->input->post('recharge_topup_end_time');
 				$param['recharge_topup_msg'] 	     = $this->input->post('recharge_topup_msg');
-				
+				$param['enable_raffle_entries'] 	 = $this->input->post('enable_raffle_entries');
+				$param['b2b_mobile_qr_code'] 	      = $this->input->post('b2b_mobile_qr_code');
+				$param['b2b_mobile_qr_code_time_sec'] = (int)$this->input->post('b2b_mobile_qr_code_time_sec');
 				
 				if($this->input->post('CurrentDataID') ==''):
 						$param['general_data_id']		=	(int)$this->common_model->getNextSequence('uw_general_data');

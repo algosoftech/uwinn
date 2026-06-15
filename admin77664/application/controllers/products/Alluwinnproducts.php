@@ -349,7 +349,11 @@ class Alluwinnproducts extends CI_Controller {
 				$param['super_ball_type']	   		=   $this->input->post('super_ball_type');
 				$param['superbal_range_start'] 		=   $this->input->post('superbal_range_start');
 				$param['superbal_range_end']   		=   $this->input->post('superbal_range_end');
-
+				$param['enable_raffle_eligibility'] = $this->input->post('enable_raffle_eligibility');
+				$param['raffle_eligible_amount']    = $this->input->post('raffle_eligible_amount');
+				$param['raffle_draw_eligible_date']     = $this->input->post('raffle_draw_eligible_date');
+				$param['raffle_draw_announcement_date'] = $this->input->post('raffle_draw_announcement_date');
+				
 				if($this->input->post('CurrentDataID') ==''):
 					$param['status']			=	'A';
 					$param['products_id']		=	(int)$this->common_model->getNextSequence('uw_products');
@@ -937,7 +941,15 @@ class Alluwinnproducts extends CI_Controller {
 			$productDetails['straight_settings']   = "Enable";
 			$productDetails['reverse_settings']    = $productDetailsGolobal['reverse_settings'];
 			$productDetails['rumble_settings']     = $productDetailsGolobal['rumble_settings'];
+			
+			if($productDetails['rumble_settings_default_check'] == "Checked"):
+				$productDetails['rumble_settings']     = "Enable";
+			endif;
 
+			if($productDetails['reverse_settings_default_check'] == "Checked"):
+				$productDetails['reverse_settings']     = "Enable";
+			endif;
+			
 		endif;
 
 		$data['lotto_type'] 		= $productDetails['lotto_type'];
@@ -1469,6 +1481,8 @@ class Alluwinnproducts extends CI_Controller {
 			$raffleParameters = $this->input->post('enable_raffle_ticket')== 'Enable' ? 'trim|required' : 'trim';
 			$this->form_validation->set_rules('reffle_prefix', 'Reffle Prefix', $raffleParameters);
 			$this->form_validation->set_rules('reffle_length', 'Reffle length', $raffleParameters);
+			$this->form_validation->set_rules('primary_color', 'Primary Color', 'trim|required');
+			$this->form_validation->set_rules('secondary_color', 'Secondary Color', 'trim|required');
 			$this->form_validation->set_rules('SaveChanges', 'SaveChanges', 'trim|required');
 
 			if($this->form_validation->run() && $error == 'NO'):
@@ -1488,7 +1502,9 @@ class Alluwinnproducts extends CI_Controller {
 				$param['enable_raffle_ticket']      	  = $this->input->post('enable_raffle_ticket');
 				$param['reffle_prefix']      		  	  = $this->input->post('reffle_prefix');
 				$param['reffle_length']      		  	  = $this->input->post('reffle_length');
-
+				$param['primary_color']      		  	  = $this->input->post('primary_color');
+				$param['secondary_color']      		  	  = $this->input->post('secondary_color');
+				
 				$images = $_FILES['game_rule_image'];
 				if($images['name']):
 					$ufileName    = 	$images['name'];

@@ -536,16 +536,11 @@ class Allonlinerecharges extends CI_Controller {
 		 }
  
  
-		 $page 		  = $this->input->post('pageno');
-		 // $page = 1;
-		  $itemsPerPage = 5000;
-		//   $startIndex   = ($page - 1)*$itemsPerPage;
-		  $resultType   = '';
- 
- 
-		  
-		 $shortField   =  array('created_at'=> -1);
-		 $rechagreData =  $this->common_model->getData('multiple','uw_transactions',$whereCon,$shortField);
+		$page 		  = $this->input->post('pageno');
+		$itemsPerPage = 5000;
+		$startIndex   = ($page - 1)*$itemsPerPage;
+		$shortField   =  array('created_at'=> -1);
+		$rechagreData =  $this->common_model->getData('multiple','uw_transactions',$whereCon,$shortField,$itemsPerPage,$startIndex);
 		 // echo "<pre>";print_r($rechagreData);die();
  
 		 $CSVData = array();

@@ -259,6 +259,7 @@ class Allrecharge extends CI_Controller {
 					$param['created_by']		=	'ADMIN';
 					$param['status']			=	'A';
 					$param["created_user_id"] 	=	(int)$this->session->userdata('UW_ADMIN_ID');
+					$param['device_type']		=	'ios';
 					$alastInsertId				=	$this->common_model->addData('uw_loadBalance',$param);
 
 					if(!empty($alastInsertId)):

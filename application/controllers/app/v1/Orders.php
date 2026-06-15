@@ -22,6 +22,8 @@ class Orders extends CI_Controller {
 		$this->method_name 		= 	$_SERVER['REDIRECT_QUERY_STRING'];
 
 		$this->load->library('generatelogs',array('type'=>'common'));
+	    $this->load->library('mongodb_client');
+
 	} 
 
  
@@ -67,10 +69,12 @@ class Orders extends CI_Controller {
 				$pickupPoint 	     	     = $this->input->post('pickup_point');
 				$deliveryAddress 	     	 = $this->input->post('delivery_address');
 				$deliveryCharge 	     	 = $this->input->post('delivery_charge');
-				$usersLat  				 	= $this->input->post('users_lat');
+				$usersLat  				 	 = $this->input->post('users_lat');
 				$usersLong  				 = $this->input->post('users_long');
 				$usersAddress 	 			 = $this->input->post('users_address');
 				$raffleMode 	 			 = $this->input->post('raffle_mode');
+				$superBallMode 		 		 = $this->input->post('super_ball_mode');
+				$sbTickect 			 		 = $this->input->post('sb_tickect');
 
 				if(empty($userId)):
 					throw new Exception(lang('USER_ID_EMPTY'), 1);
@@ -135,12 +139,23 @@ class Orders extends CI_Controller {
 							$lastName   = $userDetails['last_name'];
 							$posNumber  = $userDetails['pos_number'];
 
+							// Updating user details..
+							if(!empty($deviceType)): $updateParams['device_type'] = $deviceType; endif;
+							if(!empty($appName)):    $updateParams['app_name'] 	  = $appName;    endif;
+							if(!empty($appVersion)): $updateParams['app_version'] = $appVersion; endif;
+							if(!empty($usersLat)):   $updateParams['latitude']   = $usersLat;    endif;
+							if(!empty($usersLong)):  $updateParams['longitude']  = $usersLong;   endif;
+							if(!empty($usersAddress)): $updateParams['address']  = $usersAddress;endif;
+							$updateParams["updated_at"] = date('Y-m-d H:i');
+							$this->common_model->editData('uw_users', $updateParams, 'users_id', (int)$userId);
+							// End updating user details..
+
 							if(empty($pickupPoint) && empty($deliveryAddress)):
 								$pickupPoint = "Pick Up From Office";
 							endif;
 							
 							// inserting initialize order - start here ..
-							$orderInsertID = $this->common_model->order_initialize($userId,$productsId,$quantity,$straight_add_on_amount,$rumble_add_on_amount,$reverse_add_on_amount,$selection_values,$subtotal,$totalPrice,$drawDate,$drawTime,$lottoType,$countryCode,$usersMobile,$usersEmail,$deviceType,$appName,$appVersion,$ticket,$paymentMode,$prizeTitle,$pickupPoint,$deliveryAddress,$deliveryCharge,$firstName,$lastName,$usersLat,$usersLong,$usersAddress,$posNumber,$raffleMode);
+							$orderInsertID = $this->common_model->order_initialize($userId,$productsId,$quantity,$straight_add_on_amount,$rumble_add_on_amount,$reverse_add_on_amount,$selection_values,$subtotal,$totalPrice,$drawDate,$drawTime,$lottoType,$countryCode,$usersMobile,$usersEmail,$deviceType,$appName,$appVersion,$ticket,$paymentMode,$prizeTitle,$pickupPoint,$deliveryAddress,$deliveryCharge,$firstName,$lastName,$usersLat,$usersLong,$usersAddress,$posNumber,$raffleMode,$superBallMode,$sbTickect);
 
 						  	if(!empty($orderInsertID)):
 						    	$result = $orderInsertID;
@@ -177,7 +192,153 @@ class Orders extends CI_Controller {
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
-	}		
+	}	
+	
+	// public function initialize_order()
+	// {	
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 							= 	array();	
+	// 	if(requestAuthenticate(APIKEY,'POST')):
+
+	// 		try {
+
+	// 			$userId 				 	 = $this->input->post('user_id');
+	// 			$productsId 				 = $this->input->post('products_id');
+	// 			$quantity 	 				 = $this->input->post('quantity');
+	// 			$prizeTitle 	     		 = $this->input->post('prize_title');
+	// 			$straight_add_on_amount 	 = $this->input->post('straight_add_on_amount');
+	// 			$rumble_add_on_amount 	 	 = $this->input->post('rumble_add_on_amount');
+	// 			$reverse_add_on_amount 	     = $this->input->post('reverse_add_on_amount');
+	// 			$selection_values 	     	 = $this->input->post('selection_values');
+	// 			$vat_amount 	     		 = $this->input->post('vat_amount');
+	// 			$subtotal 	     		 	 = $this->input->post('subtotal');
+	// 			$totalPrice 	     		 = $this->input->post('total_price');
+	// 			$drawDate 	     		 	 = $this->input->post('draw_date');
+	// 			$drawTime 	     		 	 = $this->input->post('draw_time');
+	// 			$lottoType 	     		 	 = $this->input->post('lotto_type');
+	// 			$usersEmail 	     		 = $this->input->post('users_email');
+	// 			$countryCode 	     		 = $this->input->post('country_code');
+	// 			$usersMobile 	     		 = $this->input->post('users_mobile');
+	// 			$deviceType 	     		 = $this->input->post('device_type');
+	// 			$appName 	     		 	 = $this->input->post('app_name');
+	// 			$appVersion 	     		 = $this->input->post('app_version');
+	// 			$ticket 	     		 	 = $this->input->post('ticket');
+	// 			$paymentMode 	     		 = $this->input->post('payment_mode');
+	// 			$pickupPoint 	     	     = $this->input->post('pickup_point');
+	// 			$deliveryAddress 	     	 = $this->input->post('delivery_address');
+	// 			$deliveryCharge 	     	 = $this->input->post('delivery_charge');
+	// 			$usersLat  				 	= $this->input->post('users_lat');
+	// 			$usersLong  				 = $this->input->post('users_long');
+	// 			$usersAddress 	 			 = $this->input->post('users_address');
+	// 			$raffleMode 	 			 = $this->input->post('raffle_mode');
+
+	// 			if(empty($userId)):
+	// 				throw new Exception(lang('USER_ID_EMPTY'), 1);
+	// 			elseif(empty($productsId)):
+	// 				throw new Exception(lang('PRODUCT_ID_EMPTY'), 1);
+	// 			elseif(empty($quantity)):
+	// 				throw new Exception(lang('EMPTY_PRODUCT_QTY'), 1);
+	// 			elseif(empty($straight_add_on_amount) && empty($rumble_add_on_amount) && empty($reverse_add_on_amount) || empty($selection_values) ):
+	// 				throw new Exception(lang('EMPTY_GAME_MODE'), 1);
+	// 			elseif(empty($subtotal)):
+	// 				throw new Exception(lang('SUBTOTAL_EMPTY'), 1);
+	// 			elseif(empty($totalPrice)):
+	// 				throw new Exception(lang('CAPTURE_AMOUNT_EMPTY'), 1);
+	// 			elseif(empty($drawDate)):
+	// 				throw new Exception(lang('EMPTY_DRAW_DATE'), 1);
+	// 			elseif(empty($drawTime)):
+	// 				throw new Exception(lang('EMPTY_DRAW_TIME'), 1);
+	// 			elseif(empty($lottoType)):
+	// 				throw new Exception(lang('EMPTY_LOTTO_TYPE'), 1);
+	// 			elseif(empty($countryCode)):
+	// 				throw new Exception(lang('EMPTY_COUNTRYCODE'), 1);
+	// 			elseif(empty($usersMobile)):
+	// 				throw new Exception(lang('EMPTY_USERMOBILE'), 1);
+	// 			elseif(empty($deviceType)):
+	// 				throw new Exception(lang('EMPTY_DEVICE_TYPE'), 1);
+	// 			elseif(empty($appName)):
+	// 				throw new Exception(lang('EMPTY_APPNAME'), 1);
+	// 			elseif(empty($appVersion)):
+	// 				throw new Exception(lang('EMPTY_APP_VERSION'), 1);
+	// 			elseif(empty($ticket)):
+	// 				throw new Exception(lang('EMPTY_TICKET'), 1);
+	// 			elseif(empty($paymentMode)):
+	// 				throw new Exception(lang('EMPTY_PAYMENT_MODE'), 1);
+	// 			else:
+
+	// 				if($paymentMode == "UPoints"):
+	//             		$accesstype = "";
+	// 					$balance    = $this->common_model->checkBalance($accesstype,$userId,$totalPrice);
+	// 				endif;
+
+	// 				//Draw date validation
+	// 				$fields 	   = array('draw_date','draw_time','status');
+	// 				$tableName     = 'uw_products';
+	// 				$wcon['where'] = array('products_id' => (int)$productsId);
+	// 				$productDATA   = $this->common_model->getParticularFieldByMultipleCondition($fields,$tableName,$wcon);
+
+	// 				$currentDat    = strtotime(date('Y-m-d H:i'));
+	// 				$drawDateTime  = strtotime(date('Y-m-d H:i',strtotime('-5 mins',strtotime($productDATA['draw_date'].' '.$productDATA['draw_time']))));
+
+	// 				// Cheking product current availability... 
+	// 				if(!empty($productDATA)  && $productDATA['status'] == 'A' &&  $currentDat <= $drawDateTime):
+						
+	// 					// Getting users detail start here ..
+	// 					$FieldList   		= array('users_name','last_name','pos_number','status'); 
+	// 					$tableName          = 'uw_users';
+	// 				    $whereCon['where']  = array('users_id' => (int)$userId );
+	// 					$userDetails 		= $this->common_model->getParticularFieldByMultipleCondition($FieldList,$tableName,$whereCon);
+						
+	// 					// user's related validation start here..
+	// 					if(!empty($userDetails) && $userDetails['status'] == 'A' ):
+	// 						$firstName  = $userDetails['users_name'];
+	// 						$lastName   = $userDetails['last_name'];
+	// 						$posNumber  = $userDetails['pos_number'];
+
+	// 						if(empty($pickupPoint) && empty($deliveryAddress)):
+	// 							$pickupPoint = "Pick Up From Office";
+	// 						endif;
+							
+	// 						// inserting initialize order - start here ..
+	// 						$orderInsertID = $this->common_model->order_initialize($userId,$productsId,$quantity,$straight_add_on_amount,$rumble_add_on_amount,$reverse_add_on_amount,$selection_values,$subtotal,$totalPrice,$drawDate,$drawTime,$lottoType,$countryCode,$usersMobile,$usersEmail,$deviceType,$appName,$appVersion,$ticket,$paymentMode,$prizeTitle,$pickupPoint,$deliveryAddress,$deliveryCharge,$firstName,$lastName,$usersLat,$usersLong,$usersAddress,$posNumber,$raffleMode);
+
+	// 					  	if(!empty($orderInsertID)):
+	// 					    	$result = $orderInsertID;
+	// 		                	echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_INITIALIZED'),$result);die();
+	// 					    else:
+	// 							throw new Exception(lang('TRY_AGAIN'), 1);
+	// 					    endif;
+	// 						// inserting initialize order - end here ..
+
+	// 					elseif( !empty($userDetails) && $userDetails['status'] == 'I' ):
+	// 						throw new Exception(lang('ACCOUNT_INACIVE'), 1);
+	// 					elseif( !empty($userDetails) && $userDetails['status'] == 'B' ):
+	// 						throw new Exception(lang('ACCOUNT_BLOCKED'), 1);
+	// 					elseif( !empty($userDetails) && $userDetails['status'] == 'D' ):
+	// 						throw new Exception(lang('ACCOUNT_DELETED'), 1);
+	// 					else:
+	// 						throw new Exception(lang('USER_ID_INCORRECT'), 1);
+	// 					endif;
+	// 					// user's related validation end here..
+
+	// 				elseif(!empty($productDATA)  && $productDATA['status'] == 'I'):
+	// 					throw new Exception(lang('PRODUCT_OUT_OF_STOCK'), 1);
+	// 				elseif(!empty($productDATA)  && $productDATA['status'] == 'A' && $currentDat > $drawDateTime):
+	// 					throw new Exception(lang('INVALID_DRAWDATE'), 1);
+	// 				else:
+	// 					throw new Exception(lang('PRODUCT_NOT_FOUND'), 1);
+	// 				endif;
+	// 			endif;
+				
+	// 		} catch (Exception $e) {
+    //             echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+	// 		}
+ 
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }		
 
 	/* * *********************************************************************
 	 * * Function name  : paymentCapture
@@ -242,7 +403,7 @@ class Orders extends CI_Controller {
 	 * * Purpose  	   : This function used to update order details.
 	 * * Date 		   : 30 November 2024
 	 * * **********************************************************************/
-	 public function updateOrder()
+		public function updateOrder()
 	{
 		$apiHeaderData 		=	getApiHeaderData();
 		$this->generatelogs->putLog('APP',logOutPut($_GET));
@@ -282,6 +443,10 @@ class Orders extends CI_Controller {
 							$updateParams["selection_values"] 		 = $this->input->post('selection_values');
 							$updateParams["vat_amount"] 		     = (float)$this->input->post('vat_amount');
 							$updateParams["total_price"] 		     = (float)$this->input->post('total_price');
+							if($this->input->post('super_ball_mode') == 'Y' ):
+								$updateParams["super_ball_mode"] 		 = $this->input->post('super_ball_mode');
+								$updateParams["sb_tickect"] 		     = $this->input->post('sb_tickect');
+							endif;
 							$updateParams["ticket_updated_at"] 	     = date('Y-m-d H:i');
 							$this->common_model->editData($tblName , $updateParams, 'order_id', $orderId);
 
@@ -302,6 +467,67 @@ class Orders extends CI_Controller {
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
 	}
+
+	//  public function updateOrder()
+	// {
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_GET));
+	// 	$result 			= 	array();
+
+	// 	if(requestAuthenticate(APIKEY,'POST')):
+
+	// 		try {
+
+	// 			$orderId = $this->input->post('order_id');
+	// 			$userId  = $this->input->post('user_id');
+	// 			$ticket  = $this->input->post('ticket');
+	// 			if(empty($userId)):
+	// 			 	throw new Exception(lang('USER_ID_EMPTY'), 1);
+	// 			elseif(empty($orderId)):
+	// 			 	throw new Exception(lang('ORDER_ID_EMPTY'), 1);
+	// 			else:
+
+	// 				//getting variable from post data.
+	// 				$tblName  		   = 'uw_lotto_orders';
+	// 				$whereCon['where'] = array('order_id' => $orderId , 'user_id' => (int)$userId );
+	// 				$orderData         = $this->common_model->getOrderDetail($whereCon);
+					
+	// 				if(!empty($orderData)):
+						 
+	// 					$currentDateTime = strtotime(date('Y-m-d H:i'));
+	// 					$DrawDateTime    = strtotime('-5 mins', strtotime($orderData['draw_dateTime']));
+
+	// 					if($currentDateTime > $DrawDateTime):
+	// 						echo outPut(0,lang('FORBIDDEN_CODE'),lang('INVALID_DRAWDATE'),$result);die();
+	// 					else:
+
+	// 						$updateParams["ticket"] 				 = $ticket;
+	// 				        $updateParams["straight_add_on_amount"]  = (float)$this->input->post('straight_add_on_amount');
+	// 				        $updateParams["rumble_add_on_amount"]    = (float)$this->input->post('rumble_add_on_amount');
+	// 				        $updateParams["reverse_add_on_amount"]   = (float)$this->input->post('reverse_add_on_amount');
+	// 						$updateParams["selection_values"] 		 = $this->input->post('selection_values');
+	// 						$updateParams["vat_amount"] 		     = (float)$this->input->post('vat_amount');
+	// 						$updateParams["total_price"] 		     = (float)$this->input->post('total_price');
+	// 						$updateParams["ticket_updated_at"] 	     = date('Y-m-d H:i');
+	// 						$this->common_model->editData($tblName , $updateParams, 'order_id', $orderId);
+
+	// 						// Getting order details...
+	// 						$results         = $this->common_model->getData('single',$tblName , $whereCon);
+	// 			 			echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_SUCCESS'),$results);	
+	// 					endif;
+	// 				else:
+	// 			 		throw new Exception(lang('ORDET_ID_INVALID'), 1);
+	// 				endif;
+	// 			endif;
+				
+	// 		} catch (Exception $e) {
+	// 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+	// 		}
+			
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }
 
 	/* * *********************************************************************
 	 * * Function name  : orderHistory
@@ -369,7 +595,7 @@ class Orders extends CI_Controller {
 					$result['OrderDetails'] 	= $OrderDetails?$OrderDetails:array();
 					$result['current_page']     = $current_page;
 					$result['total_page'] 	    =   $totalpage;
-                	echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_SUCCESS'),$result);die();
+                	echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);die();
 			    else:
 					echo outPut(0,lang('FORBIDDEN_CODE'),lang('DATA_NOT_FOUND'),$result);die();
 			    endif;
@@ -380,6 +606,179 @@ class Orders extends CI_Controller {
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
 	}
+	// public function orderHistory()
+	// {
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 			= 	array();	
+	// 	if(requestAuthenticate(APIKEY,'POST')):
+
+	// 		$user_id 			= $this->input->post('user_id');
+	// 		$searchBy 			= $this->input->post('search_by');
+	// 		$searchValue 		= $this->input->post('search_value');
+	// 		$itemsPerPage 		= $this->input->post('itemsPerPage');
+	// 		$pageno 			= $this->input->post('page');
+
+	// 		// data filter
+	// 		$date['from']		= $this->input->post('from');
+	// 		$date['to']			= $this->input->post('to');
+
+	// 		if(empty($user_id)):
+    //             echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
+    //         elseif(empty($this->input->post('itemsPerPage'))):
+    //             echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_ITEMPERPAGE'),$result);die();
+    //         elseif(empty($this->input->post('page'))):
+    //         	echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_PAGE_NO'),$result);die();
+    //         else:
+            		
+	//     		$requestFrom = 'app';
+	// 			$USERDATA    = $this->common_model->userValidate($user_id,$requestFrom);
+	//     		$resultType  = 'count';
+	// 			$totalcount  = $this->common_model->orderDetails($user_id,$searchBy,$searchValue,$itemsPerPage,$startIndex,$resultType,$date);
+				
+	// 			$itemsPerPage = $this->input->post('itemsPerPage');
+	// 			$pageno 	  = $this->input->post('page');
+
+	// 			// Sample long array with data
+	// 			$longArray = $totalcount;
+	// 			// Current page number (received from URL query parameter, e.g., ?page=2)
+	// 			$page = isset($pageno) ? (int)$pageno : 1;
+
+	// 			// Calculate total number of pages
+	// 			$totalPages = ceil($longArray / $itemsPerPage);
+	// 			$totalpage= array();
+	// 			// Pagination links
+	// 			for ($i = 1; $i <= $totalPages; $i++) {
+	// 			    if ($i == $page) {
+	// 			         $current_page = $i;
+	// 			         $totalpage[] = $i;
+	// 			    } else {
+	// 			         $totalpage[] = $i;
+	// 			    }
+	// 			}
+
+	// 			$startIndex    = ($page - 1) * $itemsPerPage;
+	// 	 		$resultType    = '';
+	// 	 		$OrderDetails  = $this->common_model->orderDetails($user_id,$searchBy,$searchValue,$itemsPerPage,$startIndex,$resultType,$date);
+
+	// 		    if(!empty($OrderDetails)):
+	// 		    	$totalpage 				    = count($totalpage);
+	// 				$result['OrderDetails'] 	= $OrderDetails?$OrderDetails:array();
+	// 				$result['current_page']     = $current_page;
+	// 				$result['total_page'] 	    =   $totalpage;
+    //             	echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_SUCCESS'),$result);die();
+	// 		    else:
+	// 				echo outPut(0,lang('FORBIDDEN_CODE'),lang('DATA_NOT_FOUND'),$result);die();
+	// 		    endif;
+
+	// 		endif;
+	// 		echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }
+
+	/* * *********************************************************************
+	 * * Function name  : orderCancellation
+	 * * Developed By 	: Dilip Halder
+	 * * Purpose  		: This function used for order Cancellation
+	 * * Date 			: 11 July 2024
+	 * * **********************************************************************/
+	// public function orderCancellation()
+	// {
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 			= 	array();	
+	// 	if(requestAuthenticate(APIKEY,'POST')):
+
+	// 		$userId 		= $this->input->post('user_id');
+	// 		$orderId 		= $this->input->post('order_id');
+	// 		if(empty($userId)):
+    //             echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
+	// 		elseif(empty($orderId)):
+    //             echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);die();
+    //         else:
+	// 			$whereCon1['select'] = ['_id', 'order_id', 'user_id', 'draw_date', 'draw_time','ticket','total_price','status'];
+	// 			$tblName           = 'uw_lotto_orders';
+    //         	$whereCon1['where'] = array('order_id' => $orderId , 'user_id' => (int)$userId );
+    //         	$orderDetails      = $this->common_model->getData('single',$tblName,$whereCon1);
+	// 			$currentTime = strtotime(date('H:i'));
+	// 			$drawDateTime      = strtotime($orderDetails['draw_date'].' '.$orderDetails['draw_time']);
+	// 			$drawDateTimeMinus5 = $drawDateTime - (5 * 60);
+    //         	// $DrawtTime1  = strtotime(date('21:55'));
+    //         	// $DrawtEnd1   = strtotime(date('21:59'));
+
+    //         	// $DrawtTime2  = strtotime(date('23:25'));
+    //         	// $DrawtEnd2   = strtotime(date('23:29'));
+	// 			if( 
+    //         		( $currentTime >= $drawDateTimeMinus5 && $currentTime <= $drawDateTime) 
+    // 		 	){
+    //                echo outPut(0,lang('SUCCESS_CODE'),lang('CANCELLATION_STOP_DRAW_UNDERWAY'),$result);die();
+    //         	}
+
+    //         	$whereCon['where'] = array('users_id' => (int)$userId);
+	// 			$UserData 	   	   = $this->common_model->getParticularFieldByMultipleCondition($FieldList,'uw_users',$whereCon );
+
+	// 			$user_OId  = $UserData['_id']['$id'];
+	// 			// echo "<pre>";print_r($UserData);die();
+
+            	
+	// 			// echo "<pre>";print_r($orderDetails);die();
+
+    //         	if(!empty($orderDetails) && $orderDetails['status'] == 'CL'):
+	// 				echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_CANCELLED'),$result);die();
+	// 			elseif($orderDetails['status'] == 'A'):
+					
+	// 				$DrawDateTime     = strtotime($orderDetails['draw_date'].' '.$orderDetails['draw_time']);
+	// 				$currentDateTime  = strtotime(date('Y-m-d H:i'));
+	// 				if($DrawDateTime > $currentDateTime):
+
+	// 				    /* updated order status */
+	// 				    $CancellationID = $orderDetails['_id']->{'$id'};
+	// 			 	 	$param1['status']			= 'CL';
+	// 					$param1['update_ip']		= currentIp();
+	// 					$param1['update_date']		= (int)$this->timezone->utc_time();//currentDateTime();
+	// 					$param1['refund_date']		= (int)$this->timezone->utc_time();//currentDateTime();
+	// 					$param1['updated_by']		= (int)$userId;
+	// 					$this->common_model->editData('uw_lotto_orders',$param1,'_id',new MongoDB\BSON\ObjectId($CancellationID));
+	// 				 	// echo "<pre>";print_r($param1);die();
+
+	// 					/* Generating order cancellation record in loadbalance */
+	// 					$refundparam["load_balance_id"]		     =	(int)$this->common_model->getNextSequence('uw_loadBalance');
+	// 					$refundparam["order_oid"] 			     =	new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+	// 					$refundparam["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_OId);
+	// 					$refundparam["user_id_cred"] 			 =	(int)$UserData['users_id'];
+	// 					$refundparam["user_id_deb"]			 	 =	(int)0;
+	// 					$refundparam["order_id"] 				 =	$orderDetails['order_id'];
+	// 					$refundparam["upoints"] 				 =	(float)$orderDetails['total_price'];
+	// 					$refundparam["availableArabianPoints"] 	 =	(float)$UserData['availableArabianPoints'];
+	// 					$refundparam["end_balance"] 			 =	(float)$UserData['availableArabianPoints'] + (float)$orderDetails['total_price'];
+	// 				    $refundparam["record_type"] 			 =	'Credit';
+	// 				    $refundparam["narration"]				 =	'Order Cancelled';
+	// 				    $refundparam["remarks"]				 	 =	'Ticket ID : '.$orderDetails['order_id'];
+	// 				    $refundparam["creation_ip"] 			 =	$this->input->ip_address();
+	// 				    $refundparam["created_at"] 			 	 =	date('Y-m-d H:i');
+	// 				    $refundparam["created_by"] 			 	 =	(int)$UserData['users_id'];
+	// 				    $refundparam["status"] 				 	 =	"A";
+	// 				 	// echo "<pre>";print_r($refundparam);die();
+	// 				    $this->common_model->addData('uw_loadBalance', $refundparam);
+
+	// 				    /* Balance Updated.. */
+  	// 					$updateBalance['availableArabianPoints'] =  +(float)$orderDetails['total_price'];;
+ 	// 					$balanceCredit = $this->common_model->manageBalance('uw_users',$updateBalance,'users_id',(int)$userId );
+	// 					echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_CANCELLED_SUCCESSFULLY'),$result);die();
+	// 				else:
+	// 					echo outPut(0,lang('SUCCESS_CODE'),lang('ORDET_ID_INVALID'),$result);die();
+	// 				endif;
+    //         	else:
+	// 				echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);die();
+    //         	endif;
+    //         endif;
+	// 		echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }
 
 	/* * *********************************************************************
 	 * * Function name  : orderCancellation
@@ -389,83 +788,99 @@ class Orders extends CI_Controller {
 	 * * **********************************************************************/
 	public function orderCancellation()
 	{
-		$apiHeaderData 		=	getApiHeaderData();
-		$this->generatelogs->putLog('APP',logOutPut($_POST));
-		$result 			= 	array();	
-		if(requestAuthenticate(APIKEY,'POST')):
+		try {
 
-			$userId 		= $this->input->post('user_id');
-			$orderId 		= $this->input->post('order_id');
-			if(empty($userId)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
-			elseif(empty($orderId)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);die();
-            else:
+			$apiHeaderData = getApiHeaderData();
+			$this->generatelogs->putLog('APP',logOutPut($_POST));
+			$result 	   = array();	
+			if(requestAuthenticate(APIKEY,'POST')):
 
-            	$whereCon['where'] = array('users_id' => (int)$userId);
-				$UserData 	   	   = $this->common_model->getParticularFieldByMultipleCondition($FieldList,'uw_users',$whereCon );
+				$userId  = $this->input->post('user_id');
+				$orderId = $this->input->post('order_id');
+				if(empty($userId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($orderId)):
+					throw new Exception(lang('ORDER_ID_EMPTY'), 1);
+				else:
 
-				$user_OId  = $UserData['_id']['$id'];
-				// echo "<pre>";print_r($UserData);die();
-
-            	$tblName           = 'uw_lotto_orders';
-            	$whereCon['where'] = array('order_id' => $orderId , 'user_id' => (int)$userId );
-            	$orderDetails      = $this->common_model->getData('single',$tblName,$whereCon);
-				// echo "<pre>";print_r($orderDetails);die();
-
-            	if(!empty($orderDetails) && $orderDetails['status'] == 'CL'):
-					echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_CANCELLED'),$result);die();
-				elseif($orderDetails['status'] == 'A'):
+					/*--------------------------------------------- Starting of Transaction ---------------------------------------------*/ 
+					$this->session->sess_regenerate();
+					$session = $this->mongodb_client->client->startSession();
+					$session->startTransaction();
 					
-					$DrawDateTime     = strtotime($orderDetails['draw_date'].' '.$orderDetails['draw_time']);
-					$currentDateTime  = strtotime(date('Y-m-d H:i'));
-					if($DrawDateTime > $currentDateTime):
+					$tblName             = 'uw_lotto_orders';
+					$whereCon1['select'] = ['_id', 'order_id', 'user_id', 'draw_date', 'draw_time','ticket','total_price','status'];
+					$whereCon1['where']  = array('order_id' => $orderId , 'user_id' => (int)$userId );
+					$orderDetails      	 = $this->common_model->getData('single',$tblName,$whereCon1);
+					if(empty($orderDetails)):
+						throw new Exception(lang('ORDET_ID_INVALID'), 1);
+					elseif($orderDetails['status'] == 'CL'):
+						throw new Exception(lang('ORDER_ALREADY_CANCELLED'), 1);
+					elseif(!empty($orderDetails) && $orderDetails['status'] == 'A'):
+						$currentTime        = strtotime(date('H:i'));
+						$drawDateTime       = strtotime($orderDetails['draw_date'].' '.$orderDetails['draw_time']);
+						$drawDateTimeMinus5 = $drawDateTime - (5 * 60);
+						if($currentTime >= $drawDateTimeMinus5 && $currentTime <= $drawDateTime):
+							throw new Exception(lang('CANCELLATION_STOP_DRAW_UNDERWAY'), 1);
+						else:
 
-					    /* updated order status */
-					    $CancellationID = $orderDetails['_id']->{'$id'};
-				 	 	$param1['status']			= 'CL';
-						$param1['update_ip']		= currentIp();
-						$param1['update_date']		= (int)$this->timezone->utc_time();//currentDateTime();
-						$param1['refund_date']		= (int)$this->timezone->utc_time();//currentDateTime();
-						$param1['updated_by']		= (int)$userId;
-						$this->common_model->editData('uw_lotto_orders',$param1,'_id',new MongoDB\BSON\ObjectId($CancellationID));
-					 	// echo "<pre>";print_r($param1);die();
+							$whereCon['where'] = array('users_id' => (int)$userId);
+							$UserData 	   	   = $this->common_model->getParticularFieldByMultipleCondition($FieldList,'uw_users',$whereCon );
+							
+							$user_OId          = $UserData['_id']['$id'];
+							/* updated order status */
+							$CancellationID         = $orderDetails['_id']->{'$id'};
+							$param1['status']		= 'CL';
+							$param1['update_ip']	= currentIp();
+							$param1['update_date']  = (int)$this->timezone->utc_time();//currentDateTime();
+							$param1['refund_date']	= (int)$this->timezone->utc_time();//currentDateTime();
+							$param1['updated_by']	= (int)$userId;
+							$orderWhereCon          = array('_id' => new MongoDB\BSON\ObjectId($CancellationID));
+							$update1 = $this->mongodb_client->updateDocument('uw_lotto_orders',$orderWhereCon, ['$set' => $param1],$session);
+							
+							/* Generating order cancellation record in loadbalance */
+							$refundparam["load_balance_id"]		     =	(int)$this->common_model->getNextSequence('uw_loadBalance');
+							$refundparam["order_oid"] 			     =	new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+							$refundparam["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_OId);
+							$refundparam["user_id_cred"] 			 =	(int)$UserData['users_id'];
+							$refundparam["user_id_deb"]			 	 =	(int)0;
+							$refundparam["order_id"] 				 =	$orderDetails['order_id'];
+							$refundparam["upoints"] 				 =	(float)$orderDetails['total_price'];
+							$refundparam["availableArabianPoints"] 	 =	(float)$UserData['availableArabianPoints'];
+							$refundparam["end_balance"] 			 =	(float)$UserData['availableArabianPoints'] + (float)$orderDetails['total_price'];
+							$refundparam["record_type"] 			 =	'Credit';
+							$refundparam["narration"]				 =	'Order Cancelled';
+							$refundparam["remarks"]				 	 =	'Ticket ID : '.$orderDetails['order_id'];
+							$refundparam["creation_ip"] 			 =	$this->input->ip_address();
+							$refundparam["created_at"] 			 	 =	date('Y-m-d H:i');
+							$refundparam["created_by"] 			 	 =	(int)$UserData['users_id'];
+							$refundparam["status"] 				 	 =	"A";
+							// echo "<pre>";print_r($refundparam);die();
+							$update2 = $this->mongodb_client->insertDocument('uw_loadBalance', $refundparam, $session);
+							
+							/* Balance Updated.. */
+							$updateBalance = array('availableArabianPoints' =>  $refundparam["end_balance"]);
+							$update3 = $this->mongodb_client->updateDocument(
+								'uw_users',         				// Collection name
+								['users_id' => (int)$userId],       // Filter / condition for which document to update
+								['$set' => $updateBalance],         // Proper MongoDB update syntax
+								$session                            // MongoDB session (optional)
+							);
 
-						/* Generating order cancellation record in loadbalance */
-						$refundparam["load_balance_id"]		     =	(int)$this->common_model->getNextSequence('uw_loadBalance');
-						$refundparam["order_oid"] 			     =	new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
-						$refundparam["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_OId);
-						$refundparam["user_id_cred"] 			 =	(int)$UserData['users_id'];
-						$refundparam["user_id_deb"]			 	 =	(int)0;
-						$refundparam["order_id"] 				 =	$orderDetails['order_id'];
-						$refundparam["upoints"] 				 =	(float)$orderDetails['total_price'];
-						$refundparam["availableArabianPoints"] 	 =	(float)$UserData['availableArabianPoints'];
-						$refundparam["end_balance"] 			 =	(float)$UserData['availableArabianPoints'] + (float)$orderDetails['total_price'];
-					    $refundparam["record_type"] 			 =	'Credit';
-					    $refundparam["narration"]				 =	'Order Cancalled';
-					    $refundparam["remarks"]				 	 =	'Ticket ID : '.$orderDetails['order_id'];
-					    $refundparam["creation_ip"] 			 =	$this->input->ip_address();
-					    $refundparam["created_at"] 			 	 =	date('Y-m-d H:i');
-					    $refundparam["created_by"] 			 	 =	(int)$UserData['users_id'];
-					    $refundparam["status"] 				 	 =	"A";
-					 	// echo "<pre>";print_r($refundparam);die();
-					    $this->common_model->addData('uw_loadBalance', $refundparam);
-
-					    /* Balance Updated.. */
-  						$updateBalance['availableArabianPoints'] =  +(float)$orderDetails['total_price'];;
- 						$balanceCredit = $this->common_model->manageBalance('uw_users',$updateBalance,'users_id',(int)$userId );
-						echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_CANCELLED_SUCCESSFULLY'),$result);die();
-					else:
-						echo outPut(0,lang('SUCCESS_CODE'),lang('ORDET_ID_INVALID'),$result);die();
+							$session->commitTransaction();
+							$this->mongodb_client->commitTransaction($session);
+							echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_CANCELLED_SUCCESSFULLY'),$result);
+						 
+						endif;
 					endif;
-            	else:
-					echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);die();
-            	endif;
-            endif;
-			echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
-		else:
-			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
-		endif;
+				endif;
+			else:
+				throw new Exception(lang('FORBIDDEN_MSG'), 1);
+			endif;
+			
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+		}
 	}
 
 	/* * *********************************************************************

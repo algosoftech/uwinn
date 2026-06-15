@@ -455,6 +455,7 @@ class Pos extends CI_Controller {
                                 $touserparam["created_by"]          = (int)$usersId;
                                 $touserparam["created_user_id"]     = (int)$usersId;
                                 $touserparam["status"]              = "A";
+                                $touserparam["device_type"]         = 'ios';
                                 $this->geneal_model->addData('uw_loadBalance', $touserparam);
 
                                 // Commission capturing in order uw_loadbalance table..
@@ -665,39 +666,137 @@ class Pos extends CI_Controller {
      * * **********************************************************************/
     public function checkWinnerOrderHistory()
     {
-        $apiHeaderData      =   getApiHeaderData();
-        $this->generatelogs->putLog('APP',logOutPut($_POST));
-        $result                             =   array();    
-        if(requestAuthenticate(APIKEY,'POST')):
-            $USERID  = $this->input->post('user_id');
-            $orderId = $this->input->post('order_id');
+       try {
+            $apiHeaderData      = getApiHeaderData();
+            $this->generatelogs->putLog('APP',logOutPut($_POST));
+            $result             = array(); 
+            if(requestAuthenticate(APIKEY,'POST')):
 
-            if(empty($USERID)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
-            elseif(empty($orderId)):
-                echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);die();
-            else:
-                $tblName           = 'uw_users'; 
-                $whereCon['where'] =  array('users_id'=> (int)$USERID);
-                $UserData          = $this->common_model->getData('single',$tblName,$whereCon);
-                if(!empty($UserData) && $UserData['status'] == 'A'):
-                    $tblName           = 'uw_lotto_orders'; 
-                    $whereCon['where'] =  array('order_id'=> $orderId);
-                    $orderData         = $this->common_model->getData('single',$tblName,$whereCon);
-                    if(!empty($orderData)):
-                        echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$orderData);die();
+                $USERID   = $this->input->post('user_id');
+                $ORDERID  = $this->input->post('order_id');
+                if(empty($USERID)):
+                    throw new Exception(lang('USER_ID_EMPTY'), 1);
+                elseif(empty($ORDERID)):
+                    throw new Exception(lang('ORDER_ID_EMPTY'), 1);
+                else:   
+                    $Fieldslist         = array('users_id','status');
+                    $UserData           = $this->common_model->getSingleDataByParticularField($Fieldslist,'uw_users','users_id',(int)$USERID);
+                    // echo "<pre>";print_r($UserData);die();
+                    if(!empty($UserData) && $UserData['status'] == 'A'):
+                        $tblName           = 'uw_lotto_orders'; 
+                        $whereCon['where'] = array('order_id'=> $ORDERID);
+                        $orderData         = $this->common_model->getData('single',$tblName,$whereCon);
+                        
+                        if(empty($$orderData)):
+                            $resultData = $this->common_model->getHourlyGameOrderHistory($whereCon,$shortField,$itemsPerPage,$startIndex);
+                            if(!empty($resultData)):
+                                $orderData = $resultData[0];
+                               echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$orderData);
+                               die();
+                            endif;
+                        endif;
+
+                        if(!empty($orderData)):
+                            if(!empty($orderData['product_id'])):
+                                $Fieldslist  = array('straight_settings','rumble_settings','reverse_settings','straight_settings_default_check','rumble_settings_default_check','reverse_settings_default_check');
+                                $productData = $this->common_model->getSingleDataByParticularField($Fieldslist,'uw_products','products_id',(int)$orderData['product_id']);
+                                if(!empty($orderData)):
+                                    $orderData['straight_settings']                = $productData['straight_settings'];
+                                    $orderData['rumble_settings']                  = $productData['rumble_settings'];
+                                    $orderData['reverse_settings']                 = $productData['reverse_settings'];
+                                    $orderData['straight_settings_default_check']  = $productData['straight_settings_default_check'];
+                                    $orderData['rumble_settings_default_check']    = $productData['rumble_settings_default_check'];
+                                    $orderData['reverse_settings_default_check']   = $productData['reverse_settings_default_check'];
+                                endif;
+                            endif;
+                            echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$orderData);
+                        else:
+                            throw new Exception(lang('ORDET_ID_INVALID'), 1);
+                        endif;
                     else:
-                        echo outPut(0,lang('SUCCESS_CODE'),lang('ORDET_ID_INVALID'),$result);die();
+                        throw new Exception(lang('INVALID_USER_ID'), 1);
                     endif;
-                else:
-                    $result = [];
-                    echo outPut(1,lang('SUCCESS_CODE'),lang('INVALID_USER_ID'),$result);die();
+                    
                 endif;
-
             endif;
-        else:
-            echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
-        endif;
+        } catch (Exception $e) {
+            echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+        }
     } 
+
+     /* * *********************************************************************
+     * * Function name  : refreshCampaigns
+     * * Developed By   : Dilip Halder
+     * * Purpose        : This function used for refreshCampaigns 
+     * * Date           : 24 February 2026
+     * * **********************************************************************/
+    public function refreshCampaigns()
+    {
+        $apiHeaderData      = getApiHeaderData();
+        $this->generatelogs->putLog('APP',logOutPut($_GET));
+        $result             = array();
+        try {
+            if(requestAuthenticate(APIKEY,'GET')):
+                $USERID = $this->input->get('users_id');
+                if(empty($USERID)):
+                    throw new Exception(lang('USER_ID_EMPTY'), 1);
+                else:
+                    $tblName = 'uw_users';
+                    $whereCon['where']['users_id'] = (int)$USERID;
+                    $userData = $this->common_model->getData('single',$tblName,$whereCon);
+                    if(empty($userData)):
+                        throw new Exception(lang('INVALID_USER_ID'), 1);
+                    else:
+                        $uparam['show_lotto_campaign']  = 'N';
+                        $uparam['show_raffle_campaign'] = 'Y';
+                        $uparam['update_date']          = date('Y-m-d h:m');
+                        $UserDetails                    = $this->common_model->editData('uw_users',$uparam, 'users_id',(int)$USERID);
+                        echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$UserDetails);
+                    endif;
+                endif;
+            else:
+                echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+            endif;
+        } catch (Exception $e) {
+            echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+        }
+    }
+    
+    // public function checkWinnerOrderHistory()
+    // {
+    //     $apiHeaderData      =   getApiHeaderData();
+    //     $this->generatelogs->putLog('APP',logOutPut($_POST));
+    //     $result                             =   array();    
+    //     if(requestAuthenticate(APIKEY,'POST')):
+    //         $USERID  = $this->input->post('user_id');
+    //         $orderId = $this->input->post('order_id');
+
+    //         if(empty($USERID)):
+    //             echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
+    //         elseif(empty($orderId)):
+    //             echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);die();
+    //         else:
+    //             $tblName           = 'uw_users'; 
+    //             $whereCon['where'] =  array('users_id'=> (int)$USERID);
+    //             $UserData          = $this->common_model->getData('single',$tblName,$whereCon);
+    //             if(!empty($UserData) && $UserData['status'] == 'A'):
+    //                 $tblName           = 'uw_lotto_orders'; 
+    //                 $whereCon['where'] =  array('order_id'=> $orderId);
+    //                 $orderData         = $this->common_model->getData('single',$tblName,$whereCon);
+    //                 if(!empty($orderData)):
+    //                     echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$orderData);die();
+    //                 else:
+    //                     echo outPut(0,lang('SUCCESS_CODE'),lang('ORDET_ID_INVALID'),$result);die();
+    //                 endif;
+    //             else:
+    //                 $result = [];
+    //                 echo outPut(1,lang('SUCCESS_CODE'),lang('INVALID_USER_ID'),$result);die();
+    //             endif;
+
+    //         endif;
+    //     else:
+    //         echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+    //     endif;
+    // } 
      
 }

@@ -24,6 +24,7 @@
             <div class="card">
               <div class="card-header">
                 <h5>Manage Notifications</h5>
+                <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right" style="margin-left: 5px;" data-toggle="modal" data-target="#exportModal">Export excel</a>
                 <a href="<?php echo getCurrentControllerPath('addeditdata'); ?>" class="btn btn-sm btn-primary pull-right">Send Notification</a>
               </div>
               <div class="card-body">
@@ -44,6 +45,17 @@
                               </select>
                               entries
                             </label>
+                          </div>
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                          <div class="dataTables_length" id="simpletable_length" style="margin-left:-70%">
+                            <label>Notification Type </label>
+                              <select name="notification_type" id="showLength" class="custom-select custom-select-sm form-control form-control-sm">
+                                <option value="All" <?php if($notification_type == 'All')echo 'selected="selected"'; ?>>All</option>
+                                <option value="individual" <?php if($notification_type == 'individual')echo 'selected="selected"'; ?>>Individual</option>
+                                <option value="all" <?php if($notification_type == 'all')echo 'selected="selected"'; ?>>Broadcast All</option>
+                              </select>
+                             
                           </div>
                         </div>
                       </div>
@@ -73,7 +85,27 @@
                                   <td> <a href="javascript:void(0)" class="btn btn-sm btn-primary view-users-btn" data-toggle="modal" data-target="#userlistModal" data-notification-id="<?= $ALLDATAINFO['notification_id']; ?>" data-ntype="Y">
                                  <?= $ALLDATAINFO['read_count'] ?> <i class="feather icon-eye"></i></a></td>
                                  <td><a href="javascript:void(0)" class="btn btn-sm btn-primary view-users-btn" data-toggle="modal" data-target="#userlistModal" data-notification-id="<?= $ALLDATAINFO['notification_id']; ?>" data-ntype="N"><?=$ALLDATAINFO['unread_count'] ?> <i class="feather icon-eye"></i></a></td>
-                                  <td><?=(new DateTime('@' . $ALLDATAINFO['creation_date']))->setTimezone(new DateTimeZone('Asia/Dubai'))->format('Y-m-d H:i');?></td>
+                                  
+                                   <td><?php 
+                                    try {
+                                      $dateValue = $ALLDATAINFO['creation_date'] ?? '';
+                                      if (empty($dateValue)) {
+                                        echo '';
+                                      } elseif (is_numeric($dateValue)) {
+                                        // Unix timestamp
+                                        $date = new DateTime('@' . (int)$dateValue);
+                                        $date->setTimezone(new DateTimeZone('Asia/Dubai'));
+                                        echo $date->format('Y-m-d H:i');
+                                      } else {
+                                        // Date string - parse and convert to Dubai timezone
+                                        $date = new DateTime($dateValue);
+                                        $date->setTimezone(new DateTimeZone('Asia/Dubai'));
+                                        echo $date->format('Y-m-d H:i');
+                                      }
+                                    } catch (\Exception $e) {
+                                      echo htmlspecialchars($dateValue ?? '');
+                                    }
+                                   ?></td>
                                   <td><?=showStatus($ALLDATAINFO['status'])?></td>
                                   <!-- <td>
                                     <div class="btn-group">
@@ -137,6 +169,48 @@
     </div>
   </div>
 </div>
+
+
+<div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Notification Reports</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="<?=getCurrentControllerPath('exportexcel');?>" method="post" autocomplete="off">
+      <div class="modal-body">
+          
+            
+
+           
+
+            <div class="row mt-2"  style="margin:0px;">
+                <label class="col-sm-12 col-md-12">Notification Type</label>
+              <div class="col-sm-12 col-md-6">
+                  <select name="searchField1" id="searchField1" class="custom-select custom-select-sm form-control form-control-sm">
+                    <option value="">Select Field</option>
+                    <option value="All" <?php if($notification_type == 'All')echo 'selected="selected"'; ?>>All</option>
+                    <option value="individual" <?php if($notification_type == 'individual')echo 'selected="selected"'; ?>>Individual</option>
+                    <option value="all" <?php if($notification_type == 'all')echo 'selected="selected"'; ?>>Broadcast All</option>
+                  </select>
+              </div>
+              
+            </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Download Report</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 
 <script>
 $(document).on('click', '.view-users-btn', function () {

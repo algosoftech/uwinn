@@ -1,4 +1,9 @@
 <?php
+if (php_sapi_name() === 'cli') {
+    $_SERVER['SERVER_NAME'] = '2021upos.com';
+    $_SERVER['HTTP_HOST']   = '2021upos.com';
+    $_SERVER['REQUEST_URI'] = '/';
+}
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /*
@@ -132,3 +137,5 @@ defined('fileFCPATH')     				OR 	define('fileFCPATH',$fileFCPATH);
 defined('SMSCOUNTRYUSER')     			OR 	define('SMSCOUNTRYUSER','buy2day');
 defined('SMSCOUNTRYPASSWORD')     		OR 	define('SMSCOUNTRYPASSWORD','Buy2day@123');
 defined('MAILJET') OR define('MAILJET','OGIxYzEwMzRmYTUzZmRmMzAzZjBkOTRhOWQ0ZWNiMjg6M2E2OTNjMTIzNTExNjllZWYzMTQ2ZmFhZmYxMjMwN2Y=');
+
+

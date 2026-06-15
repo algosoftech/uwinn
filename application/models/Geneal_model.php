@@ -2781,11 +2781,11 @@ public function getDataByParticularField($tableName='',$fieldName='',$fieldValue
 	    // "created_date" => 1,
 	    // "creation_date" => 1,
 		);
+		
 
-		$whereCon['where']['status'] = 'A';
+		// $whereCon['where']['status'] = 'A';
 		if($whereCon['where']):
 			$whereCondition = $whereCon['where'];
-		 
 		endif;
 
 		$lookup  = array( 
@@ -2800,6 +2800,9 @@ public function getDataByParticularField($tableName='',$fieldName='',$fieldValue
 	                        'products_id' 		=> 1,  
 	                        'product_image' 	=> 1,
 	                        'lotto_type' 		=> 1,  
+							'straight_settings' => 1,  
+	                        'rumble_settings'   => 1,  
+	                        'reverse_settings'  => 1,  
 				 		)
 				 	)
 				 ),
@@ -2821,6 +2824,7 @@ public function getDataByParticularField($tableName='',$fieldName='',$fieldValue
 	                        'stright_prize_heading'    => 1,  
 	                        'rumble_mix_prize_heading' => 1,  
 	                        'reverse_prize_heading'    => 1,  
+	                       						
 				 		)
 				 	)
 				 ),
@@ -2875,6 +2879,8 @@ public function getDataByParticularField($tableName='',$fieldName='',$fieldValue
 		    'product_qty'  		=> 1,  
 		    'order_id'     		=> 1,  
 		    'ticket'    	 	=> 1,  
+			'super_ball_mode'   => 1,  
+		    'sb_tickect'        => 1,  
 		    'selection_values'  => 1,
 		    'raffle_mode'  		=> 1, 
 		    'raffle_tickets'    => 1,   
@@ -2903,11 +2909,15 @@ public function getDataByParticularField($tableName='',$fieldName='',$fieldValue
 		    'stright_prize_heading'     	   => array('$arrayElemAt' => array('$prizeData.stright_prize_heading', 0)), 
 		    'rumble_mix_prize_heading'     	   => array('$arrayElemAt' => array('$prizeData.rumble_mix_prize_heading', 0)), 
 		    'reverse_prize_heading'     	   => array('$arrayElemAt' => array('$prizeData.reverse_prize_heading', 0)), 
+
+		    'stright_prize_text'     	       => array('$arrayElemAt' => array('$productData.straight_settings', 0)), 
+		    'rumble_prize_text'     	       => array('$arrayElemAt' => array('$productData.rumble_settings', 0)), 
+		    'chance_prize_text'     	       => array('$arrayElemAt' => array('$productData.reverse_settings', 0)), 
+
 		);
 		
 		$tblName      = "uw_lotto_orders";
 	    $WinnerData   = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind);
-
 	    return $WinnerData;
 	    die();
 	}

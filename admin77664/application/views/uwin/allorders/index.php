@@ -47,6 +47,7 @@
               <div class="card-header">
                 <h5>Manage Orders</h5>
                 <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#exportModal">Export excel</a>
+                <a href="javascript:void(0)" class="btn btn-sm btn-info pull-right mr-2" data-toggle="modal" data-target="#combinedExportModal">Combined Excel (Hourly + Big Winners)</a>
               </div>
               <div class="card-body">
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
@@ -398,6 +399,20 @@
           </div>
         </div>
         <div class="row mt-2">
+        <?php /* <div class="col-sm-12 col-md-6">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="draw_time_one" id="draw_time_one">
+              <label class="form-check-label" for="draw_time_one">  10:00 PM Draw </label>
+            </div>
+          </div>
+          
+          <div class="col-sm-12 col-md-6">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="draw_time_two" id="draw_time_two">
+              <label class="form-check-label" for="draw_time_two">  11:30 PM Draw </label>
+            </div>
+          </div> 
+          */ ?>
           <div class="col-sm-12 col-md-6">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="cancelled_order" id="cancelled_order">
@@ -405,6 +420,19 @@
             </div>
           </div>
         </div>
+        
+        <div class="row mt-2 draw-time-group">
+          <?php if($ALLPRODUCT <> ""): foreach($ALLPRODUCT as $ALLPRODUCTINFO): ?>
+            <div class="col-sm-12 col-md-6">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="productIds[]" data-draw-time="<?=$ALLPRODUCTINFO['draw_time']?>" value="<?=$ALLPRODUCTINFO['products_id']?>" id="<?=$ALLPRODUCTINFO['products_id']?>">
+                <label class="form-check-label" for="<?=$ALLPRODUCTINFO['products_id']?>"><?=$ALLPRODUCTINFO['title']?> ( <?=$ALLPRODUCTINFO['draw_time']?> ) </label>
+              </div>
+            </div>
+          <?php endforeach; endif; ?>
+        </div>
+
+
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -414,3 +442,151 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="combinedExportModal" tabindex="-1" role="dialog" aria-labelledby="combinedExportModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="combinedExportModalLabel">Download Combined Report</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="<?=getCurrentControllerPath('combinedexportexcel')?>" method="post" autocomplete="off" id="combinedExportForm">
+        <input type="hidden" name="searchField" id="combinedSearchField" value="">
+        <input type="hidden" name="searchValue" id="combinedSearchValue" value="">
+        <input type="hidden" name="cancelled_order" id="combinedCancelledOrder" value="">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-12 col-md-6">
+              <label class="col-form-label">From:</label>
+              <input type="datetime-local" name="fromDate" id="combinedFromDate" value="<?php
+                $combinedFrom = !empty($combinedFromDate) ? $combinedFromDate : date('Y-m-d 16:00', strtotime('-1 day'));
+                echo date('Y-m-d\TH:i', strtotime(str_replace('T', ' ', $combinedFrom)));
+              ?>" class="form-control form-control-sm" placeholder="From Date">
+            </div>
+            <div class="col-sm-12 col-md-6">
+              <label class="col-form-label">To:</label>
+              <input type="datetime-local" name="toDate" id="combinedToDate" value="<?php
+                $combinedTo = !empty($combinedToDate) ? $combinedToDate : date('Y-m-d 22:00');
+                echo date('Y-m-d\TH:i', strtotime(str_replace('T', ' ', $combinedTo)));
+              ?>" class="form-control form-control-sm" placeholder="To Date">
+            </div>
+          </div>
+          <p class="text-muted small mt-2 mb-0">Hourly winners aur Big Winners — dono isi date range se export honge.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-info">Download Combined Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  
+<?php /* $('#draw_time_one').on('change', function () {
+    if (this.checked) {
+      $('#draw_time_two').prop('checked', false);
+
+      let fromDate1 = $('#fromDate1').val(); // e.g., "2025-10-07T14:20"
+      let toDate1   = $('#toDate1').val();   // e.g., "2025-10-08T09:15"
+      // Extract only the date part (before 'T')
+      let fromDateOnly = fromDate1.split('T')[0];
+      let toDateOnly   = toDate1.split('T')[0];
+      // Add fixed time "22:31"
+      let finalFromDate = fromDateOnly + 'T22:01';
+      let finalToDate   = toDateOnly + 'T22:00';
+
+      // Set back to input fields
+      $('#fromDate1').val(finalFromDate);
+      $('#toDate1').val(finalToDate);
+
+    }  
+});
+
+$('#draw_time_two').on('change', function () {
+    if (this.checked) {
+      $('#draw_time_one').prop('checked', false);
+  
+      let fromDate1 = $('#fromDate1').val(); // e.g., "2025-10-07T14:20"
+      let toDate1   = $('#toDate1').val();   // e.g., "2025-10-08T09:15"
+      // Extract only the date part (before 'T')
+      let fromDateOnly = fromDate1.split('T')[0];
+      let toDateOnly   = toDate1.split('T')[0];
+      // Add fixed time "22:31"
+      let finalFromDate = fromDateOnly + 'T23:31';
+      let finalToDate   = toDateOnly + 'T23:30';
+
+      // Set back to input fields
+      $('#fromDate1').val(finalFromDate);
+      $('#toDate1').val(finalToDate);
+
+    }else{
+        let fromDate1 = "<?= date('Y-m-d', strtotime('-1 day')) . 'T22:01'; ?>" ;
+        let toDate1   = "<?= date('Y-m-d') . 'T22:00'; ?>";
+        $('#fromDate1').val(fromDate1);
+        $('#toDate1').val(toDate1);
+    }
+});
+*/ ?>
+// Ensure only one checkbox with the same data-draw-time can be selected
+$(document).on('change', '#exportModal input[name="productIds[]"]', function() {
+
+  let drawTime  = $(this).attr('data-draw-time');  // get the draw-time of the current checkbox
+
+  let fromDate1 = new Date("<?=date('Y-m-d', strtotime('-1 day')) ?>T" + drawTime);
+  fromDate1.setMinutes(fromDate1.getMinutes() + 1);
+  fromDate1 = fromDate1.toLocaleString('sv-SE').replace(' ', 'T'); // keeps local time in YYYY-MM-DDTHH:MM:SS
+  let toDate1   = "<?= date('Y-m-d') ?>T" + drawTime;
+
+  $('#fromDate1').val(fromDate1);
+  $('#toDate1').val(toDate1); 
+
+  // disable other data-draw-time in group
+  // Disable all product checkboxes that are not in the selected draw-time group
+  $('#exportModal input[name="productIds[]"]').each(function() {
+    if ($(this).attr('data-draw-time') !== drawTime) {
+      $(this).prop('disabled', true);
+    } else {
+      $(this).prop('disabled', false);
+    }
+  });
+
+  // If no checkboxes are checked, re-enable all
+  if ($('#exportModal input[name="productIds[]"]:checked').length === 0) {
+    $('#exportModal input[name="productIds[]"]').prop('disabled', false);
+
+    let fromDate1 = "<?= date('Y-m-d', strtotime('-1 day')) . 'T22:01'; ?>" ;
+    let toDate1   = "<?= date('Y-m-d') . 'T22:00'; ?>";
+    $('#fromDate1').val(fromDate1);
+    $('#toDate1').val(toDate1);
+  }
+  
+  <?php /*
+  console.log($(this).is(':checked'));
+  if ($(this).is(':checked')) {
+      var currentDrawTime = $(this).data('draw-time');
+      // Uncheck all other checkboxes with the same data-draw-time
+      $('input[name="productIds[]"]').each(function() {
+          if ($(this).attr('id') !== $(this).attr('id') && $(this).data('draw-time') === currentDrawTime) {
+              $(this).prop('checked', true);
+          }
+      });
+      // Actually, let's use a better approach - uncheck all with same draw-time except current
+      $('input[name="productIds[]"][data-draw-time="' + currentDrawTime + '"]').not(this).prop('checked', false);
+  }
+  */ ?>
+});
+
+$(document).on('submit', '#combinedExportForm', function() {
+  var $listForm = $('#Data_Form');
+  if ($listForm.length) {
+    $('#combinedSearchField').val($listForm.find('[name="searchField"]').val() || '');
+    $('#combinedSearchValue').val($listForm.find('[name="searchValue"]').val() || '');
+  }
+  var $exportCancelled = $('#exportModal input[name="cancelled_order"]:checked');
+  $('#combinedCancelledOrder').val($exportCancelled.length ? 'on' : '');
+});
+</script>

@@ -101,7 +101,8 @@
                       <td><?=stripslashes($ALLDATAINFO['sub_category_name'])?></td> -->
                        <td><?=$this->timezone->location_date($ALLDATAINFO['creation_date'],'d F Y',DEFAULT_TIMEZONE);?></td>
                        <!-- <td><?php if($ALLDATAINFO['update_date']): echo $this->timezone->location_date($ALLDATAINFO['update_date'],'d F Y',DEFAULT_TIMEZONE); endif;  ?></td> -->
-                      <td><?=$this->timezone->location_date($ALLDATAINFO['validuptodate'],'d F Y',DEFAULT_TIMEZONE);?></td>
+                      <!-- <td><?=$this->timezone->location_date($ALLDATAINFO['validuptodate'],'d F Y',DEFAULT_TIMEZONE);?></td> -->
+                      <td><?=date('d F Y H:i',strtotime($ALLDATAINFO['draw_date'].' '.$ALLDATAINFO['draw_time']));?></td>
                       <td><?=stripslashes($ALLDATAINFO['straight_add_on_amount'])?></td>
                       <td><?=stripslashes($ALLDATAINFO['stock'].'/'.$ALLDATAINFO['totalStock'])?></td>
                       <td style="text-align: right;"><?=showStatus($ALLDATAINFO['status'])?></td>

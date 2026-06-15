@@ -331,7 +331,11 @@ class Common_model extends CI_Model
 	************************************************************************/
 	public function getData($action='',$tbl_name='',$wcon='',$shortField='',$num_page='',$cnt='')
 	{  
-		$this->mongo_db->select('*');		
+		if (isset($wcon['select']) && is_array($wcon['select']) && !empty($wcon['select'])) {
+			$this->mongo_db->select($wcon['select']); // Select only requested fields
+		} else {
+			$this->mongo_db->select('*'); // Default: all fields
+		}		
 		if(isset($wcon['where']) && $wcon['where'])	$this->mongo_db->where($wcon['where']);	
 		if(isset($wcon['where_or']) && $wcon['where_or'])	$this->mongo_db->where_or($wcon['where_or']);	
 		if(isset($wcon['where_ne']) && $wcon['where_ne'])	$this->mongo_db->where_ne($wcon['where_ne'][0],$wcon['where_ne'][1]);	
@@ -1985,7 +1989,9 @@ class Common_model extends CI_Model
 		
 		$whereCon['user_oid']        = new MongoDB\BSON\ObjectId($user_oid);
 		// $whereCon['narration']       = array( '$in' => array('Order','Order Cancalled') );
-		$whereCon['narration']       = 'Order Cancalled';
+		// $whereCon['narration']       = 'Order Cancelled';
+		$whereCon['narration']       = array('$in' => array('Order Cancelled', 'Order Cancalled' ));
+
 		if($DateFilter['created_at']):
 			$whereCon['created_at']  = $DateFilter['created_at'];
 		endif;
@@ -2071,7 +2077,7 @@ class Common_model extends CI_Model
 		$whereCon['user_oid']        = new MongoDB\BSON\ObjectId($user_oid);
 		// $whereCon['narration']       = array( '$in' => array('Order','Order Cancalled') );
 		// $whereCon['narration']       = 'Order';
-		$whereCon['narration']       = array( '$in' => array('Order','Order Cancalled') );
+		$whereCon['narration']       = array( '$in' => array('Order','Order Cancalled','Order Cancelled') );
 
 		if($DateFilter['created_at']):
 			$whereCon['created_at']  = $DateFilter['created_at'];
@@ -2252,7 +2258,8 @@ class Common_model extends CI_Model
 										  	  		'$group' => array(
 							  	  						'_id' 				  => '$product_title' ,
 				  		                    			'price'   			  => array('$first' => '$product_price'),
-				  		                    			'sales_count'		  =>array('$sum' =>  '$product_qty'),
+				  		                    			// 'sales_count'		  =>array('$sum' =>  '$product_qty'),
+				  		                    			'sales_count'		  => array('$sum' =>  1),
 				  		                    			'sales'=>array('$sum' => '$total_price'),
 							  	  						'product_image' 	  => array('$first' => '$product_image'),
 							  	  						'product_id' 		  => array('$first' => '$product_id'),
@@ -2693,8 +2700,10 @@ class Common_model extends CI_Model
 
 				// Orders Details
 				$tblName  	     	= 'uw_initilize_orders';
-				$whereCon['where'] 	= array('order_id' => $orderId);
+				$whereCon['where']['order_id'] 	 = $orderId;
+				$whereCon['where']['created_at'] = array('$gte' => date('Y-m-d'));
 				$OrderDetails	    = $this->getData('single',$tblName,$whereCon);
+				
 				// echo "<pre>";print_r($OrderDetails);die();
 				if(!empty($OrderDetails['products_id']) && is_numeric($OrderDetails['products_id'])):
 
@@ -2794,6 +2803,11 @@ class Common_model extends CI_Model
 
 
 							if(!empty($orderInsertID)):
+
+								
+								$wheredeleteCon['order_id'] 	 = $orderId;
+								$wheredeleteCon['created_at'] = array('$gte' => date('Y-m-d'));
+								$this->deleteByMultipleCondition('uw_initilize_orders',$wheredeleteCon);
 
 								// Deduct the purchesed points and get available arabian points of user.
 					        	$currentBal  = $this->geneal_model->debitPointsByAPI((float)$OrderDetails['total_price'],(int)$userDetails['users_id']); 
@@ -2955,6 +2969,8 @@ class Common_model extends CI_Model
            "ticket" => 1,
            "status"=> 1,
            "selection_values" => 1,
+		   "super_ball_mode"  => 1,
+           "sb_tickect"       => 1,
            "created_at" => 1,
            'draw_date_time' => array( '$concat' => array('$drawData.draw_date', ' ', '$drawData.draw_time') ),
                     
@@ -2967,13 +2983,28 @@ class Common_model extends CI_Model
            'rumble_game_name'    => '$productData.rumble_game_name',
            'reverse_game_name'   => '$productData.reverse_game_name',
            'current_draw_id'     => '$productData.draw_id',
-           'draw' => array(
-			    '$filter' => array(
-			        'input' => '$draw', // Input array to filter
-			        'as' => 'drawItem', // Alias for elements in the array
-			        'cond' => array('$eq' => array('$$drawItem.status', 1)) // Condition to include only items with status 1
-			    )
-			),
+		   'enable_super_ball'   => '$productData.enable_super_ball',
+           'superbal_range_start'=> '$productData.superbal_range_start',
+           'superbal_range_end'  => '$productData.superbal_range_end',
+        //    'draw' => array(
+		// 	    '$filter' => array(
+		// 	        'input' => '$draw', // Input array to filter
+		// 	        'as' => 'drawItem', // Alias for elements in the array
+		// 	        'cond' => array('$eq' => array('$$drawItem.status', 1)) // Condition to include only items with status 1
+		// 	    )
+		// 	),
+		    'draw' => array(
+		        '$filter' => array(
+		            'input' => '$draw',
+		            'as'    => 'drawItem',
+		            'cond'  => array(
+		                '$and' => array(
+		                    array('$eq'  => array('$$drawItem.status', 1)),
+		                    array('$gte' => array('$$drawItem.created_at', '$created_at'))
+		                )
+		            )
+		        )
+		    ),
            'winner_type' => 1,
            'delivery_charge' => 1,
            'reffle_prefix' 	 => '$productData.reffle_prefix',
@@ -3064,6 +3095,57 @@ class Common_model extends CI_Model
 	** Updated By    :  
 	** Updated Date  :  
 	************************************************************************/
+	// public function transactionDetails($user_id,$searchBy='',$searchValue="",$itemsPerPage,$startIndex,$resultType,$date='',$uoid='')
+	// {  	
+	// 	if($searchBy && $searchValue ):
+	// 		if( is_numeric($searchValue) ):
+	// 			$whereCon[$searchBy]  = (int)$searchValue;
+	// 		else:
+	// 			$whereCon[trim($searchBy)]  = trim($searchValue);
+	// 		endif;
+	
+	// 	endif;
+	// 	$whereCon  =  array(
+	// 						'$or' => array(
+	// 								array('user_id_cred' => (int)$user_id),
+	// 								array('user_id_deb' => (int)$user_id)
+	// 							),
+	// 						'user_oid' => new MongoDB\BSON\ObjectId($uoid)
+	// 					);
+
+	// 	$SelectFields = array(
+    //        "load_balance_id" => 1,
+    //        "user_id_cred"	 => 1,
+    //        "user_id_deb"	 => 1,
+    //        "order_id"	     => 1,
+    //        "upoints"		 => 1,
+    //        "availableArabianPoints"	=> 1,
+    //        "end_balance"			=> 1,
+    //        "record_type"			=> 1,
+    //        "narration"				=> 1,
+    //        "remarks"				=> 1,
+    //        "created_at"				=> 1,
+    //     );
+
+    //     if($whereCon):
+    //       $whereCondition  =  $whereCon;
+    //     endif;
+
+    //     if($date['from'] && $date['to']):
+    //     	$whereCondition['created_at']  =  array('$gte' => $date['from'] , '$lte' => $date['to']);
+    //     elseif($date['from']):
+	// 		$whereCondition['created_at']['$gte']  =  $date['from'];
+	// 	elseif($date['to']):
+	// 		$whereCondition['created_at']['$lte']  =  $date['to'];
+	// 	endif;
+
+    //     $sortBy       = array('load_balance_id' => -1);
+    //     $tblName      = "uw_loadBalance";
+ 	// 	$result       = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$startIndex,$itemsPerPage);
+ 		
+ 	// 	return $result;
+	// }
+
 	public function transactionDetails($user_id,$searchBy='',$searchValue="",$itemsPerPage,$startIndex,$resultType,$date='',$uoid='')
 	{  	
 		if($searchBy && $searchValue ):
@@ -3108,7 +3190,7 @@ class Common_model extends CI_Model
 			$whereCondition['created_at']['$lte']  =  $date['to'];
 		endif;
 
-        $sortBy       = array('load_balance_id' => -1);
+        $sortBy       = array('_id' => -1);
         $tblName      = "uw_loadBalance";
  		$result       = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$startIndex,$itemsPerPage);
  		
@@ -3342,7 +3424,8 @@ class Common_model extends CI_Model
 				
 	 	$tblName     = 'uw_coupon_code_only';
 	  	$whereCon1['where']   = array('coupon_code' => is_numeric($coupon)? (int)$coupon : $coupon );
-	  	$Fieldslist  = array('coupon_code', 'coupon_code_amount','coupon_code_statys','created_for_user_id','expair_date');
+		$Fieldslist  = array('created_user','coupon_code', 'coupon_code_amount','coupon_code_statys','created_for_user_id','expair_date');
+
 	 	$CouponData  = $this->common_model->getParticularFieldByMultipleCondition($Fieldslist ,$tblName, $whereCon1);
 
 	  	$currentDateDate = strtotime(date('Y-m-d'));
@@ -4018,7 +4101,7 @@ class Common_model extends CI_Model
 	public function redeemCouponVoucher($userId='',$coupon='',$plateform='')
 	{
 	 
-		$Fieldslist           = array('users_id', 'status','is_verify','totalArabianPoints','availableArabianPoints','referrel_amount','unlocking_referrel_amount');
+		$Fieldslist           = array('users_id', 'status','is_verify','totalArabianPoints','availableArabianPoints','referrel_amount','unlocking_referrel_amount','users_name','last_name','users_mobile');
 		$tblName              = 'uw_users';
 		$whereCon['where'] 	  = array('users_id' => (int)$userId);
 		$userDetails          = $this->common_model->getParticularFieldByMultipleCondition($Fieldslist ,$tblName, $whereCon);
@@ -4035,7 +4118,7 @@ class Common_model extends CI_Model
 			
 		  $tblName     = 'uw_coupon_code_only';
 		  $whereCon1['where']   = array('coupon_code' => is_numeric($coupon)? (int)$coupon : $coupon );
-		  $Fieldslist  = array('coupon_code', 'coupon_code_amount','coupon_code_statys','created_for_user_id','expair_date');
+		  $Fieldslist  = array('created_user','coupon_code', 'coupon_code_amount','coupon_code_statys','created_for_user_id','expair_date');
 		  $CouponData  = $this->common_model->getParticularFieldByMultipleCondition($Fieldslist ,$tblName, $whereCon1);
 		  // echo "<pre>";print_r($CouponData);die();
 
@@ -4106,6 +4189,37 @@ class Common_model extends CI_Model
 		    $commissionParam["created_by"] 			 	 =	(int)$userId;
 		    $commissionParam["status"] 				 	 =	"A";
 	    	$this->geneal_model->addData('uw_loadBalance', $commissionParam);
+
+			//  Third party api call for redeem coupon.
+			if($CouponData['created_user'] == 'Api User'):
+				$POSTDATA = array(
+					"coupon_code"   => $coupon_code,
+					"redeem_user"   => $userDetails['users_name'].' '.$userDetails['last_name'],
+					"redeem_mobile" => $userDetails['users_mobile']
+				);
+
+				$POSTDATA = json_encode($POSTDATA);
+				$curl = curl_init();
+				curl_setopt_array($curl, array(
+				CURLOPT_URL => 'https://api.wataniya.online/v1/call-back/redeem-point-coupons',
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_ENCODING => '',
+				CURLOPT_MAXREDIRS => 10,
+				CURLOPT_TIMEOUT => 0,
+				CURLOPT_FOLLOWLOCATION => true,
+				CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+				CURLOPT_CUSTOMREQUEST => 'POST',
+				CURLOPT_POSTFIELDS =>$POSTDATA,
+				CURLOPT_HTTPHEADER => array(
+					'key: d42a0d190464a2be90977c3996382811',
+					'Content-Type: application/json',
+					'Cookie: apisvr=apisvr|aYssX|aYssX'
+				),
+				));
+				$response = curl_exec($curl);
+				curl_close($curl);
+			endif;
+			
 	    	// Credit the purchesed points and get available arabian points of user.
 			if($plateform == 'web'):
 	    	  	$success_msg = str_replace('###AMOUNT###', $coupon_amount ,  lang('RECHARGE_SUCCESSFULLY'));
@@ -4410,6 +4524,156 @@ class Common_model extends CI_Model
 	** Purpose       : This function used to getCashSummery2 
 	** Date 		 : 13 November 2024
 	************************************************************************/
+	// public function getCashSummery2($UserData ='')
+	// {
+	//     $tblName = 'uw_loadBalance';
+	// 	$whereCondition['user_oid']    = new MongoDB\BSON\ObjectId($UserData['_id']->{'$id'});
+
+	// 	if($UserData['from']):
+	// 		$whereCondition['created_at']['$gte']    =  $UserData['from'];
+	// 	endif;
+	// 	if($UserData['to']):
+	// 		$whereCondition['created_at']['$lte']    =  $UserData['to'];
+	// 	endif;
+		 
+	// 	if($this->input->post('search_by') && $this->input->post('search_value')):
+	// 		$whereCondition[$this->input->post('search_by')] = is_numeric($this->input->post('search_value'))?(int)$this->input->post('search_value') : $this->input->post('search_value');
+	// 	endif;
+
+	// 	// Define the aggregation pipeline
+	// 	$pipeline = [
+	// 	    // Match stage to filter documents based on the condition
+	// 	    ['$match' => $whereCondition],
+	// 	    // Group stage to calculate counts and sums for each coupon status
+	// 	    ['$group' => [
+	// 	        '_id' => '$users_id',
+	           
+	//            'total_upoints_sold'       => array(
+	// 			    '$sum' => array(
+	// 			        '$cond' => array(
+	// 			            array(
+	// 			                '$and' => array(
+	// 			                    array('$in' => array('$narration', array('Recharge', 'Recharge Coupon'))),
+	// 			                    array('$eq' => array('$record_type', 'Debit')),
+	// 			                    array('$eq' => array('$status', 'A')),
+	// 			                ),
+	// 			            ),
+	// 			            '$upoints',
+	// 			            0
+	// 			        )
+	// 			    )
+	// 			),
+	//            'total_upoints_commission' => array(
+	// 			    '$sum' => array(
+	// 			        '$cond' => array(
+	// 			            array(
+	// 			                '$and' => array(
+	// 			                    array('$in' => array('$narration', array('Recharge Commission'))),
+	// 			                    array('$eq' => array('$record_type', 'Credit')),
+	// 			                    array('$eq' => array('$status', 'A')),
+	// 			                ),
+	// 			            ),
+	// 			            '$upoints',
+	// 			            0
+	// 			        )
+	// 			    )
+	// 			),
+	//            'total_ticket_redeemed'    => array(
+	// 			    '$sum' => array(
+	// 			        '$cond' => array(
+	// 			            array(
+	// 			                '$and' => array(
+	// 			                    // array('$eq' => array('$narration'  , 'Cash Prize Redeem')),
+	// 			                    array('$in' => array('$narration', array('Recharge Commission' ,'Redeem Prize'))),
+	// 			                    array('$eq' => array('$user_type', 'Users')),
+	// 			                    // array('$eq' => array('$record_type', 'Credit')),
+	// 			                    array('$eq' => array('$status', 'A')),
+
+	// 			                )
+	// 			            ),
+	// 			            '$upoints',
+	// 			            0
+	// 			        )
+	// 			    )
+	// 			),
+	//            'total_ticket_redeemed_commission' => array(
+	// 			    '$sum' => array(
+	// 			        '$cond' => array(
+	// 			            array(
+	// 			                '$and' => array(
+	// 			                    // array('$eq' => array('$narration'  , 'Cash Voucher Redeem')),
+	// 			                    array('$in' => array('$narration', array('Cash Voucher Redeem' ,'Redeem Prize Commission'))),
+	// 			                    array('$eq' => array('$user_type', 'Users')),
+	// 			                    // array('$eq' => array('$record_type', 'Credit')),
+	// 			                    array('$eq' => array('$status', 'A')),
+	// 			                )
+	// 			            ),
+	// 			            '$upoints',
+	// 			            0
+	// 			        )
+	// 			    )
+	// 			),
+	// 	       'referrel_commission' => array(
+	// 			    '$sum' => array(
+	// 			        '$cond' => array(
+	//                      	array(
+	// 			                '$and' => array(
+	// 			                    array('$in' => array('$narration', array('Referrel Commission'))),
+	// 			                    array('$eq' => array('$status', 'A')),
+	// 			                ),
+	// 			            ),
+	// 			            '$upoints',
+	// 			            0
+	// 			        )
+	// 			    )
+	// 			),
+	// 	    ]],
+
+
+	// 	    // ['$addFields' => [
+	// 	    //     'total_due' => [
+	//         //     	'$subtract' => [ [ '$add' => ['$total_upoints_sold'] ] ,  [ '$add' => [ '$total_ticket_redeemed'] ] ]
+	// 	    //     ]
+	// 	    // ]],
+
+	// 	    ['$addFields' => [
+	// 	        'total_due' => [
+	//             	'$subtract' => [ 
+	//             		[ '$subtract' => ['$total_upoints_sold' ,'$total_upoints_commission' ] ] , 
+	//             		[ '$add' => [ [ '$add' => [ '$total_ticket_redeemed','$total_ticket_redeemed_commission'] ] ,'$referrel_commission' ] ] , 
+	// 	       		 ]
+	// 	    	]
+	// 	      ]
+	// 	    ],
+
+		    
+	// 	    // Project stage to select specific fields
+	// 	     array('$project' =>  array(		        
+	// 	    	'_id'         				 		   => 0,
+	// 	    	'total_upoints_sold'      		   	   => 1,
+	// 	    	'total_upoints_commission'      	   => 1,
+	// 	    	'total_ticket_redeemed' 			   => 1, // total tickects redeemed..
+	// 	    	'total_ticket_redeemed_commission' 	   => 1, // total tickects redeemed..
+	// 	    	'referrel_commission' 			       => 1, // referral commission..
+	// 	    	'total_due'      	   				   => 1,
+	// 	    ))
+
+
+	// 	];
+
+
+	// 	// Execute the aggregation
+	// 	$resultData = $this->mongo_db->aggregate($tblName, $pipeline, ['batchSize' => 10]);
+	// 	// $resultData['0']['redeemed_referrel_amount'] = (int)$UserData['redeemed_referrel_amount'];
+	 	
+	// 	return $resultData;
+	// }
+	/***********************************************************************
+	** Function name : getCashSummery2
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used to getCashSummery2 
+	** Date 		 : 13 November 2024
+	************************************************************************/
 	public function getCashSummery2($UserData ='')
 	{
 	    $tblName = 'uw_loadBalance';
@@ -4513,6 +4777,7 @@ class Common_model extends CI_Model
 				        )
 				    )
 				),
+				// 'narration' => array('$push' => '$narration' )
 		    ]],
 
 
@@ -4542,6 +4807,7 @@ class Common_model extends CI_Model
 		    	'total_ticket_redeemed_commission' 	   => 1, // total tickects redeemed..
 		    	'referrel_commission' 			       => 1, // referral commission..
 		    	'total_due'      	   				   => 1,
+		    	// 'narration'      	   				   => 1,
 		    ))
 
 
@@ -4550,8 +4816,29 @@ class Common_model extends CI_Model
 
 		// Execute the aggregation
 		$resultData = $this->mongo_db->aggregate($tblName, $pipeline, ['batchSize' => 10]);
-		// $resultData['0']['redeemed_referrel_amount'] = (int)$UserData['redeemed_referrel_amount'];
-	 	
+
+		if(empty($resultData)):
+			return array();
+		endif;
+
+		$resultData = array_values(array_filter($resultData, function($row){
+			$total_upoints_sold = isset($row['total_upoints_sold']) ? (float)$row['total_upoints_sold'] : 0;
+			$total_upoints_commission = isset($row['total_upoints_commission']) ? (float)$row['total_upoints_commission'] : 0;
+			$total_ticket_redeemed = isset($row['total_ticket_redeemed']) ? (float)$row['total_ticket_redeemed'] : 0;
+			$total_ticket_redeemed_commission = isset($row['total_ticket_redeemed_commission']) ? (float)$row['total_ticket_redeemed_commission'] : 0;
+			$referrel_commission = isset($row['referrel_commission']) ? (float)$row['referrel_commission'] : 0;
+			$total_due = isset($row['total_due']) ? (float)$row['total_due'] : 0;
+
+			return !(
+				$total_upoints_sold == 0 &&
+				$total_upoints_commission == 0 &&
+				$total_ticket_redeemed == 0 &&
+				$total_ticket_redeemed_commission == 0 &&
+				$referrel_commission == 0 &&
+				$total_due == 0
+			);
+		}));
+
 		return $resultData;
 	}
 	
@@ -4904,6 +5191,18 @@ class Common_model extends CI_Model
 		return true;
 	}	// END OF FUNCTION
 
+	/***********************************************************************
+	** Function name : addManyData
+	** Developed By : Afsar Ali
+	** Purpose  : This function used for multi add data
+	** Date : 11 FEB 2023
+	************************************************************************/
+	public function addManyData($tableName='',$param=array())
+	{
+		$last_insert_id 		=	$this->mongo_db->batch_insert($tableName,$param);
+		return $last_insert_id;
+	}	// END OF FUNCTION
+
 	/* * *********************************************************************
 	 * * Function name : getRechargeHistory
 	 * * Developed By  : Dilip Halder
@@ -5104,6 +5403,9 @@ class Common_model extends CI_Model
 		    "pos_number" 	=> 1,
 		    "status" 		=> 1,
 		    "product_id"    => 1,
+			"user_type"     => 1,
+		    "user_id"       => 1,
+		    "user_oid"      => 1,
 		    "draw_dateTime" => array(
 	        	'$concat'   => array('$draw.draw_date', ' ', '$draw.draw_time')
 		    ),
@@ -5156,7 +5458,10 @@ class Common_model extends CI_Model
 		   'draw_dateTime'    => array(
 	        	'$concat'     => array('$draw.draw_date', ' ', '$draw.draw_time')
 		    ),
-		    'current_draw_id' => array('$arrayElemAt' => array('$products.draw_id', 0)),
+		   'current_draw_id' => array('$arrayElemAt' => array('$products.draw_id', 0)),
+		   'straight_settings' => array('$arrayElemAt' => array('$products.straight_settings', 0)),	 
+		   'rumble_settings' => array('$arrayElemAt' => array('$products.rumble_settings', 0)),	 
+		   'reverse_settings' => array('$arrayElemAt' => array('$products.reverse_settings', 0)),
         );
 
 		if($whereCon['where']):
@@ -5217,7 +5522,7 @@ class Common_model extends CI_Model
 	        $Cashparam["created_at"]            = date('Y-m-d H:i');
 	        $Cashparam["created_by"]            = (int)$bonus['users_id'];
 	        $Cashparam["status"]                = "A";
-	        $this->geneal_model->addData('uw_loadBalance', $Cashparam);
+	       // $this->geneal_model->addData('uw_loadBalance', $Cashparam);
 		endif;
 
         $referredBy = $bonus['referred_by'];
@@ -5256,6 +5561,360 @@ class Common_model extends CI_Model
 			// $param['referrel_amount'] =  $USERDATA['referrel_amount'];
 		endif;
 		// Raferral bonus points..
+	}
+	
+	/* * *********************************************************************
+	 * * Function name  : getlottoOrderHistory
+	 * * Developed By 	: Dilip Halder
+	 * * Purpose        : This function used to get lotto order history
+	 * * Date           : 31 March 2026
+	 * * **********************************************************************/
+	public function getHourlyGameOrderHistory($whereCon='',$shortField='',$itemsPerPage='',$startIndex='')
+	{  	
+		if($searchBy && $searchValue ):
+			if( is_numeric($searchValue) ):
+				$whereCon[$searchBy]  = (int)$searchValue;
+			else:
+				$whereCon[$searchBy]  = $searchValue;
+			endif;
+		// else:
+			// $whereCon['order_status'] = 'Success';
+			// $whereCon['status']  		= 'A';
+		endif;
+		
+		$SelectFields      = array(
+			"order_id"       => 1,
+			"users_id"       => 1,
+			"users_oid"      => 1,
+			"products_oid"   => 1,
+			"products_name"  => 1,
+			"start_date"     => 1,
+			"expiry_date"    => 1,
+			"draw_time"      => 1,
+			"draw_time_string" => 1,
+			"qty"            => 1,
+			"total_price"    => 1,
+			"sms_type"       => 1,
+			"buyer_country_code" => 1,
+			"buyer_mobile"   => 1,
+			"buyer_email"    => 1,
+			"created_at"     => 1,
+			"created_by"     => 1,
+			"status"         => 1,
+			"refund_date"    => 1,
+			"update_date"    => 1,
+			"update_ip"      => 1,
+			"updated_by"     => 1,
+			"campaignData"   => 1,
+			"ticketData"     => 1,
+			"userData"       => 1,
+			"is_winner"      => 1,
+			"winning_amount" => 1,
+			"winning_details"=> 1,
+			"winning_status" => 1,
+			"winning_ticket" => 1,
+			"winning_date"   => 1,
+			"winning_time"   => 1,
+			"winning_user"   => 1,
+			'redeemed_at'       => 1,
+			'redeemed_status'   => 1,
+			'redeem_status'   => '$winning_status',
+
+			'redeem_by_mode'    => 1,
+			'settler_users_id'  => 1,
+			'settler_users_oid' => 1,
+		);
+        if($whereCon):
+          $whereCondition  =  $whereCon['where'];
+        endif;
+
+        $sortBy   = array('_id' => -1);
+        $tblName  = "uw_hourly_orders";
+        $lookup   = array( 
+			array(
+				'from'=>'uw_hourly_games',
+				'localField'=>'products_oid',
+				'foreignField'=>'_id',
+				// 'pipeline' => array(
+				// 	array(
+				// 		'$project' => array(
+				// 			'_id' => 0,
+				// 			'title' => 1,
+				// 			'price' => 1,
+				// 			'game_image' => 1,
+				// 			'game_type' => 1,
+				// 			'number_range_start' => 1,
+				// 			'number_range_end'   => 1,
+				// 			'is_straight_enable' => 1,
+				// 			'is_rumble_enable'   => 1,
+				// 			'is_chance_enable'   => 1,
+				// 			'text_field_1' => 1,
+				// 			'text_field_2' => 1,
+				// 			'text_field_3' => 1,
+				// 		)
+				// 	)
+				// ),
+				'as'=>'campaignData',
+			),
+			array(
+				'from'=>'uw_hourly_tickets',
+				'localField'=>'_id',
+				'foreignField'=>'order_oid',
+				'pipeline' => array(
+					array(
+						'$project' => array(
+							'_id' => 0,
+							'type' => 1,
+							'ticket' => 1,
+							'points' => 1,
+						)
+					)
+				),
+				'as'=>'ticketData'
+			),
+
+			// array(
+			// 	'from' => 'uw_users',
+			// 	'localField' => "users_oid",
+			// 	'foreignField' => "_id",
+			// 	'as' => 'users'
+			// ),
+			array(
+				'from'=>'uw_users',
+				'localField'=>'users_oid',
+				'foreignField'=>'_id',
+				'pipeline' => array(
+					array(
+						'$project' => array(
+							'_id' => 0,
+							'users_name' => 1,
+							'last_name' => 1,
+							'store_name' => 1,
+							 
+						)
+					)
+				),
+				'as'=>'userData'
+			),
+		);
+        $unwind 	  = array('$campaignData','$userData'); 
+ 		$result       = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$startIndex,$itemsPerPage);
+ 		return $result;
+	}
+
+	// public function getHourlyGameOrderHistory($whereCon='',$shortField='',$itemsPerPage='',$startIndex='')
+	// {  	
+	// 	if($searchBy && $searchValue ):
+	// 		if( is_numeric($searchValue) ):
+	// 			$whereCon[$searchBy]  = (int)$searchValue;
+	// 		else:
+	// 			$whereCon[$searchBy]  = $searchValue;
+	// 		endif;
+	// 	// else:
+	// 		// $whereCon['order_status'] = 'Success';
+	// 		// $whereCon['status']  		= 'A';
+	// 	endif;
+		
+	// 	$SelectFields      = array();
+    //     if($whereCon):
+    //       $whereCondition  =  $whereCon['where'];
+    //     endif;
+
+    //     $sortBy   = array('_id' => -1);
+    //     $tblName  = "uw_hourly_orders";
+    //     $lookup   = array( 
+	// 		array(
+	// 			'from'=>'uw_hourly_games',
+	// 			'localField'=>'products_oid',
+	// 			'foreignField'=>'_id',
+	// 			'pipeline' => array(
+	// 				array(
+	// 					'$project' => array(
+	// 						'_id' => 0,
+	// 						'title' => 1,
+	// 						'price' => 1,
+	// 						'game_image' => 1,
+	// 						'is_straight_enable' => 1,
+	// 						'is_rumble_enable'   => 1,
+	// 						'is_chance_enable'   => 1,
+	// 					)
+	// 				)
+	// 			),
+	// 			'as'=>'campaignData',
+	// 		),
+	// 		array(
+	// 			'from'=>'uw_hourly_tickets',
+	// 			'localField'=>'_id',
+	// 			'foreignField'=>'order_oid',
+	// 			'pipeline' => array(
+	// 				array(
+	// 					'$project' => array(
+	// 						'_id' => 0,
+	// 						'type' => 1,
+	// 						'ticket' => 1,
+	// 						'points' => 1,
+	// 					)
+	// 				)
+	// 			),
+	// 			'as'=>'ticketData'
+	// 		),
+
+	// 		// array(
+	// 		// 	'from' => 'uw_users',
+	// 		// 	'localField' => "users_oid",
+	// 		// 	'foreignField' => "_id",
+	// 		// 	'as' => 'users'
+	// 		// ),
+	// 		array(
+	// 			'from'=>'uw_users',
+	// 			'localField'=>'users_oid',
+	// 			'foreignField'=>'_id',
+	// 			'pipeline' => array(
+	// 				array(
+	// 					'$project' => array(
+	// 						'_id' => 0,
+	// 						'users_name' => 1,
+	// 						'last_name' => 1,
+	// 						'store_name' => 1,
+							 
+	// 					)
+	// 				)
+	// 			),
+	// 			'as'=>'userData'
+	// 		),
+	// 	);
+    //     $unwind 	  = array('$campaignData','$userData'); 
+ 	// 	$result       = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$startIndex,$itemsPerPage);
+ 	// 	return $result;
+	// }
+	
+	/* * *********************************************************************
+	 * * Function name  : getHourlyGameOrderData
+	 * * Developed By 	: Dilip Halder
+	 * * Purpose        : This function used to get getHourlyGameOrderData
+	 * * Date           : 31 March 2026
+	 * * **********************************************************************/
+	public function getHourlyGameOrderData($resultType='', $tblName="", $whereCon='', $shortField='', $itemsPerPage='', $startIndex='')
+	{
+	    try {
+
+	        $SelectFields = array(
+	            '_id'            => 1,
+	            'order_id'       => 1,
+	            'users_id'       => 1,
+	            'users_oid'      => 1,
+	            'products_oid'   => 1,
+	            'products_name'  => 1,
+	            'start_date'     => 1,
+	            'expiry_date'    => 1,
+	            'qty'            => 1,
+	            'total_price'    => 1,
+	            'status'         => 1,
+	            'created_at'     => 1,
+	            "batch_id"       => 1,
+	            "coupon_code"    => 1,
+	            "csv_name"       => 1,
+	            "is_winner"      => 1,
+	            "matching_coupons" => 1,
+	            "winner_type"    => 1,
+	            "winning_amount" => 1,
+				"winning_details" => 1,
+				"winning_status" => 1,
+				"winner_uploaded_at" => 1,
+				"redeemed_at" => 1,
+				"redeem_by_mode" => 1,
+				"settler_users_id" => 1,
+				"settler_users_oid" => 1,
+				"update_ip" => 1,
+				"update_date" => 1,
+				"draw_time" => 1,
+				"draw_time_string" => 1,
+
+	            // USER DATA
+				'seller_users_name' 	 => '$users.users_name',
+				'seller_users_last_name' => '$users.last_name',
+				'seller_full_name' => array('$concat' => array('$users.users_name', ' ', '$users.last_name')),
+	            'seller_users_mobile' => '$users.users_mobile',
+	            'seller_users_email'  => '$users.users_email',
+	            'seller_users_type'   => '$users.users_type',
+	            'seller_store_name'   => '$users.store_name',
+	            'seller_store_area'   => '$users.area',
+
+				// Keep both keys for backward compatibility across old/new views.
+				'seller_pos_number'             => '$users.pos_number',
+				'seller_pos_device_id'          => '$users.pos_device_id',
+				'seller_users_pos_number'       => '$users.pos_number',
+				'seller_users_bind_person_name' => '$users.bind_person_name',
+				'users_pos_number'              => '$users.pos_number',
+				'bind_person_name'              => '$users.bind_person_name',
+
+	            // PRODUCT DATA (NEW)
+	            'product_name'   => '$product.title',
+	            'product_price'  => '$product.price',
+	            'product_status' => '$product.status',
+				'tickets'        => '$tickets',
+	        );
+
+	        $whereCondition = array();
+	        if (!empty($whereCon['where'])):
+	            $whereCondition = $whereCon['where'];
+	        endif;
+			
+
+	        $lookup = array(
+				array(
+					'from' => 'uw_users',
+					'localField' => "users_oid",
+					'foreignField' => "_id",
+					'as' => 'users'
+				),
+					
+				array(
+					'from' => 'uw_hourly_games',
+					'localField' => "products_oid",
+					'foreignField' => "_id",
+					'as' => 'product'
+				),
+
+				array(
+					'from' => 'uw_hourly_tickets',
+					'localField' => "_id",
+					'foreignField' => "order_oid",
+					'pipeline' => array(
+						array(
+							'$project' => array(
+								'_id' => 0,
+								'ticket' => 1,
+								'type' => 1,
+								'points' => 1,
+							)
+						)
+					),
+					'as' => 'tickets'
+				),
+			);
+
+	        // UNWIND BOTH
+	        $unwind = array(
+	            array(
+	                'path' => '$users',
+	                'preserveNullAndEmptyArrays' => true
+	            ),
+	            array(
+	                'path' => '$product',
+	                'preserveNullAndEmptyArrays' => true
+	            ),
+	        );
+
+	        $tblName = "uw_hourly_orders";
+	        $groupBy = '';
+
+	        $hourlyGameData = $this->getAggregateData( $tblName, $SelectFields, $whereCondition, $groupBy, $shortField, $lookup, $unwind, $resultType, $startIndex, $itemsPerPage );
+	        return $hourlyGameData;
+
+	    } catch (Exception $e) {
+	        echo 'error';
+	    }
 	}
 	
 }	

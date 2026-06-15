@@ -85,3 +85,6 @@ $lang['Coupon_Not_Generaion']						=	'Coupon Not Generated';
 $lang['winner_announced']						    =	'Winner Announced.';
 $lang['RECHARGE_SUCCESFULLY']						=	'Recharge Succesfully!';
 $lang['ALREADY_CANCELLED']							=	'Already Cancelled!';
+$lang['ORDER_NOT_FOUND']							=	'Order Not Found!';
+$lang['ORDER_CANCELLED']							=	'Order cancelled Successfully!';
+

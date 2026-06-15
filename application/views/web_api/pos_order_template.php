@@ -15,223 +15,87 @@ $html = '
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-
-    h1.ticket-heading ,.my-order-section{
-        text-align: center;
-        font-family: sans-serif;
-        font-weight: 400;
-        font-size: 25px;
-        border-top: 2px dashed #808080bd;
-        border-bottom: 2px dashed #808080bd;
-        padding: 5px 0px;
-    }
-
-    .order-details-container {
-        width:100%;
-    }
-
-    .order-deatail-section {
-        width: 100%;
-        display: inline-block;
-
-    }
-
-    table,tr {
-        width:100%;
-        line-height :1.6;
-    }
-
-    .order-title ,.order-details {
-        width: 50%;
-        font-family: sans-serif;
-    }
-
-    .order-title{
-        text-align: left;
-    }
-
-    .order-details{
-        text-align: right;
-    }
-
-    .my-order-section{
-        margin-top: 21px;
-    }
-
-    .font-bold{
-        font-weight:600;
-    }
-
-
-    .ticket-heading span {
-        font-weight: 600;
-    }
-
-
-    .heading-section h1 {
-        font-size: 24px;
-        text-align: center;
-        font-weight: 700;
-        font-family: sans-serif;
-    }
-    .footer-container{
-        text-align: center;
-        font-family: sans-serif;
-    }
-
-    a:link, a:active {
-        color: #000 !important;
-        text-decoration: none;
-    }
-    a{
-        color:#000 !important;
-        font-weight: 600;
-
-    }
-    @media screen and (min-device-width: 360px) and (max-device-width: 600px) {
-        body {
-            background-color: #fff !important;
-            margin: 0px;
+        h1.ticket-heading, .my-order-section {
+            text-align: center;
+            font-family: sans-serif;
+            font-weight: 400;
+            font-size: 25px;
+            border-top: 2px dashed #808080bd;
+            border-bottom: 2px dashed #808080bd;
+            padding: 5px 0px;
         }
-    }
-
-
-    .company-heading-section {
-      font-family: sans-serif;  
-      text-align: center;
-      line-height: 0.3;
-    }
-
-    .logo{
-        // min-width: 160px;
-        max-width: 220px;
-        width: 145px;
-    }
-    
-    .promotional-section ,.border-top-bottom{
-         text-align: center;
-        font-family: sans-serif;
-        font-weight: 400;
-        font-size: 16px;
-        border-top: 2px dashed #808080bd;
-        border-bottom: 2px dashed #808080bd;
-        padding: 5px 0px;
-    }
-    .border-bottom{
-        text-align: center;
-        font-family: sans-serif;
-        font-weight: 400;
-        font-size: 16px;
-        border-bottom: 2px dashed #808080bd;
-        padding: 5px 0px; 
-    }
-    table {
-        margin: 20px auto;
-    }
-
-    .coupon-heading {
-        vertical-align: baseline;
-    }
-    .qr{
-        // width: 200px;
-    }
-
-    // .coupon-section {
-    //     display : flex;
-    //     justify-content : center;
-    // }
-
-    // .coupon-section {
-    //     display : flex;
-    //     justify-content : center;
-    // }
-
-    // .coupon-container{
-    //     display: inline-flex;
-    // }
-    // .coupon-code-circle {
-    //     border: 1px solid #B31251;
-    //     color: #B31251;
-    //     border-radius: 50%;
-    //     padding: 12px;
-    //     font-weight: 900;
-    //     height: 10px;
-    //     width: 10px;
-    //     margin: 5px;
-    // }
-
-    .coupon-section {
-    // display: flex;
-    justify-content: center;
-    }
-
-    .prize-section {
-        justify-content: center;
-        font-family: sans-serif;
-    }
-
-    .prize-heading {
-        color: #000000;
-        font-size: 20px;
-    }
-
-    .prize-section {
-    color: #B31251;
-    }
-
-    .coupon-container {
-        display: inline-flex;
-    }
-
-    .coupon-code-circle {
-        border: 1px solid #B31251;
-        color: #B31251;
-        border-radius: 50%;
-        padding: 12px;
-        font-weight: 900;
-        height:15px; 
-        width: 15px;  
-        margin: 5px;
-       
-    }
-
-    .game_mode {
-        display: flex;
-        justify-content: space-evenly;
-        margin: 10px;
-        color: #B31251;
-    }
-
-
-    .custom-checkbox {
-        accent-color  : #B31251;  
-        width         : 16px;
-        height        : 16px;
-        border        : 2px solid #B31251;  
-        border-radius : 4px;  
-        // appearance    : none;  
-        cursor        : pointer;
-        display       : inline-block;
-    }
-
-    .custom-checkbox:checked {
-        background-color: #B31251;
-        border-color: #B31251;
-        color: white;
-        display: inline-block;
-    }
-    
-    hr {
-        border-top: 1px solid #80808017;
-        border-right: none;
-        border-left: none;
-        border-bottom: 0px;
-    }
-
-    .product_image{
-        max-width: 270px;
-    }
-    </style>
+        table, tr {
+            width: 100%;
+            line-height: 1.6;
+        }
+        .order-title, .order-details {
+            width: 50%;
+            font-family: sans-serif;
+        }
+        .order-title { text-align: left; }
+        .order-details { text-align: right; }
+        .heading-section h1 {
+            font-size: 24px;
+            text-align: center;
+            font-weight: 700;
+            font-family: sans-serif;
+        }
+        .footer-container {
+            text-align: center;
+            font-family: sans-serif;
+        }
+        a:link, a:active { color: #000 !important; text-decoration: none; }
+        a { color: #000 !important; font-weight: 600; }
+        .logo { max-width: 220px; width: 145px; }
+        table { margin: 20px auto; }
+        .coupon-heading { vertical-align: baseline; }
+        .coupon-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .prize-section { justify-content: center; font-family: sans-serif; color: #B31251; }
+        .prize-heading { color: #000000; font-size: 20px; }
+        .coupon-container {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .coupon-code-circle {
+            border: 1px solid #B31251;
+            color: #B31251;
+            border-radius: 50%;
+            padding: 12px;
+            font-weight: 900;
+            height: 15px;
+            width: 15px;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ticket-type-label {
+            font-family: sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            width: 100%;
+            text-align: center;
+            margin-top: 6px;
+        }
+        hr {
+            border-top: 1px solid #80808017;
+            border-right: none;
+            border-left: none;
+            border-bottom: 0px;
+        }
+        .product_image { max-width: 270px; }
+        .qr { width: 150px; }
+        </style>
 </head>
 <body >
 
@@ -279,6 +143,14 @@ $html = '
                 
 
                 
+                // Parse super ball tickets: one per ticket, e.g. [[4,9,8],[4,9,8]] => sb_tickect [3,7] => ticket1 + 3, ticket2 + 7
+                $sbTicketList = array();
+                if (!empty($orderData['super_ball_mode']) && (strtoupper($orderData['super_ball_mode']) == 'Y') && !empty($orderData['sb_tickect'])) {
+                    $sbRaw = trim($orderData['sb_tickect']);
+                    $sbRaw = preg_replace('/^\[|\]$/', '', $sbRaw);
+                    $sbTicketList = array_values(array_filter(array_map('trim', explode(',', $sbRaw))));
+                }
+
                 for ($i=0; $i < count($Tickect) ; $i++):
                     $ticket = $Tickect[$i];
                     $couponList = explode(',', $ticket);
@@ -297,19 +169,38 @@ $html = '
                     $html .='<span class="coupon-code-circle">'.$coupons.'</span> ';
 
                     endforeach;
+                    // When super_ball_mode is Y, show this ticket + this ticket's super ball (sb_tickect at same index)
+                    if (!empty($orderData['super_ball_mode']) && (strtoupper($orderData['super_ball_mode']) == 'Y') && isset($sbTicketList[$i])) {
+                        $html .= '<span class="coupon-plus">+</span>';
+                        $html .= '<span class="coupon-code-circle">'.$sbTicketList[$i].'</span> ';
+                    }
                     $html .= '</div>';
-                    if($orderData['product_lotto_type'] < 6):
+                    $showStraight = (isset($orderData['stright_prize_text']) && strtoupper(trim($orderData['stright_prize_text'])) !== 'DISABLE');
+                    $showRumble   = (isset($orderData['rumble_prize_text']) && strtoupper(trim($orderData['rumble_prize_text'])) !== 'DISABLE');
+                    $showChance   = (isset($orderData['chance_prize_text']) && strtoupper(trim($orderData['chance_prize_text'])) !== 'DISABLE');
+                    $showGameMode = $orderData['product_lotto_type'] < 6 && ($showStraight || $showRumble || $showChance);
+                    if($showGameMode):
                         $html .= '
-                        <div class="game_mode">
+                        <div class="game_mode">';
+                        if($showStraight):
+                            $html .= '
                            <span> 
                                <input type="checkbox" class="custom-checkbox" '.(in_array(0, $nonZeroIndexes) ? 'checked' : '').'  disabled >Straight
-                           </span>
+                           </span>';
+                        endif;
+                        if($showRumble):
+                            $html .= '
                            <span> 
                                <input type="checkbox" class="custom-checkbox" '.(in_array(1, $nonZeroIndexes) ? 'checked' : '').' disabled>Rumble
-                           </span>
+                           </span>';
+                        endif;
+                        if($showChance):
+                            $html .= '
                            <span> 
                                <input type="checkbox" class="custom-checkbox" '.(in_array(2, $nonZeroIndexes) ? 'checked' : '').' disabled>Chance
-                           </span>
+                           </span>';
+                        endif;
+                        $html .= '
                         </div>';
                     endif;
                 endfor;
@@ -327,7 +218,7 @@ $html = '
         <table>
             <tr>
                 <td class="order-title"> Merchant Name </td>
-                <td class="order-details">'. $orderData['full_name'].'</td>
+                <td class="order-details">'. $orderData['store_name'].'</td>
             </tr>
             <tr>
                 <td class="order-title"> Draw Date </td>

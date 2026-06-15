@@ -89,7 +89,7 @@
     function GETDATA() {
         if (currentPage <= totalPage) {
             $.ajax({
-                url: "<?=base_url('wallet/wallet_statements/exportexcelApi')?>",  
+                url: "<?=getCurrentControllerPath('exportexcelApi');?>",  
                 type: 'POST',
                 data: { pageno: currentPage, searchField: searchField, searchValue: searchValue, fromDate: fromDate, toDate: toDate },
                 success: function(data) {

@@ -694,6 +694,37 @@ class Allrechargecoupons extends CI_Controller {
 				//Updated Recharge coupon status..
 				$tblName  			 = 'uw_users';
 				$UpdatedUSerBalance  = $this->common_model->manageBalance($tblName,$balanceparam,'_id', new MongoDB\BSON\ObjectId($user_oid));
+
+				// Third party api call for cancel coupon.
+				if($rechagreData['created_user'] == 'Api User'):
+					$curl = curl_init();
+
+					$POSTDATA = array(
+						"coupon_code" => $code
+					);
+					$POSTDATA = json_encode($POSTDATA);
+
+					curl_setopt_array($curl, array(
+					CURLOPT_URL => 'https://api.wataniya.online/v1/call-back/cancel-point-coupons',
+					CURLOPT_RETURNTRANSFER => true,
+					CURLOPT_ENCODING => '',
+					CURLOPT_MAXREDIRS => 10,
+					CURLOPT_TIMEOUT => 0,
+					CURLOPT_FOLLOWLOCATION => true,
+					CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+					CURLOPT_CUSTOMREQUEST => 'POST',
+					CURLOPT_POSTFIELDS =>$POSTDATA,
+					CURLOPT_HTTPHEADER => array(
+						'key: d42a0d190464a2be90977c3996382811',
+						'Content-Type: application/json'
+					),
+					));
+
+					$response = curl_exec($curl);
+					curl_close($curl);
+				endif;
+				
+				
 				$this->session->set_flashdata('alert_success',lang('rechagecenclesuccess'));
 					
 		elseif(!empty($rechagreData) && $rechagreData['coupon_code_statys'] == "Active" && $rechagreData['coupon_code_statys'] != "Admin"  ):

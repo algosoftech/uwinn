@@ -116,6 +116,14 @@ $(function(){
                                         <?php endif; ?>
                                     </div>
                                    
+                                    <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('contract_given_by')): ?>error<?php endif; ?>" id="contract_given_by_section">
+                                        <label>Contract given by</label>
+                                        <input type="text" name="contract_given_by" id="contract_given_by" class="form-control" value="<?php if(set_value('contract_given_by')): echo set_value('contract_given_by'); else: echo stripslashes($EDITDATA['contract_given_by']);endif; ?>" placeholder="Name">
+                                        <?php if(form_error('contract_given_by')): ?>
+                                        <span for="contract_given_by" generated="true" class="help-inline"><?php echo form_error('contract_given_by'); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+
                                     <!-- Sales Person List -->
                                     <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('bind_with_person_name')): ?>error<?php endif; ?>" id="bind_with_list_block">
                                         <label>Select Bind with Person<span class="required">*</span></label>
@@ -150,6 +158,28 @@ $(function(){
                                         <span for="name" generated="true" class="help-inline"><?php echo form_error('pos_device_id'); ?></span>
                                         <?php endif; ?>
                                     </div>
+                                    <?php
+                                    $simNoValue = set_value('sim_no');
+                                    if($simNoValue === ''):
+                                        $simNoValue = !empty($EDITDATA['sim_no']) ? stripslashes($EDITDATA['sim_no']) : '';
+                                    endif;
+                                    $simNoValue = substr(preg_replace('/\D/', '', (string)$simNoValue), 0, 19);
+                                    ?>
+                                    <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('sim_no')): ?>error<?php endif; ?>" id="sim_no_block">
+                                        <label>SIM No <span class="required">*</span></label>
+                                        <input type="text" name="sim_no" id="sim_no" class="form-control" maxlength="19" inputmode="numeric" pattern="[0-9]{19}" value="<?php echo htmlspecialchars($simNoValue, ENT_QUOTES, 'UTF-8'); ?>" placeholder="SIM No (exactly 19 digits)">
+                                        <?php if(form_error('sim_no')): ?>
+                                        <span for="sim_no" generated="true" class="help-inline"><?php echo form_error('sim_no'); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('current_datamode')): ?>error<?php endif; ?>">
+                                        <label>Current Data Using Mode </label>
+                                        <input type="text" name="current_datamode" id="current_datamode" class="form-control" value="<?php if(set_value('current_datamode')): echo set_value('current_datamode'); else: echo stripslashes($EDITDATA['current_datamode']);endif; ?>" placeholder="Current Data Using Mode" disabled>
+                                        <?php if(form_error('current_datamode')): ?>
+                                        <span for="current_datamode" generated="true" class="help-inline"><?php echo form_error('current_datamode'); ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                     
                                     <fieldset class="commission_container">
                                         <legend>Commission Percentage</legend>
@@ -177,6 +207,15 @@ $(function(){
                                                 <span for="name" generated="true" class="help-inline"><?php echo form_error('redeeming_commission_percentage'); ?></span>
                                                 <?php endif; ?>
                                             </div>
+
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('redeeming_commission_percentage')): ?>error<?php endif; ?>" id="redeeming_commission_percentage_block">
+                                                <label>Hourly Games Commission Percentage<span class="required">*</span></label>
+                                                <input type="text" name="hourly_games_commission_percentage" id="hourly_games_commission_percentage" class="form-control" value="<?php if(set_value('hourly_games_commission_percentage')): echo set_value('hourly_games_commission_percentage'); else: echo stripslashes($EDITDATA['hourly_games_commission_percentage']?$EDITDATA['hourly_games_commission_percentage']:'10');endif; ?>" placeholder="Hourly Games Commission Percentage">
+                                                <?php if(form_error('hourly_games_commission_percentage')): ?>
+                                                <span for="name" generated="true" class="help-inline"><?php echo form_error('hourly_games_commission_percentage'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
                                         </div>
                                     </fieldset>
                                 </div>
@@ -278,8 +317,90 @@ $(function(){
                                         <?php endif; ?>
                                     </div>
                                 </div>
+
+                                <fieldset class="tambola_games_container">
+                                    <legend>Enable/Disable Features</legend>
+                                        <div class="row">
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('pickup_point_holder')): ?>error<?php endif; ?>">
+                                                <label>Pickup Point Holder<span class="required">*</span></label>
+                                                <select name="pickup_point_holder" id="pickup_point_holder" class="form-control required">
+                                                    <option value="N" <?php if ($EDITDATA['pickup_point_holder'] == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($EDITDATA['pickup_point_holder'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('pickup_point_holder')): ?>
+                                                <span for="pickup_point_holder" generated="true" class="help-inline"><?php echo form_error('pickup_point_holder'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('show_lotto_campaign')): ?>error<?php endif; ?>">
+                                                <label>Show Lotto Campaign<span class="required">*</span></label>
+                                                <select name="show_lotto_campaign" id="show_lotto_campaign" class="form-control required">
+                                                    <option value="N" <?php if ($EDITDATA['show_lotto_campaign'] == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($EDITDATA['show_lotto_campaign'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('show_lotto_campaign')): ?>
+                                                <span for="show_lotto_campaign" generated="true" class="help-inline"><?php echo form_error('show_lotto_campaign'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('show_raffle_campaign')): ?>error<?php endif; ?>">
+                                                <label>Show Raffle Campaign<span class="required">*</span></label>
+                                                <select name="show_raffle_campaign" id="show_raffle_campaign" class="form-control required">
+                                                    <option value="N" <?php if ($EDITDATA['show_raffle_campaign'] == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($EDITDATA['show_raffle_campaign'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('show_raffle_campaign')): ?>
+                                                <span for="show_raffle_campaign" generated="true" class="help-inline"><?php echo form_error('show_raffle_campaign'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('enable_raffle_entries')): ?>error<?php endif; ?>">
+                                                <label>Enable Raffle Entries<span class="required">*</span></label>
+                                                <select name="enable_raffle_entries" id="enable_raffle_entries" class="form-control required">
+                                                    <option value="N" <?php if ($EDITDATA['enable_raffle_entries'] == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($EDITDATA['enable_raffle_entries'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('enable_raffle_entries')): ?>
+                                                <span for="enable_raffle_entries" generated="true" class="help-inline"><?php echo form_error('enable_raffle_entries'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('enable_summary_otp')): ?>error<?php endif; ?>">
+                                                <label>Enable summary OTP<span class="required">*</span></label>
+                                                <select name="enable_summary_otp" id="enable_summary_otp" class="form-control required">
+                                                    <option value="N" <?php if ($EDITDATA['enable_summary_otp'] == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($EDITDATA['enable_summary_otp'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('enable_summary_otp')): ?>
+                                                <span for="enable_summary_otp" generated="true" class="help-inline"><?php echo form_error('enable_summary_otp'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('enable_tambola_games')): ?>error<?php endif; ?>">
+                                                <label>Enable Tambola Games<span class="required">*</span></label>
+                                                <select name="enable_tambola_games" id="enable_tambola_games" class="form-control required">
+                                                    <option value="N" <?php if ($EDITDATA['enable_tambola_games'] == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($EDITDATA['enable_tambola_games'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('enable_tambola_games')): ?>
+                                                <span for="enable_tambola_games" generated="true" class="help-inline"><?php echo form_error('enable_tambola_games'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('enable_tambola_games')): ?>error<?php endif; ?>">
+                                                <label>Enable Hourly Games<span class="required">*</span></label>
+                                                <select name="enable_hourly_games" id="enable_hourly_games" class="form-control required">
+                                                    <option value="N" <?php if ($EDITDATA['enable_hourly_games'] == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($EDITDATA['enable_hourly_games'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('enable_hourly_games')): ?>
+                                                <span for="enable_hourly_games" generated="true" class="help-inline"><?php echo form_error('enable_hourly_games'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            
+                                        </div>
+                                </fieldset>
                                
-                                <div class="row">
+                            <?php /*    <div class="row">
                                     <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('pickup_point_holder')): ?>error<?php endif; ?>">
                                         <label>Pickup Point Holder<span class="required">*</span></label>
                                         <select name="pickup_point_holder" id="pickup_point_holder" class="form-control required">
@@ -300,7 +421,30 @@ $(function(){
                                         <span for="show_raffle_campaign" generated="true" class="help-inline"><?php echo form_error('show_raffle_campaign'); ?></span>
                                         <?php endif; ?>
                                     </div>
-                                </div>
+                                    <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('show_raffle_campaign')): ?>error<?php endif; ?>">
+                                        <label>Enable Raffle Entries<span class="required">*</span></label>
+                                        <select name="enable_raffle_entries" id="enable_raffle_entries" class="form-control required">
+                                            <option value="N" <?php if ($EDITDATA['enable_raffle_entries'] == 'N') {?> selected <?php } ?>>No</option>
+                                            <option value="Y" <?php if ($EDITDATA['enable_raffle_entries'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                        </select>
+                                        <?php if(form_error('enable_raffle_entries')): ?>
+                                        <span for="enable_raffle_entries" generated="true" class="help-inline"><?php echo form_error('enable_raffle_entries'); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('show_raffle_campaign')): ?>error<?php endif; ?>">
+                                        <label>Enable summary OTP<span class="required">*</span></label>
+                                        <select name="enable_summary_otp" id="enable_summary_otp" class="form-control required">
+                                            <option value="N" <?php if ($EDITDATA['enable_summary_otp'] == 'N') {?> selected <?php } ?>>No</option>
+                                            <option value="Y" <?php if ($EDITDATA['enable_summary_otp'] == 'Y') {?> selected <?php } ?>>Yes</option>
+                                        </select>
+                                        <?php if(form_error('enable_summary_otp')): ?>
+                                        <span for="enable_summary_otp" generated="true" class="help-inline"><?php echo form_error('enable_summary_otp'); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    
+                                </div> */ ?>
                                 
                     
                                 <div class="row">
@@ -355,7 +499,7 @@ else{ $("#store").hide(); }
         });
 
         //Default field hiding.
-        $('#bind_with_list_block ,.commission_container , #bind_with_section , #store_name_block , #pos_section').addClass('d-none');
+        $('#bind_with_list_block ,.commission_container , #bind_with_section , #store_name_block , #pos_section , #contract_given_by_section').addClass('d-none');
 
         // Showing EditData..
         let current_userType = "<?=$EDITDATA['users_type'];?>";
@@ -370,12 +514,12 @@ else{ $("#store").hide(); }
             }
         
         }else if( current_userType == "Retailer" || current_userType == 'Promoter' ){
-           $(' #store_name_block , #bind_with_section , #bind_with_list_block , #pos_section , .commission_container').removeClass('d-none');
+           $(' #store_name_block , #bind_with_section , #bind_with_list_block , #pos_section , .commission_container , #contract_given_by_section').removeClass('d-none');
 
           $("#bind_user_type option:contains('Sales Person') , #bind_user_type option:contains('Sales Supervisor') , #bind_user_type option:contains('Manager') ").prop("disabled", false);
 
             if(current_userType == 'Promoter'){
-                $('.commission_container').addClass('d-none');
+                $('.commission_percentage_block , #contract_given_by_section').addClass('d-none');
             }
 
         }else if(current_userType == 'Manager'){
@@ -385,6 +529,8 @@ else{ $("#store").hide(); }
         }else if(current_userType == 'Sales Supervisor'){
             $('#bind_with_section , #bind_with_list_block').removeClass('d-none');
             $("#bind_user_type option:contains('Manager')").prop("disabled", false);
+        }else if(current_userType == 'Users'){
+            $('#pos_section ').removeClass('d-none');
         }
 
 
@@ -415,7 +561,7 @@ else{ $("#store").hide(); }
         }
 
         $('#user_type').on('change', function(){
-            $('#bind_with_list_block ,.commission_container , #bind_with_section , #store_name_block , #pos_section').addClass('d-none');
+            $('#bind_with_list_block ,.commission_container , #bind_with_section , #store_name_block , #pos_section, #contract_given_by_section').addClass('d-none');
             $("#bind_user_type option").prop("disabled", true);
 
             let userType      = $(this).val();
@@ -445,12 +591,13 @@ else{ $("#store").hide(); }
                 $("#bind_user_type option:contains('Sales Supervisor')").prop("disabled", false);
 
             } else if(userType == 'Retailer' || userType == 'Promoter' ){
-               $('#bind_with_section , #store_name_block , #pos_section , .commission_container').removeClass('d-none');
+               $('#bind_with_section , #store_name_block , #pos_section , .commission_container , #contract_given_by_section').removeClass('d-none');
                if(userType == 'Promoter'){
-                $('.commission_container').addClass('d-none');
+                $('#commission_percentage_block , #contract_given_by_section').addClass('d-none');
                }
 
                $("#bind_user_type option:contains('Sales Person') , #bind_user_type option:contains('Sales Supervisor'),#bind_user_type option:contains('Manager')").prop("disabled", false);
+
             } else if(userType == 'Manager' ){
                $('#bind_with_section').removeClass('d-none');
                $("#bind_user_type option:contains('BDM')").prop("disabled", false);
@@ -459,6 +606,31 @@ else{ $("#store").hide(); }
                $('#bind_with_section').removeClass('d-none');
                $("#bind_user_type option:contains('Manager')").prop("disabled", false);
             }
+        });
+
+        function normalizeSimNo(value) {
+            return String(value || '').replace(/\D/g, '').substring(0, 19);
+        }
+
+        function applySimNoLimit() {
+            $('#sim_no').val(normalizeSimNo($('#sim_no').val()));
+        }
+
+        applySimNoLimit();
+
+        $('#sim_no').on('input', function() {
+            applySimNoLimit();
+        });
+
+        $('#sim_no').on('paste', function() {
+            var $el = $(this);
+            setTimeout(function() {
+                $el.val(normalizeSimNo($el.val()));
+            }, 0);
+        });
+
+        $('#currentPageForm').on('submit', function() {
+            $('#sim_no').val(normalizeSimNo($('#sim_no').val()));
         });
 
         $('#users_mobile').on('keyup' , function(){
@@ -535,6 +707,8 @@ else{ $("#store").hide(); }
                 }
             });
         });
+
+        
 
     });
 </script>

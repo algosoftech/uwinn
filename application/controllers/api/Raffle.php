@@ -125,6 +125,22 @@ class Raffle extends CI_Controller {
                     $orderDetails       = $this->common_model->getOrderDetail($whereCon1);
                     // echo "<pre>"; print_r($orderDetails); die();
 
+                    if(empty($orderDetails)):
+                        $whereConHourly['where']['order_id']  = $orderId;
+                        $orderDetails  =  $this->common_model->getData('single','uw_hourly_orders',$whereConHourly);
+                        if(!empty($orderDetails)):
+                            if($orderDetails['draw_time'] > strtotime(date('Y-m-d H:i:s'))):
+                                $Drawdate =  date('d/m/y',$orderDetails['draw_time']);
+                                $Drawtime =  date('h:i A',$orderDetails['draw_time']);
+                                $error 	  = "The draw is scheduled for $Drawdate at $Drawtime. Please check the results after the draw.";
+                                throw new Exception($error);
+                            else:
+                                $result['winner_type'] = 'HourlyGameWinner';
+                                echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);  die();  
+                            endif;
+                        endif;
+                    endif;
+
                     if(!empty($orderDetails) && $orderDetails['status'] == "A" ):
                         
                         // checking current draw date and time..

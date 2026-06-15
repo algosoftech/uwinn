@@ -21,7 +21,7 @@
 //    $("#fromDate1").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
 //    $("#toDate1").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
 // });
-</script>
+</script> 
 <div class="pcoded-main-container">
     <div class="pcoded-content">
         <!-- [ breadcrumb ] start -->
@@ -47,6 +47,7 @@
               <div class="card-header">
                 <h5>Manage Orders</h5>
                 <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#exportModal">Export excel</a>
+                <a href="javaScriptcript:void{0}" class="btn btn-sm btn-success pull-right mr-2" data-toggle="modal" data-target="#shopExportModal">Shop excel</a>
               </div>
               <div class="card-body">
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
@@ -81,6 +82,8 @@
                                     <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS No. </option>
                                     <option value="order_code" <?php if($searchField == 'order_code')echo 'selected="selected"'; ?>>Verification Code </option>
                                     <option value="is_printed" <?php if($searchField == 'is_printed')echo 'selected="selected"'; ?>>Auto Print (Y/N)</option>
+                                    <option value="buyer_mobile" <?php if($searchField == 'buyer_mobile')echo 'selected="selected"'; ?>>Buyer Mobile</option>
+                                    <option value="buyer_email" <?php if($searchField == 'buyer_email')echo 'selected="selected"'; ?>>Buyer Email</option>
                                   </select>
                               </div>
                               <div class="col-sm-3 col-md-3">
@@ -154,6 +157,7 @@
                                 <th width="20%">Order Id.</th>
                                 <th width="20%">Product</th>
                                 <th width="10%">Seller Details</th>
+                                <th width="10%">Buyer Deatils</th>
                                 <th width="10%">Bind With</th>
                                 <th width="10%">Purchase Date</th>
                                 <th width="10%">Total Amount</th>
@@ -221,7 +225,12 @@
                                         <br/>Mobile : <?=stripslashes($sellers_Mobile);?>
                                      <?php endif; ?> 
                                   </td>
-
+                                  <td>
+                                      Message Via : <?=stripslashes($ALLDATAINFO['otp_sent']??'N/A')?>
+                                      <br/> Via Country : <?=stripslashes($ALLDATAINFO['buyer_country_code']??'N/A')?>
+                                      <br/> Via Mobile : <?=stripslashes($ALLDATAINFO['buyer_mobile']??'N/A')?>
+                                      <br/> Via Email : <?=stripslashes($ALLDATAINFO['buyer_email']??'N/A')?>
+                                  </td>
                                   <td>
                                     <?php if(!empty($ALLDATAINFO['user_type']) && $ALLDATAINFO['user_type'] == "Users" ): ?>
                                           Name : Admin </br>
@@ -311,6 +320,9 @@
                                     <?php if($ALLDATAINFO['status'] != "CL"):  ?>
                                       <li><a href="<?=getCurrentControllerPath('cancelationorder/'.$ALLDATAINFO['_id']->{'$id'})?>" onClick='return confirm("<?=$drawDates;?> Do you want to Cancel!");' ><i class="fa fa-times-circle"></i>Order Cancelation</a></li>
                                     <?php endif;  ?>
+                                      <li>
+                                        <a href="<?=getCurrentControllerPath('sendsms/'.$ALLDATAINFO['_id']->{'$id'})?>" ><i class="fa fa-envelope"></i>Send SMS</a>
+                                      </li>
                                      </ul>
                                   </div>
                                   </td>
@@ -348,6 +360,7 @@
 </div>
 
 <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@getbootstrap">Open modal for @getbootstrap</button> -->
+<?php include(APPPATH.'views/orders/allorders/shop_export_modal.php'); ?>
 
 <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -389,6 +402,8 @@
                 <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS No. </option>
                 <option value="order_code" <?php if($searchField == 'order_code')echo 'selected="selected"'; ?>>Verification Code </option>
                 <option value="is_printed" <?php if($searchField == 'is_printed')echo 'selected="selected"'; ?>>Auto Print (Y/N)</option>
+                <option value="buyer_mobile" <?php if($searchField == 'buyer_mobile')echo 'selected="selected"'; ?>>Buyer Mobile</option>
+                <option value="buyer_email" <?php if($searchField == 'buyer_email')echo 'selected="selected"'; ?>>Buyer Email</option>
             </select>
           </div>
           <div class="col-sm-12 col-md-6">
@@ -402,6 +417,16 @@
               <label class="form-check-label" for="cancelled_order">  Cancelled Orders </label>
             </div>
           </div>
+        </div>
+        <div class="row mt-2">
+          <?php if($ALLPRODUCT <> ""): foreach($ALLPRODUCT as $ALLPRODUCTINFO): ?>
+            <div class="col-sm-12 col-md-6">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="productIds[]" value="<?=$ALLPRODUCTINFO['products_id']?>" id="<?=$ALLPRODUCTINFO['products_id']?>">
+                <label class="form-check-label" for="<?=$ALLPRODUCTINFO['products_id']?>"><?=$ALLPRODUCTINFO['title']?></label>
+              </div>
+            </div>
+          <?php endforeach; endif; ?>
         </div>
       </div>
       <div class="modal-footer">

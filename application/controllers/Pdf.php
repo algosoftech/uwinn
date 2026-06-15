@@ -27,11 +27,31 @@ class Pdf extends CI_Controller {
 		$data['orderData'] 		= $orderData[0];
 		// echo "<pre>";print_r($data);die();
 
-		if($orderData[0]['raffle_mode'] == 'Y'){
+		// if($orderData[0]['raffle_mode'] == 'Y'){
+		// 	$this->load->view('web_api/raffle_order_template', $data);
+		// }else{
+		// 	$this->load->view('web_api/pos_order_template', $data);
+		// }
+
+		$is_hourly_game = 'N';
+		if(empty($orderData)):
+			$is_hourly_game = 'Y';
+			$whereCon['where']		= array('order_id'=>$oid);
+			$orderData = $this->common_model->getHourlyGameOrderHistory($whereCon,$shortField,'','');
+			if(!empty($orderData)):
+				$data['orderData'] = $orderData[0];
+			endif;
+		endif;
+		
+		// echo "<pre>";print_r($data);die();
+		
+		if($is_hourly_game == 'Y'):
+			$this->load->view('web_api/hourly_game_order_template', $data);
+		elseif($orderData[0]['raffle_mode'] == 'Y'):
 			$this->load->view('web_api/raffle_order_template', $data);
-		}else{
+		else:
 			$this->load->view('web_api/pos_order_template', $data);
-		}
+		endif;
 		// return;
 	}
 

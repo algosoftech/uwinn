@@ -1,3 +1,33 @@
+<style>
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: inline-block;
+    margin-left: 5px;
+    margin-top: 5px;
+    padding: 0;
+    padding-left: 20px;
+    position: relative;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+    white-space: nowrap;
+    background: #0084ff!important;;
+}
+.select2-container--default .select2-selection--multiple {
+    background-color: white;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    cursor: text;
+    padding-bottom: 5px;
+    padding-right: 5px;
+    position: relative;
+    height: 43px;
+}
+
+</style>
 <div class="pcoded-main-container">
     <div class="pcoded-content">
         <!-- [ breadcrumb ] start -->
@@ -50,18 +80,29 @@
                         <?php endif; ?>
                       </div>
                       <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('title')): ?>error<?php endif; ?>" id="user_list">
-                        <label>User Name<span class="required">*</span></label><br>
-                        <?php if(set_value('student_id')): $student_ids = $_POST['student_id']; else: $student_ids = array(); endif; ?>
-                        <select name="student_id[]" id="student_id" class="form-control select-search required" multiple="">
-                          <option value="">Select Users</option>
-                          <?php if($usersdata <> ""): foreach($usersdata as $user):    ?>
-                            <option value="<?php echo $user['users_id']; ?>" <?php if(in_array($user['users_id'],$student_ids)): echo "selected"; endif; if($user['sms_notification']== 'off' ): echo "disabled"; endif; ?>  ><?php echo ucfirst($user['users_name']).' ('.$user['users_email'].')'.' ('.$user['users_mobile'].')'; ?></option>
-                          <?php endforeach; endif; ?>
-                        </select>
-                        <?php if(form_error('student_id')): ?>
-                          <label for="student_id" generated="true" class="error"><?php echo form_error('student_id'); ?></label>
-                        <?php endif; ?>
+                          <label>User Name<span class="required">*</span></label><br>
+                          <?php 
+                              if(set_value('student_id')): 
+                                  $student_ids = $_POST['student_id']; 
+                              else: 
+                                  $student_ids = array(); 
+                              endif; 
+                          ?>
+                          <select name="student_id[]" id="student_id" class="form-control select2 required" multiple="multiple" style="width:100%">
+                              <?php if($usersdata <> ""): foreach($usersdata as $user): ?>
+                                  <option value="<?= $user['users_id'] ?>" 
+                                      <?= in_array($user['users_id'], $student_ids) ? "selected" : "" ?>
+                                      <?= $user['sms_notification'] === 'off' ? "disabled" : "" ?>
+                                  >
+                                      <?= ucfirst($user['users_name']).' ('.$user['users_email'].') ('.$user['users_mobile'].')' ?>
+                                  </option>
+                              <?php endforeach; endif; ?>
+                          </select>
+                          <?php if(form_error('student_id')): ?>
+                              <label for="student_id" generated="true" class="error"><?php echo form_error('student_id'); ?></label>
+                          <?php endif; ?>
                       </div>
+
                     </div>
                     <div class="row">
                       <div class="form-group-inner col-lg-12 col-md-12 col-sm-12 col-xs-12 <?php if(form_error('title')): ?>error<?php endif; ?>">
@@ -116,11 +157,54 @@
     </div>
 </div>
 <link href="{ASSET_INCLUDE_URL}dist/css/fSelect.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="{ASSET_INCLUDE_URL}dist/js/fSelect.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script type="text/javascript">
-  $(document).ready(function(){  
-    $('.select-search').fSelect();
-  });
+ $(document).ready(function() {
+    let selectedUsers = <?php echo json_encode($student_ids); ?> || [];
+
+    $('#student_id').select2({
+        placeholder: "Select Users",
+        allowClear: true,
+        width: '100%',
+        ajax: {
+            url: "<?= base_url('cms/notifications/getUsers'); ?>",
+            dataType: 'json',
+            delay: 400, // debounce
+            data: function(params) {
+                return {
+                    search: params.term || ''  // search term
+                };
+            },
+            processResults: function(data) {
+                // Map AJAX results to Select2 format
+                return {
+                    results: data.map(function(user) {
+                        return {
+                            id: user.users_id,
+                            text: user.users_name + ' (' + user.users_email + ') (' + user.users_mobile + ')',
+                            disabled: user.sms_notification === 'off'
+                        };
+                    })
+                };
+            },
+            cache: true
+        }
+    });
+
+    // Set initial selected values
+    selectedUsers.forEach(function(id) {
+        let option = $('#student_id option[value="' + id + '"]');
+        if(option.length) {
+            option.prop('selected', true);
+        }
+    });
+    $('#student_id').trigger('change');
+});
+
+
+
 </script>
 <script>
   $('#select_all').click(function() {
@@ -139,7 +223,12 @@
       }
       
     });
+
+
+   
   });
+
+  
 </script>
 <?php /* ?>
 <script type="text/javascript">

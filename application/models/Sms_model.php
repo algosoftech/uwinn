@@ -70,9 +70,8 @@ class Sms_model extends CI_Model
 		try {
 			if(!empty($phone) && !empty($message) && !empty($senderid)):
 				
-				//old api key $ApiKey 		= 'ybG+HgfvR2YzK/LOlwwBXU7YRhKu+LK5Vi6Mfg5N5AI=';
-				$ApiKey 		= 'r8J3+a64Tni3MRp/0VDKEHPL2D4iu+Q/7LlLgL01f9c=';
-				$ClientId 		= '3cb6faf0-b21c-4094-8409-cd3a0b3e03de';
+				$ApiKey 		= '26b+uKslzUhFgUz9+OSK0uyVD0kL3WKQqwuvfzGjhIM=';
+				$ClientId 		= 'c310faf3-f103-4e29-a170-a4e02940907c';
 				$CompanyId 		= '7';
 				$message = urlencode($message);
 				$url = "https://user.digitizebirdsms.com/api/v2/SendSMS?SenderId=$senderid&Is_Unicode=false&Is_Flash=true&Message=$message&MobileNumbers=$phone&ApiKey=$ApiKey&ClientId=$ClientId&CompanyId=$CompanyId";
@@ -105,10 +104,17 @@ class Sms_model extends CI_Model
 	** Purpose  		: This is use for send Forgot Password Otp Sms To User
 	** Date 			: 08 January 2024
 	************************************************************************/
-	function accountVerifyOTP($countryCode='+971',$mobile='',$otp='') {  
+	function accountVerifyOTP($countryCode='+971',$mobile='',$otp='',$otpFor="") {  
+
 		$enableSMS    = $this->common_model->getData('single','uw_enablesms');
 		$mobileNumber =   $countryCode.$mobile;
 		// Finding country code and sending sms using sms country.
+		if($otpFor == 'summarypin'):
+			$message = "Your OTP is ".$otp.".You can use the same OTP the whole day.";
+		else:
+			$message = "Your OTP is ".$otp.".";
+		endif;
+		
         if($enableSMS['smscountry'] == "enable"):
         	$SMSCOUNTRY = explode(',', $enableSMS['sms_country_available_country']);
 
@@ -121,8 +127,6 @@ class Sms_model extends CI_Model
             // checking country code exist or Not...
 			if(in_array($countryCode, $SMSCOUNTRY) ):
 				if($mobileNumber && $otp):
-
-					$message		= "Your OTP is ".$otp.".";
 					$senderid		= "B2DTLLC";
 					$returnMessage	= $this->sendMessageFunction($mobileNumber,$message,$senderid);
 					return $returnMessage;
@@ -144,7 +148,6 @@ class Sms_model extends CI_Model
             // checking country code exist or Not...
 			if(in_array($countryCode, $SMSCOUNTRY1) ):
 				if($mobileNumber && $otp):
-					$message		=	"Your OTP is ".$otp.".";
 					$senderid 		= 'EVBNS';
 					$returnMessage	=	$this->sendMessageDigitizebirdFunction($mobileNumber,$message,$senderid);
 					return $returnMessage;
@@ -322,4 +325,281 @@ class Sms_model extends CI_Model
 			endif; 
         endif;
 	} //END OF FUNCTION
+
+	/***********************************************************************
+	** Function name 	: raffleWinnersSms
+	** Developed By 	: Dilip Halder
+	** Purpose  		: This is use for send raffle winners Sms To User
+	** Date 			: 16 october 2025
+	************************************************************************/
+	function raffleWinnersSms($countryCode='',$mobileNumber='',$message='') {
+		$url = "https://ndm-solutions.com/sms/api?action=send-sms&api_key=VVdJTiBUUkFOOiQyeSQxMCR2bVFtYm44ejJBQkdZamdVQy96bldPMGg0aGZldG9OaGN4MXIzUWRiMXJTYkVmRDFzUW9NLg==&to=PhoneNumber&from=SenderID&sms=YourMessage&response=json";
+		$url = str_replace('PhoneNumber', $countryCode.$mobileNumber, $url);
+		$url = str_replace('SenderID', 'UWNTRD', $url);
+		$url = str_replace('YourMessage', urlencode($message), $url);
+
+		$curl = curl_init();
+		curl_setopt_array($curl, array(
+		CURLOPT_URL => $url,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_ENCODING => '',
+		CURLOPT_MAXREDIRS => 10,
+		CURLOPT_TIMEOUT => 0,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		CURLOPT_CUSTOMREQUEST => 'GET',
+		CURLOPT_HTTPHEADER => array(
+			'Cookie: laravel_session=eyJpdiI6Ik5xRVNiVFwvXC9yT0lSNjhkQnJCRVdyUT09IiwidmFsdWUiOiJrVXFFRTEyVHB0TVpvNnZhTmlLQWR0OVwvZWVcL0g4VFZtWWdGbHRKeU1CTHg3V1NRTDd5d0Y3MWNXTFpONGxTUWlYYk16eFdXK241dWxqbTdzY1RnQzNBPT0iLCJtYWMiOiJmZWRlODMzMmEwM2Y2MDY0YjQ2YWIzNzAxM2RkZmY0MWNhZTllMTQ5N2E0Y2Y1MWEwMDVhMDBjNjMwYWVmNWFkIn0%3D'
+		),
+		));
+
+		$response = curl_exec($curl);
+		curl_close($curl);
+		return $response;
+	}
+
+	/***********************************************************************
+	** Function name 	: sendWhatsAppMessage
+	** Developed By 	: Dilip Halder
+	** Purpose  		: Send message via WhatsApp using configured API
+	** Date 			: 07 February 2026
+	************************************************************************/
+	// public function sendWhatsAppMessage($senderDetails)
+	// {
+	// 	try {
+
+	// 		$COUNTRY_CODE  = str_replace('+', '', $senderDetails['country_code']);
+	// 		$PHONE         = $COUNTRY_CODE.$senderDetails['users_mobile'];
+	// 		$ORDERID       = $senderDetails['ORDERID'];
+	// 		$CAMPAIGNAME   = $senderDetails['CAMPAIGNAME'];
+	// 		$CouponDetails = $senderDetails['CouponDetails'];
+	// 		$DDATE         = $senderDetails['DDATE'];
+	// 		$LINK          = $senderDetails['LINK'];
+
+	// 		// Set your credentials and message info
+	// 		$apiKey       = '6876026f3efcc78baa8a405d';
+	// 		$apiSecret    = '15b64cbab271477c980bbdaa7b10457e';
+	// 		$channelId    = '698495fdeb02ed5dbb3cf8aa';
+	// 		$templateName = 'uwinn_campigns';
+			
+	// 		$postFields = [
+	// 			"channelId" => $channelId,
+	// 			"channelType" => "whatsapp",
+	// 			"recipient" => ["phone" => $PHONE ],
+	// 			"whatsapp" => [
+	// 				"type" => "template",
+	// 				"template" => [
+	// 					"templateName" => $templateName,
+	// 					"bodyValues" => [
+	// 						"ORDERID" => $ORDERID,
+	// 						"CAMPAIGNAME" => $CAMPAIGNAME,
+	// 						"COUPONDETAILS" => $CouponDetails,
+	// 						"DDATE"       => $DDATE,
+	// 						"INVOICELINK" => $LINK
+	// 					]
+	// 				]
+	// 			]
+	// 		];
+
+	// 		// Initialize cURL
+	// 		$ch = curl_init('https://server.gallabox.com/devapi/messages/whatsapp');
+	// 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	// 		curl_setopt($ch, CURLOPT_POST, true);
+	// 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+	// 			"apiKey: $apiKey",
+	// 			"apiSecret: $apiSecret",
+	// 			'Content-Type: application/json'
+	// 		]);
+	// 		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+
+	// 		// Execute and handle response
+	// 		$response = curl_exec($ch);
+	// 		curl_close($ch);
+	// 		return array('status' => 'SUCCESS', 'response' => $response);
+	// 	} catch (\Throwable $th) {
+	// 		return array('status' => 'FAIL', 'error' => $th->getMessage());
+	// 	}
+	// }
+
+	/***********************************************************************
+	** Function name 	: sendSMS
+	** Developed By 	: Dilip Halder
+	** Purpose  		: Send order confirmation via selected gateway (SMS Country or Digitizebird)
+	** Date 			: 07 February 2026
+	************************************************************************/
+	public function sendSMS($senderDetails)
+	{
+		$gateway = $senderDetails['gateway'];
+		$phone   = $senderDetails['country_code'].$senderDetails['users_mobile'];
+		$message = $senderDetails['message'];
+
+		$phone = trim($phone); 
+		$gateway = strtolower(trim($gateway));
+
+		// SMS gateways
+		$senderid_smscountry   = 'B2DTLLC';
+		$senderid_digitizebird = 'UWINNAPP';
+		$senderid_ndm          = 'UWNTRD';
+		
+		if ($gateway === 'smscountry') {
+			$res = $this->sendMessageFunction($phone, $message, $senderid_smscountry);
+			if(str_contains($res , "OK:")):
+				$result['status'] = 'Success';
+				$result['error']  = "";
+				return json_encode($result);
+			else:
+				$result['status'] = 'Failed';
+				$result['error']  = $res['ErrorDescription'];
+				return json_encode($result); 
+			endif;
+		}
+
+		if ($gateway === 'digitizebird') {
+			$res = $this->sendMessageDigitizebirdFunction($phone, $message, $senderid_digitizebird);
+			$res = json_decode($res , true);;
+			if($res['ErrorDescription']):
+				$result['status'] = 'Failed';
+				$result['error']  = $res['ErrorDescription'];
+				return json_encode($result);
+			else:
+				$result['status'] = 'Success';
+				$result['error']  = "";
+				return json_encode($result);
+			endif;
+		}
+
+		if ($gateway === 'ndm') {
+			$res = $this->sendMessageNDMFunction($phone, $message, $senderid_ndm);
+			if($res):
+				$result['status'] = 'Success';
+				$result['error']  = "";
+				return json_encode($result);
+			endif;
+		}
+
+		return array('status' => 'FAIL', 'error' => 'Unknown gateway.');
+	}
+
+	/***********************************************************************
+	** Function name 	: sendMessageNDMFunction
+	** Developed By 	: Dilip Halder
+	** Purpose  		: This is use for send NDM Sms To User
+	** Date 			: 09 February 2026
+	************************************************************************/
+	function sendMessageNDMFunction($phone='',$message='',$senderid='') {
+
+		try {	
+
+			$url = "https://ndm-solutions.com/sms/api?action=send-sms&api_key=VVdJTiBUUkFOOiQyeSQxMCR2bVFtYm44ejJBQkdZamdVQy96bldPMGg0aGZldG9OaGN4MXIzUWRiMXJTYkVmRDFzUW9NLg==&to=PhoneNumber&from=SenderID&sms=YourMessage&response=json";
+			$url = str_replace('PhoneNumber', $phone, $url);
+			$url = str_replace('SenderID', $senderid, $url);
+			$url = str_replace('YourMessage', urlencode($message), $url);
+			$curl = curl_init();
+			curl_setopt_array($curl, array(
+			CURLOPT_URL => $url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => '',
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => 0,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => 'GET',
+			CURLOPT_HTTPHEADER => array(
+				'Cookie: laravel_session=eyJpdiI6Ik5xRVNiVFwvXC9yT0lSNjhkQnJCRVdyUT09IiwidmFsdWUiOiJrVXFFRTEyVHB0TVpvNnZhTmlLQWR0OVwvZWVcL0g4VFZtWWdGbHRKeU1CTHg3V1NRTDd5d0Y3MWNXTFpONGxTUWlYYk16eFdXK241dWxqbTdzY1RnQzNBPT0iLCJtYWMiOiJmZWRlODMzMmEwM2Y2MDY0YjQ2YWIzNzAxM2RkZmY0MWNhZTllMTQ5N2E0Y2Y1MWEwMDVhMDBjNjMwYWVmNWFkIn0%3D'
+				),
+				));
+				
+			$response = curl_exec($curl);
+			$response = json_decode($response, true);
+			curl_close($curl);
+			if($response['code'] == 'ok'):
+				$result['status'] = 'Success';
+				$result['error']  = "";
+				return json_encode($result);
+			else:
+				$result['status'] = 'Failed';
+				$result['error']  = $response['message'];
+				return json_encode($result);
+			endif;
+
+
+		} catch (\Throwable $th) {
+			return array('status' => 'FAIL', 'error' => $th->getMessage());
+		}
+		
+
+	}
+
+	/***********************************************************************
+	** Function name 	: sendWhatsAppMessage
+	** Developed By 	: Dilip Halder
+	** Purpose  		: Send message via WhatsApp using configured API
+	** Date 			: 07 February 2026
+	************************************************************************/
+	public function sendWhatsAppMessage($senderDetails)
+	{
+		try {
+
+			$COUNTRY_CODE  = str_replace('+', '', $senderDetails['country_code']);
+			$PHONE         = $COUNTRY_CODE.$senderDetails['users_mobile'];
+			$ORDERID       = $senderDetails['ORDERID'];
+			$CAMPAIGNAME   = $senderDetails['CAMPAIGNAME'];
+			$CouponDetails = $senderDetails['CouponDetails'];
+			$DDATE         = $senderDetails['DDATE'];
+			$LINK          = $senderDetails['LINK'];
+
+			// Set your credentials and message info
+			$apiKey       = '6876026f3efcc78baa8a405d';
+			$apiSecret    = '15b64cbab271477c980bbdaa7b10457e';
+			$channelId    = '698495fdeb02ed5dbb3cf8aa';
+			$templateName = 'uwinn_campigns';
+			
+			$postFields = [
+				"channelId" => $channelId,
+				"channelType" => "whatsapp",
+				"recipient" => ["phone" => $PHONE ],
+				"whatsapp" => [
+					"type" => "template",
+					"template" => [
+						"templateName" => $templateName,
+						"bodyValues" => [
+							"ORDERID" => $ORDERID,
+							"CAMPAIGNAME" => $CAMPAIGNAME,
+							"COUPONDETAILS" => $CouponDetails,
+							"DDATE"       => $DDATE,
+							"INVOICELINK" => $LINK
+						]
+					]
+				]
+			];
+
+			// Initialize cURL
+			$ch = curl_init('https://server.gallabox.com/devapi/messages/whatsapp');
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, [
+				"apiKey: $apiKey",
+				"apiSecret: $apiSecret",
+				'Content-Type: application/json'
+			]);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+
+			// Execute and handle response
+			$response = curl_exec($ch);
+			curl_close($ch);
+			$response = json_decode($response, true);
+			if($response['status'] == 'ACCEPTED'):
+				$result['status'] = 'Success';
+				$result['error']  = "";
+				return json_encode($result);
+			else:
+				$result['status'] = 'Failed';
+				$result['error']  = $response['error'];
+				return json_encode($result);
+			endif;
+		} catch (\Throwable $th) {
+			return array('status' => 'FAIL', 'error' => $th->getMessage());
+		}
+	}
+
 }	

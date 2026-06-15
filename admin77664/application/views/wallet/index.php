@@ -248,7 +248,7 @@ $(function(){
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="<?=base_url('wallet/wallet_statements/exportexcel')?>" method="post" autocomplete="off">
+      <form action="<?=getCurrentControllerPath('exportexcel')?>" method="post" autocomplete="off">
         <div class="modal-body">
             <div class="row">
               <div class="col-sm-12 col-md-6">

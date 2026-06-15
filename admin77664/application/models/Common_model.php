@@ -1890,7 +1890,17 @@ class Common_model extends CI_Model
 		    ),
 		    array(
 		        'from' => 'uw_users',
-	            'let' => array('bind_person_id' => array('$toLong' => array('$arrayElemAt' => array('$users.bind_person_id', 0)))),
+	            // 'let' => array('bind_person_id' => array('$toLong' => array('$arrayElemAt' => array('$users.bind_person_id', 0)))),
+				'let' => array(
+					'bind_person_id' => array(
+						'$convert' => array(
+							'input' => array('$arrayElemAt' => array('$users.bind_person_id', 0)),
+							'to' => 'long',
+							'onError' => null,
+							'onNull' => null
+						)
+					)
+				),
 	            'pipeline' => array(
 	                array(
 	                    '$match' => array(
@@ -1914,7 +1924,20 @@ class Common_model extends CI_Model
 
 	     	array(
 		        'from' => 'uw_admin',
-		        'let' => array( 'admin_id_converted' => array( '$toLong' => array(  '$arrayElemAt' => array('$users.bind_person_id', 0) ) ) ),
+		        // 'let' => array( 'admin_id_converted' => array( '$toLong' => array(  '$arrayElemAt' => array('$users.bind_person_id', 0) ) ) ),
+				'let' => array(
+					'admin_id_converted' => array(
+						'$convert' => array(
+							'input' => array(
+								'$arrayElemAt' => array('$users.bind_person_id', 0)
+							),
+							'to' => 'long',
+							'onError' => null,
+							'onNull' => null
+						)
+					)
+				),
+
 		        'pipeline' => array(
 		            array(
 		                '$match' => array(
@@ -2473,6 +2496,74 @@ class Common_model extends CI_Model
 	}   // END OF FUNCTION
 
 	/***********************************************************************
+	** Function name : OrderStaticReport
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used to get orice static report by condition..
+	** Date 		 : 25 May 2024
+	************************************************************************/
+	public function getAggregateData2($tblName='',$SelectFields=array(),$whereCondition='',$groupBy='',$sortBy='',$lookup='',$unwind='',$resultType='',$startIndex='',$itemsPerPage='',$matchBeforeSortAndLookup=false)
+	{  
+		$query = array();
+
+		if($groupBy):
+			$query[] = array('$group' => $groupBy);
+		endif;
+
+		$whereAfterLookup = $whereCondition;
+		if ($matchBeforeSortAndLookup && $whereCondition):
+			$query[] = array('$match' => $whereCondition);
+			$whereAfterLookup = null;
+		endif;
+
+		if($sortBy):
+			$query[] = array('$sort' => $sortBy);
+		endif;
+
+		if($lookup && ($resultType == "multiple" || $resultType == "single" )):
+			foreach($lookup as $lookupItem):
+				$query[] = array('$lookup' => $lookupItem);
+			endforeach;
+			if($unwind):
+				foreach($unwind as $item):
+					$query[] = array('$unwind' => $item);
+				endforeach;
+			endif;
+		endif;
+
+		if($whereAfterLookup):
+			$query[] = array('$match' => $whereAfterLookup);
+		endif;
+
+		if($SelectFields):
+			$query[] = array('$project' => $SelectFields);
+		endif;
+
+		if($resultType == 'count'):
+			$query[] = array('$count' => 'totalCount');
+		endif;
+
+		if($itemsPerPage):
+			$query[] = array('$skip' =>(int)$startIndex);
+			$query[] = array('$limit' =>(int)$itemsPerPage);
+		endif; 
+
+		$aggOpts = array('batchSize' => 128);
+		
+		$result  = $this->mongo_db->aggregate($tblName,$query,$aggOpts); 
+		 
+		if($resultType == 'count'):
+			if (empty($result) || !isset($result[0]['totalCount'])) {
+				$result = 0;
+			} else {
+				$result = (int) $result[0]['totalCount'];
+			}
+		else:
+			$result = $result;
+		endif;
+		return $result;
+	}   // END OF FUNCTION
+
+	/***********************************************************************
 	** Function name : generateLogs
 	** Developed By  : Dilip Halder
 	** Purpose       : This function used for generateLogs
@@ -2500,22 +2591,62 @@ class Common_model extends CI_Model
 	** Purpose       : This function used for usersIp
 	** Date          : 24 FEBRUARY 2025
 	************************************************************************/
+	// public function usersIp()
+	// {
+	//   	if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+	// 	        $ip = $_SERVER['HTTP_CLIENT_IP'];
+	//     } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+	//         // Check for IPs passed from a proxy
+	//         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+	//     } else {
+	//         // Default remote address
+	//         $ip = $_SERVER['REMOTE_ADDR'];
+	//     }
+	    
+	//     $apiUrl    		= "http://ip-api.com/json/{$ip}";
+    // 	$response  		= file_get_contents($apiUrl);
+    // 	$locationData 	= json_decode($response, true);
+    // 	return $locationData;
+	// }
 	public function usersIp()
 	{
-	  	if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-		        $ip = $_SERVER['HTTP_CLIENT_IP'];
-	    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-	        // Check for IPs passed from a proxy
-	        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-	    } else {
-	        // Default remote address
-	        $ip = $_SERVER['REMOTE_ADDR'];
-	    }
-	    
-	    $apiUrl    		= "http://ip-api.com/json/{$ip}";
-    	$response  		= file_get_contents($apiUrl);
-    	$locationData 	= json_decode($response, true);
-    	return $locationData;
+		$ip = $this->input->ip_address();
+
+		if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			$forwardedIps = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+			$firstIp = trim($forwardedIps[0]);
+			if (filter_var($firstIp, FILTER_VALIDATE_IP)) {
+				$ip = $firstIp;
+			}
+		} elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+			$clientIp = trim($_SERVER['HTTP_CLIENT_IP']);
+			if (filter_var($clientIp, FILTER_VALIDATE_IP)) {
+				$ip = $clientIp;
+			}
+		}
+
+		if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+			return array('query' => $ip, 'status' => 'fail', 'message' => 'Invalid IP');
+		}
+
+		$apiUrl = 'http://ip-api.com/json/' . $ip;
+		$context = stream_context_create(array(
+			'http' => array(
+				'timeout' => 3,
+				'ignore_errors' => true,
+			),
+		));
+		$response = @file_get_contents($apiUrl, false, $context);
+		if ($response === false) {
+			return array('query' => $ip, 'status' => 'fail', 'message' => 'Geo lookup unavailable');
+		}
+
+		$locationData = json_decode($response, true);
+		if (!is_array($locationData)) {
+			return array('query' => $ip, 'status' => 'fail', 'message' => 'Invalid geo response');
+		}
+
+		return $locationData;
 	}
 	public function saveNotifications($user_id,$title,$message,$order_id=''){
 		try{
@@ -2739,6 +2870,7 @@ class Common_model extends CI_Model
 		                        'users_mobile' => 1,
 		                        'users_email'  => 1,
 		                        'pos_number'   => 1,
+		                        'bind_person_name'=> 1,
 		                         
 		                    )
 		                ),
@@ -2759,6 +2891,7 @@ class Common_model extends CI_Model
 		                        'users_mobile'     => 1,
 		                        'users_email'      => 1,
 		                        'pos_number'       => 1,
+		                        'bind_person_name' => 1,
 		                         
 		                    )
 		                ),
@@ -2778,5 +2911,365 @@ class Common_model extends CI_Model
 		}
 	}
 	
+	/***********************************************************************
+	** Function name : getLoadBalanceUserDetails
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used for getLoadBalanceUserDetails
+	** Date          : 29 October 2025
+	************************************************************************/
+	// public function fetchresultData($resultType='', $whereCon='',$shortField='',$itemsPerPage='',$startIndex='')
+	// {
+	// 	$tblName = 'uw_draw_result';
+	// 	// Get the total count of documents grouped by result_date
+	// 	$groupByCount = array(
+	// 	   '_id'           => '$result_date',
+	// 	   'count'         => array('$sum' => 1),
+	// 	   'creation_first_date' => array('$first' => '$creation_date'),
+	// 	   'last_updated_date'   => array('$last'  => '$creation_date'),
+	// 	);
+		
+	// 	// Handle where condition
+	// 	$whereConditionCount = array();
+	// 	if (!empty($whereCon) && isset($whereCon['where'])):
+	// 		$whereConditionCount = $whereCon['where'];
+	// 	endif;
+
+	// 	// Handle sort field - use $shortField if provided, otherwise default
+	// 	$sortByCount = array('_id' => -1);
+	// 	if (!empty($shortField)):
+	// 		$sortByCount = $shortField;
+	// 	endif;
+
+	// 	// Handle resultType - use provided value or default to 'array'
+	// 	$finalResultType = (!empty($resultType)) ? $resultType : 'array';
+
+	// 	$totalResultDateCount = $this->getAggregateData(
+	// 		$tblName,
+	// 		array(),
+	// 		$whereConditionCount,
+	// 		$groupByCount,
+	// 		$sortByCount,
+	// 		[],
+	// 		[],
+	// 		$finalResultType,
+	// 		$startIndex,
+	// 		$itemsPerPage
+	// 	);
+
+	// 	// Optionally return with or assign to $data or process as needed. 
+	// 	// For example: $data['result_date_counts'] = $totalResultDateCount;
+
+	 
+	// 	return $totalResultDateCount;
+	// }
+	/***********************************************************************
+	** Function name : getLoadBalanceUserDetails
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used for getLoadBalanceUserDetails
+	** Date          : 29 October 2025
+	************************************************************************/
+	public function fetchresultData($resultType='',$tblName='', $whereCon='',$shortField='',$itemsPerPage='',$startIndex='')
+	{
+		// Get the total count of documents grouped by result_date
+		$groupByCount = array(
+		   '_id'           => '$result_date',
+		   'count'         => array('$sum' => 1),
+		   'creation_first_date' => array('$first' => '$creation_date'),
+		   'last_updated_date'   => array('$last'  => '$creation_date'),
+		);
+		
+		// Handle where condition
+		$whereConditionCount = array();
+		if (!empty($whereCon) && isset($whereCon['where'])):
+			$whereConditionCount = $whereCon['where'];
+		endif;
+
+		// Handle sort field - use $shortField if provided, otherwise default
+		$sortByCount = array('_id' => -1);
+		if (!empty($shortField)):
+			$sortByCount = $shortField;
+		endif;
+
+		// Handle resultType - use provided value or default to 'array'
+		$finalResultType = (!empty($resultType)) ? $resultType : 'array';
+
+		$totalResultDateCount = $this->getAggregateData(
+			$tblName,
+			array(),
+			$whereConditionCount,
+			$groupByCount,
+			$sortByCount,
+			[],
+			[],
+			$finalResultType,
+			$startIndex,
+			$itemsPerPage
+		);
+
+		// Optionally return with or assign to $data or process as needed. 
+		// For example: $data['result_date_counts'] = $totalResultDateCount;
+
+	 
+		return $totalResultDateCount;
+	}
+	
+	/***********************************************************************
+	** Function name : getHourlyGameOrderData
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used for getHourlyGameOrderData
+	** Date          : 23 April 2026
+	************************************************************************/
+	public function getHourlyGameOrderData($resultType='', $tblName="", $whereCon='', $shortField='', $itemsPerPage='', $startIndex='')
+	{
+	    try {
+
+	        $SelectFields = array(
+	            '_id'            => 1,
+	            'order_id'       => 1,
+	            'users_id'       => 1,
+	            'users_oid'      => 1,
+	            'products_oid'   => 1,
+	            'products_name'  => 1,
+	            'start_date'     => 1,
+	            'expiry_date'    => 1,
+	            'qty'            => 1,
+	            'total_price'    => 1,
+	            'status'         => 1,
+	            'created_at'     => 1,
+	            "batch_id"       => 1,
+	            "coupon_code"    => 1,
+	            "csv_name"       => 1,
+	            "is_winner"      => 1,
+	            "matching_coupons" => 1,
+	            "winner_type"    => 1,
+	            "winning_amount" => 1,
+				"winning_status" => 1,
+				"winner_uploaded_at" => 1,
+				"redeemed_at"    => 1,
+				"draw_time"      => 1,
+
+	            // USER DATA
+				'seller_users_name' 	 => '$users.users_name',
+				'seller_users_last_name' => '$users.last_name',
+				'seller_full_name' => array('$concat' => array('$users.users_name', ' ', '$users.last_name')),
+	            'seller_users_country_code' => '$users.country_code',
+	            'seller_users_mobile' => '$users.users_mobile',
+	            'seller_users_email'  => '$users.users_email',
+	            'seller_users_type'   => '$users.users_type',
+	            'seller_store_name'   => '$users.store_name',
+				// Keep both keys for backward compatibility across old/new views.
+				'seller_pos_number'             => '$users.pos_number',
+				'seller_pos_device_id'          => '$users.pos_device_id',
+				'seller_users_pos_number'       => '$users.pos_number',
+				'seller_users_bind_person_name' => '$users.bind_person_name',
+				'users_pos_number'              => '$users.pos_number',
+				'bind_person_name'              => '$users.bind_person_name',
+				'area'              => '$users.area',
+
+				// SETTLER USER DATA
+				'settler_users_name' 	 => '$settler_users.users_name',
+				'settler_users_last_name'=> '$settler_users.last_name',
+				'settler_full_name'    => array('$concat' => array('$settler_users.users_name', ' ', '$settler_users.last_name')),
+				'settler_country_code' => '$settler_users.country_code',
+	            'settler_users_mobile' => '$settler_users.users_mobile',
+	            'settler_users_email'  => '$settler_users.users_email',
+	            'settler_users_type'   => '$settler_users.users_type',
+	            'settler_store_name'   => '$settler_users.store_name',
+				'settler_pos_number'             => '$settler_users.pos_number',
+				'settler_pos_device_id'          => '$settler_users.pos_device_id',
+				'settler_users_pos_number'       => '$settler_users.pos_number',
+				'settler_users_bind_person_name' => '$settler_users.bind_person_name',
+
+				// BUYER USER DATA
+				'buyer_country_code' => 1,
+				'buyer_mobile'       => 1,
+				'buyer_email'        => 1,
+				'sms_type'           => 1,
+
+	            // PRODUCT DATA (NEW)
+	            'product_name'   => '$product.title',
+	            'product_price'  => '$product.price',
+	            'product_status' => '$product.status',
+				'tickets'        => '$tickets',
+	        );
+
+	        $whereCondition = array();
+	        if (!empty($whereCon['where'])):
+	            $whereCondition = $whereCon['where'];
+	        endif;
+			
+
+	        $lookup = array(
+				array(
+					'from' => 'uw_users',
+					'localField' => "users_oid",
+					'foreignField' => "_id",
+					'as' => 'users'
+				),
+
+				array(
+					'from' => 'uw_users',
+					'localField' => "settler_users_oid",
+					'foreignField' => "_id",
+					'as' => 'settler_users'
+				),
+					
+				array(
+					'from' => 'uw_hourly_games',
+					'localField' => "products_oid",
+					'foreignField' => "_id",
+					'as' => 'product'
+				),
+
+				array(
+					'from' => 'uw_hourly_tickets',
+					'localField' => "_id",
+					'foreignField' => "order_oid",
+					'pipeline' => array(
+						array(
+							'$project' => array(
+								'_id' => 0,
+								'ticket' => 1,
+								'type' => 1,
+								'points' => 1,
+							)
+						)
+					),
+					'as' => 'tickets'
+				),
+			);
+
+	        // UNWIND BOTH
+	        $unwind = array(
+	            array(
+	                'path' => '$users',
+	                'preserveNullAndEmptyArrays' => true
+	            ),
+	            array(
+	                'path' => '$product',
+	                'preserveNullAndEmptyArrays' => true
+	            ),
+				array(
+					'path' => '$settler_users',
+					'preserveNullAndEmptyArrays' => true
+				),
+	        );
+
+	        $tblName = "uw_hourly_orders";
+	        $groupBy = '';
+
+	        $hourlyGameData = $this->getAggregateData2( $tblName, $SelectFields, $whereCondition, $groupBy, $shortField, $lookup, $unwind, $resultType, $startIndex, $itemsPerPage );
+	        return $hourlyGameData;
+
+	    } catch (Exception $e) {
+	        echo 'error';
+	    }
+	}
+    
+	/***********************************************************************
+	** Function name : getHourlyGameGroupByData
+	** Developed By  : Dilip Halder
+	** Purpose       : This function used for getHourlyGameGroupByData
+	** Date          : 23 April 2026
+	************************************************************************/
+	public function getHourlyGameGroupByData($whereCon = '', $resultType = '', $page = '', $skip = '')
+	{
+	    $SelectFields = array(
+	       	"batch_id"        => 1,
+	        "products_name"   => 1,
+	        "draw_date"       => 1,
+	        "winning_amount"  => 1,
+	        "is_winner"       => 1,
+	        "status"          => 1,
+			"total_count"	  => 1,
+			"redeemed_count"  => 1,
+			"active"          => 1,
+        	"inactive"        => 1,
+        	"deleted"         => 1,
+        	"paid"            => 1,
+			"unpaid"          => 1,
+			"csv_name"        => 1,
+			"winner_uploaded_at"=> 1
+	    );
+
+	    $whereCondition = [];
+	    if (!empty($whereCon) && isset($whereCon['where'])) {
+	        $whereCondition = $whereCon['where'];
+	    }
+
+		$whereCondition['is_winner'] = "Y";
+		
+		$groupBy = array(
+	        '_id'             => '$batch_id',
+	        'batch_id'        => array('$first' => '$batch_id'),
+			'csv_name' => array('$first' => '$csv_name'),
+			'winner_uploaded_at' => array('$first' => '$winner_uploaded_at'),
+			'is_winner' => array('$first' => '$is_winner'),
+	        'winning_amount' => array(
+	            '$sum' => array('$ifNull' => ['$winning_amount', 0])
+	        ),
+	        'total_count' => array('$sum' => 1),
+	        'active' => array(
+	            '$sum' => array(
+	                '$cond' => array(
+	                    'if' => array('$eq' => array('$winning_status', 'unpaid')),
+	                    'then' => 1,
+	                    'else' => 0
+	                )
+	            )
+	        ),
+	        'inactive' => array(
+	            '$sum' => array(
+	                '$cond' => array(
+	                    'if' => array('$eq' => array('$winning_status', 'Inactive')),
+	                    'then' => 1,
+	                    'else' => 0
+	                )
+	            )
+	        ),
+			'deleted' => array(
+	            '$sum' => array(
+	                '$cond' => array(
+	                    'if' => array('$eq' => array('$winning_status', 'Deleted')),
+	                    'then' => 1,
+	                    'else' => 0
+	                )
+	            )
+	        ),
+			'redeemed_count' => array(
+	            '$sum' => array(
+	                '$cond' => array(
+	                    'if' => array('$eq' => array('$winning_status', 'paid')),
+	                    'then' => 1,
+	                    'else' => 0
+	                )
+	            )
+	        ),
+	        'paid' => array(
+	            '$sum' => array(
+	                '$cond' => array(
+	                    'if' => array('$eq' => array('$winning_status', 'paid')),
+	                    'then' => array('$ifNull' => ['$winning_amount', 0]),
+	                    'else' => 0
+	                )
+	            )
+	        ),
+			'unpaid' => array(
+	            '$sum' => array(
+	                '$cond' => array(
+	                    'if' => array('$eq' => array('$winning_status', 'unpaid')),
+	                    'then' => array('$ifNull' => ['$winning_amount', 0]),
+	                    'else' => 0
+	                )
+	            )
+	        )
+	    );
+
+	    // Sort latest batch first
+	    $sortBy  = array('_id' => -1);
+	    $tblName = "uw_hourly_orders";
+	    $result  = $this->common_model->getAggregateData2( $tblName, $SelectFields, $whereCondition, $groupBy, $sortBy, [], /*lookup*/  [], /*unwind*/ $resultType, $page, $skip );
+	    return $result;
+	}
 
 }	

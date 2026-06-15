@@ -26,52 +26,86 @@
             <div class="card">
               <div class="card-header">
                 <h5>Manage Contents</h5>
+                <button type="button" id="bulk-delete-btn" class="btn btn-sm btn-danger pull-right" style="margin-left: 5px;">Bulk Delete</button>
                 <a href="<?php echo getCurrentControllerPath('addeditdata'); ?>" class="btn btn-sm btn-primary pull-right">Add Contents</a>
               </div>
               <div class="card-body">
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
                     <div class="dt-responsive table-responsive">
                       <div id="simpletable_wrapper" class="dataTables_wrapper dt-bootstrap4">
-                       <div class="row">
-                              <div class="col-sm-12 col-md-12">
-                                <div class="dataTables_length" id="simpletable_length">
-                                  <label>Show 
-                                    <select name="showLength" id="showLength" class="custom-select custom-select-sm form-control form-control-sm">
-                                      <option value="2" <?php if($perpage == '2')echo 'selected="selected"'; ?>>2</option>
-                                      <option value="10" <?php if($perpage == '10')echo 'selected="selected"'; ?>>10</option>
-                                      <option value="25" <?php if($perpage == '25')echo 'selected="selected"'; ?>>25</option>
-                                      <option value="50" <?php if($perpage == '50')echo 'selected="selected"'; ?>>50</option>
-                                      <option value="100" <?php if($perpage == '100')echo 'selected="selected"'; ?>>100</option>
-                                      <option value="All" <?php if($perpage == 'All')echo 'selected="selected"'; ?>>All</option>
-                                    </select>
-                                    entries
-                                  </label>
-                                </div>
-                              </div>
-                              
-                              
+                        <div class="row align-items-end">
+
+                          <!-- Show Entries Dropdown -->
+                          <div class="col-md-2 col-sm-2 mb-2">
+                            <label class="col-form-label">Show</label>
+                            <select name="showLength" id="showLength" class="custom-select custom-select-sm form-control form-control-sm">
+                              <option value="2" <?php if($perpage == '2')echo 'selected="selected"'; ?>>2</option>
+                              <option value="10" <?php if($perpage == '10')echo 'selected="selected"'; ?>>10</option>
+                              <option value="25" <?php if($perpage == '25')echo 'selected="selected"'; ?>>25</option>
+                              <option value="50" <?php if($perpage == '50')echo 'selected="selected"'; ?>>50</option>
+                              <option value="100" <?php if($perpage == '100')echo 'selected="selected"'; ?>>100</option>
+                              <option value="All" <?php if($perpage == 'All')echo 'selected="selected"'; ?>>All</option>
+                            </select>
                           </div>
+
+                          <!-- Used For -->
+                          <div class="col-md-2 col-sm-2 mb-2">
+                            <label class="col-form-label">Used For</label>
+                            <select name="wallet_type" id="wallet_type" class="custom-select custom-select-sm form-control form-control-sm">
+                              <option value="">Select</option>
+                              <option value="dealz" <?php if($wallet_type == 'dealz')echo 'selected="selected"'; ?>>Dealz</option>
+                              <option value="lotto" <?php if($wallet_type == 'lotto')echo 'selected="selected"'; ?>>Lotto </option>
+                              <option value="gift_voucher" <?php if($wallet_type == 'gift_voucher')echo 'selected="selected"'; ?>>Gift Voucher </option>
+                            </select>
+                          </div>
+
+                          <!-- Search Field -->
+                          <div class="col-md-2 col-sm-6 mb-2">
+                            <label class="col-form-label">Show ON</label>
+                            <select name="show_on" id="show_on" class="custom-select custom-select-sm form-control form-control-sm">
+                              <option value="">Select</option>
+                              <option value="App" <?php if($show_on == 'App')echo 'selected="selected"'; ?>>App</option>
+                              <option value="POS" <?php if($show_on == 'POS')echo 'selected="selected"'; ?>>POS</option>
+                              <option value="Website" <?php if($show_on == 'Website')echo 'selected="selected"'; ?>>Website</option>
+                            </select>
+                          </div>
+                          <!-- Search Button -->
+                          <div class="col-md-2 col-sm-12 mb-2 text-right">
+                            <button type="submit" name="Search" class="btn btn-sm btn-primary w-100">
+                              Search
+                            </button>
+                          </div>
+
+                        </div>
                       </div>
-                    </div>
                       <div class="row">
                         <div class="col-sm-12">
                           <div class="table-responsive">
                             <table id="simpletable" class="table table-striped table-bordered nowrap dataTable" role="grid" aria-describedby="simpletable_info">
                               <thead style="text-align: center;">
                                 <tr role="row">
+                                  <th width="3%"><i class="fas fa-grip-vertical"></i></th>
+                                  <th width="5%" style="text-align: center;">
+                                    <input type="checkbox" id="select-all" title="Select All">
+                                  </th>
                                   <th width="5%">S.No.</th>
-                                  <th width="15%">Image / Video</th>
-                                  <th width="10%" >Added For</th>
+                                  <th width="15%">Image</th>
+                                  <th width="15%">Show On </th>
                                   <th width="10%" >Status</th>
+                                  <th width="10%" >Sequence</th>
                                   <th width="10%">Action</th>
                                 </tr>
                               </thead>
-                               <tbody style="text-align: center;">
+                               <tbody id="sortable-table-body" style="text-align: center;">
                                 <?php if($ALLDATA <> ""): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
                                  if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
                                 ?>
-                                <tr role="row" class="<?php echo $rowClass; ?>">
-                                  <td><?=$i++?></td>
+                                <tr role="row" class="<?php echo $rowClass; ?> sortable-row" data-id="<?=$ALLDATAINFO['_id']->{'$id'}?>" data-position="<?=$ALLDATAINFO['position']?>">
+                                  <td class="drag-handle" style="cursor: move;"><i class="fas fa-grip-vertical text-muted"></i></td>
+                                  <td style="text-align: center;">
+                                    <input type="checkbox" name="delete[]" class="delete-row" value="<?=$ALLDATAINFO['_id']->{'$id'}?>">
+                                  </td>
+                                  <td class="sno-cell"><?=$i++?></td>
                                   <td>
                                     <?php if($ALLDATAINFO['link_thumbnail']): ?>
                                       <img src="<?php echo fileBaseUrl.$ALLDATAINFO['link_thumbnail']; ?>" width="250" border="0" alt="">
@@ -87,57 +121,81 @@
                                     <?php endif;?>
                                   </td>
                                   <td>
+                                      <?php if(!empty($ALLDATAINFO['added_for'])): ?>
+                                        <b>Used For:</b> <?=htmlspecialchars(implode(' , ', $ALLDATAINFO['added_for']));?><br>
+                                      <?php endif; ?>
+                                      <?php if(isset($ALLDATAINFO['position']) && $ALLDATAINFO['position'] !== ''): ?>
+                                        <b>Position:</b> <?=htmlspecialchars((string)$ALLDATAINFO['position']);?><br>
+                                      <?php endif; ?>
                                       <?=ucwords(str_replace('_', ' ', $ALLDATAINFO['upload_type']));?>
                                       <hr>
-                                      <div class="row">
+                                      <!-- <div class="row">
                                         <div class="col-12">
                                             <div class="form-group-inner">
-                                              <input type="checkbox" name="added_for[]" value="Top Banner" id="top_banner" <?= isset($EDITDATA['added_for']) && in_array('Top Banner', $EDITDATA['added_for']) ? 'checked' : ''; ?> disabled >
+                                              <input type="checkbox" name="added_for[]" value="Top Banner" id="top_banner" <?= isset($ALLDATAINFO['added_for']) && in_array('Top Banner', $ALLDATAINFO['added_for']) ? 'checked' : ''; ?> disabled >
                                               <label for="top_banner">Top Banner</label>
                                             </div>
                                         </div>
 
                                         <div class="col-12">
                                             <div class="form-group-inner">
-                                              <input type="checkbox" name="Recent_Winners" id="Result_Page" <?=isset($EDITDATA['added_for']) && in_array('Recent Winners', $ALLDATAINFO['added_for'])? 'checked' : '' ;?> disabled>
+                                              <input type="checkbox" name="Recent_Winners" id="Result_Page" <?=isset($ALLDATAINFO['added_for']) && in_array('Recent Winners', $ALLDATAINFO['added_for'])? 'checked' : '' ;?> disabled>
                                               <label for="Result_Page">Recent Winners</label>
                                             </div>
                                         </div>
 
                                         <div class="col-12">
                                             <div class="form-group-inner">
-                                              <input type="checkbox" name="Result_Page" id="Result_Page" <?=isset($EDITDATA['added_for']) && in_array('Result Page', $ALLDATAINFO['added_for'])? 'checked' : '' ;?> disabled>
+                                              <input type="checkbox" name="Result_Page" id="Result_Page" <?=isset($ALLDATAINFO['added_for']) && in_array('Result Page', $ALLDATAINFO['added_for'])? 'checked' : '' ;?> disabled>
                                               <label for="Result_Page">Result Page</label>
                                             </div>
                                         </div>
                                         <div class="col-12">
                                             <div class="form-group-inner">
-                                              <input type="checkbox" name="Winner_Gallery" id="Winner_Gallery" <?=isset($EDITDATA['added_for']) && in_array('Winner Gallery', $ALLDATAINFO['added_for'])? 'checked' : '' ;?>  disabled>
+                                              <input type="checkbox" name="Winner_Gallery" id="Winner_Gallery" <?=isset($ALLDATAINFO['added_for']) && in_array('Winner Gallery', $ALLDATAINFO['added_for'])? 'checked' : '' ;?>  disabled>
                                               <label for="Winner_Gallery">Winner Gallery</label>
                                             </div>
                                         </div>
-                                      </div>
+                                      </div> -->
+                                      <?php if(!empty($ALLDATAINFO['added_for_top_banner'])): ?>
+                                        <b>show on (Top Banner) : </b> <?=implode(' , ',$ALLDATAINFO['added_for_top_banner'])?> </br>
+                                      <?php endif; ?>
+
+                                      <?php if(!empty($ALLDATAINFO['added_for_recent_winners'])): ?>
+                                        <b>show on (Recent Winner Banner) : </b> <?=implode(' , ',$ALLDATAINFO['added_for_recent_winners'])?> </br>
+                                      <?php endif; ?>
+
+                                      <?php if(!empty($ALLDATAINFO['added_for_result_page'])): ?>
+                                        <b>show on (Result Page): </b> <?=implode(' , ',$ALLDATAINFO['added_for_result_page'])?> </br>
+                                      <?php endif; ?>
+
+                                      <?php if(!empty($ALLDATAINFO['added_for_winner_gallery'])): ?>
+                                        <b>show on (Winner Gallery): </b> <?=implode(' , ',$ALLDATAINFO['added_for_winner_gallery'])?> </br>
+                                      <?php endif; ?>
+                                      <?php if(!empty($ALLDATAINFO['original_file_name'])): ?>
+                                        <b>Original file name:</b> <?=htmlspecialchars($ALLDATAINFO['original_file_name']);?><br>
+                                      <?php endif; ?>
                                   </td>
-                                  
-                                  <td ><?=showStatus($ALLDATAINFO['status'])?></td>
+                                  <td><?=showStatus($ALLDATAINFO['status'])?></td>
+                                  <td class="position-cell"><?=$ALLDATAINFO['position'];?></td>
                                   <td>
                                     <div class="btn-group">
                                       <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
                                       <ul class="dropdown-menu" role="menu">
-                                        <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['content_id'])?>"><i class="fas fa-edit"></i> Edit Details</a></li>
+                                        <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['_id']->{'$id'})?>"><i class="fas fa-edit"></i> Edit Details</a></li>
                                         <?php if($ALLDATAINFO['status'] == 'A'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['content_id'].'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
                                         <?php elseif($ALLDATAINFO['status'] == 'I' || $ALLDATAINFO['status'] == 'N'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['content_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
                                         <?php endif; ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['content_id'])?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
+                                          <li><a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['_id']->{'$id'})?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
                                        </ul>
                                     </div>
                                   </td>
                                 </tr>
                                 <?php $j++; endforeach; else: ?>
                                  <tr>
-                                  <td colspan="4" style="text-align:center;">No Data Available In Table</td>
+                                  <td colspan="8" style="text-align:center;">No Data Available In Table</td>
                                  </tr>
                                 <?php endif; ?>
                                </tbody>
@@ -165,3 +223,185 @@
         <!-- [ Main Content ] end -->
     </div>
 </div>
+
+<style>
+.sortable-row {
+    cursor: move;
+}
+.sortable-row.ui-sortable-helper {
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.sortable-row.ui-sortable-placeholder {
+    height: 50px;
+    background-color: #e9ecef;
+    border: 2px dashed #6c757d;
+    visibility: visible !important;
+}
+.drag-handle {
+    cursor: move;
+    user-select: none;
+}
+.drag-handle:hover {
+    color: #007bff !important;
+}
+</style>
+
+<script>
+  $(document).ready(function() {
+      // Get the starting serial number from PHP
+      var startSno = <?php echo isset($first) ? $first : 1; ?>;
+      
+      // Function to update S.No. for all rows
+      function updateSerialNumbers() {
+          var rows = $("#sortable-table-body").find('.sortable-row');
+          rows.each(function(index) {
+              $(this).find('.sno-cell').text(startSno + index);
+          });
+      }
+      
+      // Initialize sortable on tbody
+      $("#sortable-table-body").sortable({
+          handle: ".drag-handle",
+          placeholder: "ui-sortable-placeholder",
+          helper: function(e, tr) {
+              var $originals = tr.children();
+              var $helper = tr.clone();
+              $helper.children().each(function(index) {
+                  $(this).width($originals.eq(index).width());
+              });
+              return $helper;
+          },
+          update: function(event, ui) {
+              // Get all rows in new order
+              var rows = $(this).find('.sortable-row');
+              var orderData = [];
+              
+              // Update S.No. immediately for visual feedback
+              updateSerialNumbers();
+              
+              rows.each(function(index) {
+                  var id = $(this).data('id');
+                  var newPosition = index + 1;
+                  orderData.push({
+                      id: id,
+                      position: newPosition
+                  });
+                  // Update the position display
+                  $(this).find('.position-cell').text(newPosition);
+                  $(this).attr('data-position', newPosition);
+              });
+              
+              // Send AJAX request to update positions
+              updatePositions(orderData);
+          }
+      });
+      
+      // Disable text selection on drag handle
+      $('.drag-handle').on('selectstart', function(e) {
+          e.preventDefault();
+          return false;
+      });
+  });
+
+  $('#select-all').on('change', function() {
+      $('.delete-row').prop('checked', $(this).is(':checked'));
+  });
+
+  $(document).on('change', '.delete-row', function() {
+      var totalRows = $('.delete-row').length;
+      var checkedRows = $('.delete-row:checked').length;
+      $('#select-all').prop('checked', totalRows > 0 && totalRows === checkedRows);
+  });
+
+  $('#bulk-delete-btn').on('click', function() {
+      var selectedIds = [];
+      $('.delete-row:checked').each(function() {
+          selectedIds.push($(this).val());
+      });
+
+      if(selectedIds.length === 0) {
+          alert('Please select at least one row to delete.');
+          return;
+      }
+
+      if(!confirm('Do you want to delete ' + selectedIds.length + ' selected item(s)?')) {
+          return;
+      }
+
+      var $btn = $(this);
+      $btn.prop('disabled', true);
+
+      $.ajax({
+          type: 'POST',
+          url: '<?php echo getCurrentControllerPath("bulkdeletedata"); ?>',
+          data: { ids: selectedIds },
+          dataType: 'json',
+          success: function(response) {
+              if(response.status === true) {
+                  window.location.reload();
+              } else {
+                  alert(response.message || 'Failed to delete selected items.');
+                  $btn.prop('disabled', false);
+              }
+          },
+          error: function() {
+              alert('Failed to delete selected items. Please try again.');
+              $btn.prop('disabled', false);
+          }
+      });
+  });
+
+  function updatePositions(orderData) {
+      // Show loading indicator
+      var loadingMsg = $('<div class="alert alert-info" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">Updating order...</div>');
+      $('body').append(loadingMsg);
+      
+      $.ajax({
+          type: 'POST',
+          url: '<?php echo getCurrentControllerPath("settings"); ?>',
+          data: { 
+              order: JSON.stringify(orderData)
+          },
+          success: function(response) {
+              loadingMsg.remove();
+              var result = typeof response === 'string' ? JSON.parse(response) : response;
+              
+              if(result.status === true || result.success === true) {
+                  // Update S.No. after successful API response
+                  var rows = $("#sortable-table-body").find('.sortable-row');
+                  var startSno = <?php echo isset($first) ? $first : 1; ?>;
+                  rows.each(function(index) {
+                      $(this).find('.sno-cell').text(startSno + index);
+                  });
+                  
+                  var successMsg = $('<div class="alert alert-success" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">Order updated successfully!</div>');
+                  $('body').append(successMsg);
+                  setTimeout(function() {
+                      successMsg.fadeOut(function() {
+                          $(this).remove();
+                      });
+                  }, 2000);
+              } else {
+                  var errorMsg = $('<div class="alert alert-danger" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">Failed to update order. Please try again.</div>');
+                  $('body').append(errorMsg);
+                  setTimeout(function() {
+                      errorMsg.fadeOut(function() {
+                          $(this).remove();
+                      });
+                  }, 3000);
+              }
+          },
+          error: function(xhr, status, error) {
+              loadingMsg.remove();
+              var errorMsg = $('<div class="alert alert-danger" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">Error updating order. Please try again.</div>');
+              $('body').append(errorMsg);
+              setTimeout(function() {
+                  errorMsg.fadeOut(function() {
+                      $(this).remove();
+                  });
+              }, 3000);
+          }
+      });
+  }
+</script>

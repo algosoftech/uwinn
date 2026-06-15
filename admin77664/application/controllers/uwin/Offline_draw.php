@@ -166,51 +166,71 @@ class Offline_draw extends CI_Controller {
 	 + + Date 		   : 31 January 2024
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-	function changestatus($changeStatusId='',$statusType='')
-	{  
+	 function changestatus($changeStatusId='',$statusType='')
+	 {  
 		$this->admin_model->authCheck('edit_data');
-		
+
+		$loggedInEMAIL = $this->session->userdata('UW_ADMIN_EMAIL');
+		if($loggedInEMAIL != 'ugesh@debross.com' && $statusType == 'unpaid'){
+		   $this->session->set_flashdata('alert_error',"You Don't have access.");
+		  
+		   redirect(correctLink('CMSTESTIMONIALS',$this->session->userdata('UW_ADMIN_CURRENT_PATH').$this->router->fetch_class().'/index'));
+		}
+
 		$tblName  		   = 'uw_uwin_winner';
-		$WinnerList 	   = $this->common_model->getDataByParticularField($tblName,'voucher_id',(int)$changeStatusId);
+		$WinnerList 	   = $this->common_model->getDataByParticularField($tblName,'_id',new MongoDB\BSON\ObjectId($changeStatusId));
 
  	    $tblName		   = "uw_lotto_orders";
-	    $Fields 		   = array('_id','user_oid');
+	    $Fields 		   = array('_id','user_oid','user_id');
  	    $orderDetails 	   = $this->common_model->getSingleDataByParticularField($Fields,$tblName,'order_id',$WinnerList['order_id']);
-
+		
 		// Data 	  	
 	  	$user_OId 	 = $orderDetails['user_oid']['$oid'];
 	  	$order_oid   = $orderDetails['_id']['$id'];
 	  	$users_id    = $WinnerList['seller_id'];
 
-		$tableName	 	   = "uw_users";
-	    $Fields 	       = array('_id','users_id' ,'availableArabianPoints','redeemed_points');
- 	    $userDetails       = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'users_id',(int)$users_id);
+		$tableName	 = "uw_users";
+	    $Fields 	 = array('_id','users_id' ,'totalArabianPoints','availableArabianPoints','redeemed_points');
+ 	    $userDetails = $this->common_model->getSingleDataByParticularField($Fieldsd,$tableName,'users_id',(int)$users_id);
 
+		if($statusType == "unpaid" && $userDetails['users_type'] == "Users" && $WinnerList['amount'] > $userDetails['availableArabianPoints'] ):
+			$this->session->set_flashdata('alert_error',lang('INSUFFICIENT_BALANCE'). " ( ".$userDetails['availableArabianPoints']." ).");
 
-		if($WinnerList['redeem_status'] != "paid" && empty($WinnerList['redeem_by_mode']) && $statusType == "paid"):
-			$param['redeem_status']     =  "paid";
-			$param['redeem_by_mode']    =  "cash";
-		endif;
-		
-		if($WinnerList['redeem_status'] == "paid" && !empty($WinnerList['redeem_by_mode']) && $statusType == "settle"):
-			
-			$updateParams['redeemed_points'] = (float)$userDetails['redeemed_points']  - (float)$WinnerList['amount'];
-			$updateParams["modified_at"]     = date('Y-m-d H:i');
-			$updateParams['seller_id'] 		 = (int)$users_id;
-			$this->common_model->editData('uw_users', $updateParams, 'users_id', (int)$userDetails['users_id']);
+ 	    elseif($statusType == "unpaid" ):
+ 	    	
+ 	    	//Updated payment
+ 	    	$changeParam['pos_device_id']  = "";
+			$changeParam['redeem_by_mode'] = "";
+			$changeParam['redeem_status']  = "";
+			$changeParam['seller_id']      = "";
+			$changeParam['user_type']      = "";
+			$this->common_model->editData('uw_uwin_winner',$changeParam,'_id',new MongoDB\BSON\ObjectId($changeStatusId));
+ 	    	
+ 	    	//Updated payment status ..
+ 	    	if($userDetails['users_type'] == "Users" && $WinnerList['amount'] <= $userDetails['availableArabianPoints'] ):
+	 	    	$updateParams['totalArabianPoints']     = $userDetails['totalArabianPoints']     - $WinnerList['amount'];
+	 	    	$updateParams['availableArabianPoints'] = $userDetails['availableArabianPoints'] - $WinnerList['amount'];
+	 	    	$this->common_model->editData('uw_users', $updateParams, 'users_id', (int)$userDetails['users_id'] );
+ 	    	endif;
 
-			$param['status']		    =	(int)0;
-			$param['redeem_status']     =	"settled";
-		endif;
+ 	    	$whereCon['where']["order_id"]  = $WinnerList['order_id'];
+ 	    	$whereCon['where']['narration'] = array('$in' => array("Redeem Prize","Redeem Prize Commission","Moved winning Prize" ));
 
+			$tblName     = 'uw_loadBalance';
+ 	    	$shortField  = array('_id' => -1);
+ 	    	$winningData = $this->common_model->getData('single',$tblName,$whereCon,$sort);
 
-		$param['settle_by']			=  "admin";
-		$param['seller_id']			=  $this->session->userdata('UW_ADMIN_ID');
-		$this->common_model->editData('uw_uwin_winner',$param,'voucher_id',(int)$changeStatusId);
+ 	    	if(!empty($winningData)):
+ 	    		$this->common_model->deleteByMultipleCondition($tblName,$whereCon['where']);
+ 	    	endif;
+			$this->session->set_flashdata('alert_success',lang('statussuccess'));
 
+		elseif($WinnerList['redeem_status'] == "paid" && !empty($WinnerList['redeem_by_mode']) && $statusType == "settle"):
 
-		//LoadBalnace capture Code Start...
-		if($statusType == 'settle'):
+			$param['settle_by']			=  "admin";
+			$param['seller_id']			=  $this->session->userdata('UW_ADMIN_ID');
+			$this->common_model->editData('uw_uwin_winner',$param,'_id',new MongoDB\BSON\ObjectId($changeStatusId));
+
 			/* Load Balance Table -- after Sign Up*/
 			$Redeemparam["load_balance_id"]          =   (int)$this->common_model->getNextSequence('uw_loadBalance');
 			$Redeemparam["user_oid"]        	     =   new MongoDB\BSON\ObjectId($user_OId);
@@ -229,13 +249,9 @@ class Offline_draw extends CI_Controller {
 			$Redeemparam["created_by"]         	  	 =   (int)$userDetails['users_id'];
 			$Redeemparam["status"]               	 =   "A";
 			$this->common_model->addData('uw_loadBalance', $Redeemparam);
-		endif;
-		//LoadBalnace capture Code End...
-
-
-		$this->session->set_flashdata('alert_success',lang('statussuccess'));
+ 	    endif;
 		redirect(correctLink('CMSTESTIMONIALS',$this->session->userdata('UW_ADMIN_CURRENT_PATH').$this->router->fetch_class().'/index'));
-	}
+	 }
 
 	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

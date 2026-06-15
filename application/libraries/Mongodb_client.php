@@ -83,4 +83,48 @@ class mongodb_client {
             throw new Exception("Failed to abort transaction: " . $e->getMessage());
         }
     }
+
+    // get document method which returns the document data
+    public function getDocument($action='single', $collectionName, $filter=[], $session=null, $skip=0, $limit=100) {
+        $collection = $this->database->$collectionName;
+        if($action == 'single'):
+            return $collection->findOne($filter, ['session' => $session]);
+        elseif($action == 'multiple'):
+            return $collection->find($filter, ['session' => $session])->skip($skip)->limit($limit);
+        elseif($action == 'count'):
+            return $collection->countDocuments($filter, ['session' => $session]);
+        else:
+            return false;
+        endif;
+    }
+
+
+    // Update document method which returns update result details
+    public function updateDocument($collectionName, $filter, $updateData, $session) {
+        $collection = $this->database->$collectionName;
+
+        try {
+            // Perform the update operation within the transaction session
+            $updateResult = $collection->updateMany(
+                $filter,
+                $updateData,
+                ['session' => $session]
+            );
+
+            // Prepare the result summary
+            $result = [
+                'matchedCount'   => $updateResult->getMatchedCount(),
+                'modifiedCount'  => $updateResult->getModifiedCount(),
+                'upsertedId'     => $updateResult->getUpsertedId(),
+                'success'        => ($updateResult->getModifiedCount() > 0)
+            ];
+
+            return $result;
+
+        } catch (Exception $e) {
+            log_message('error', "Update failed: " . $e->getMessage());
+            throw new Exception("Update failed: " . $e->getMessage());
+        }
+    }
+
 }

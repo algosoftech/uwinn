@@ -39,8 +39,8 @@ class Allcontents extends CI_Controller {
 			$data['searchValue'] 			= 	'';
 		endif;
 		
-		$whereCon['where']		 			= 	array('status'=>'A');	
-		$shortField 						= 	array('content_id'=> -1);
+		$whereCon['where']		 			= 	array();	
+		$shortField 						= 	array('position'=> 1);
 		
 		$baseUrl 							= 	getCurrentControllerPath('index');
 		$this->session->set_userdata('CMSCONTENTS',currentFullUrl());
@@ -88,6 +88,7 @@ class Allcontents extends CI_Controller {
 			$data['noOfContent']			=	'';
 		endif;
 		$data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
+		// echo "<pre>"; print_r($whereCon);die();
 
 		$this->layouts->set_title('All Contents | UWINN');
 		$this->layouts->admin_view('uwin/allcontents/index',array(),$data);
@@ -108,9 +109,29 @@ class Allcontents extends CI_Controller {
 		$data['activeSubMenu'] 				= 	'allcontents';
 	 	
 		
+		$data['EDITDATA'] = array(
+			'content_id' => '',
+			'upload_type' => '',
+			'position' => '',
+			'new_position' => '',
+			'live_date_time' => '',
+			'live_date_time_later' => '',
+			'image' => '',
+			'video' => '',
+			'link_thumbnail' => '',
+			'link_url' => '',
+			'link_title' => '',
+			'game_type' => '',
+			'added_for' => array(),
+			'added_for_top_banner' => array(),
+			'added_for_recent_winners' => array(),
+			'added_for_result_page' => array(),
+			'added_for_winner_gallery' => array(),
+		);
+
 		if($editId):
 			$this->admin_model->authCheck('edit_data');
-			$data['EDITDATA']				=	$this->common_model->getDataByParticularField('uw_contents','content_id',(int)$editId);
+			$data['EDITDATA'] = $this->common_model->getDataByParticularField('uw_contents', '_id', new MongoDB\BSON\ObjectId($editId));
 		else:
 			$this->admin_model->authCheck('add_data');
 		endif;
@@ -119,7 +140,12 @@ class Allcontents extends CI_Controller {
 		    $error					=	'NO';
  
 		 	$this->form_validation->set_rules('added_for[]', 'Added For', 'trim|required');
+		 	$this->form_validation->set_rules('position','Position','trim|required');
+		 	$this->form_validation->set_rules('live_date_time','Live Date Time','trim|required');
+		 	$this->form_validation->set_rules('new_position','New Position','trim');
+		 	$this->form_validation->set_rules('live_date_time_later','Live Date Time','trim');
 		    $upload_type = $this->input->post('upload_type');
+			$originalFileUpdated = false;
 
 		    /* 1 Image Section  Code Start*/
 		    if($upload_type == 'image_section'):
@@ -139,6 +165,8 @@ class Allcontents extends CI_Controller {
 							$this->upload_crop_img->_delete_image(trim($imageName)); 	
 						endif;
 						$param['image']		= 	$uimageLink;
+						$param['original_file_name'] = $ufileName;
+						$originalFileUpdated = true;
 					else:
 						$param['image']		= 	'';
 					endif;
@@ -180,6 +208,8 @@ class Allcontents extends CI_Controller {
 			            $FileName       = $UploadedData['file_name'];
 			            $uimageLink  	= $path.$FileName;
 						$param['video']	= 	$uimageLink;
+						$param['original_file_name'] = $videos['name'];
+						$originalFileUpdated = true;
 	                endif;
 				endif;
 			else:
@@ -213,6 +243,8 @@ class Allcontents extends CI_Controller {
 						$param['link_url']				= $this->input->post('link_url');
 						$param['link_title']			= $this->input->post('link_title');
 						$param['game_type']				= $this->input->post('game_type');
+						$param['original_file_name']	= $ufileName;
+						$originalFileUpdated = true;
 					endif;
 				endif;
 			else:
@@ -228,13 +260,20 @@ class Allcontents extends CI_Controller {
 			endif;
 		    /* 3 Video Section Code End*/
 
-			$param['upload_type']	= $upload_type;
-			$param['added_for']		= $this->input->post('added_for');
-			
-			$param['added_for_top_banner']			= $this->input->post('added_for_top_banner');
-			$param['added_for_result_page']			= $this->input->post('added_for_result_page');
-			$param['added_for_recent_winners']		= $this->input->post('added_for_recent_winners');
-			$param['added_for_winner_gallery']		= $this->input->post('added_for_winner_gallery');
+			if(!$originalFileUpdated && !empty($data['EDITDATA']) && $upload_type != ($data['EDITDATA']['upload_type'] ?? '')):
+				$param['original_file_name'] = '';
+			endif;
+
+			$param['upload_type'] = $upload_type;
+			$param['added_for']	  = $this->input->post('added_for');
+			$param['position']	     = (int)$this->input->post('position');
+			$param['live_date_time'] = strtotime($this->input->post('live_date_time'));
+			$param['new_position']   = (int)$this->input->post('new_position');
+			$param['live_date_time_later']     = strtotime($this->input->post('live_date_time_later'));
+			$param['added_for_top_banner']	   = $this->input->post('added_for_top_banner');
+			$param['added_for_result_page']	   = $this->input->post('added_for_result_page');
+			$param['added_for_recent_winners'] = $this->input->post('added_for_recent_winners');
+			$param['added_for_winner_gallery'] = $this->input->post('added_for_winner_gallery');
 	    	// echo "<pre>";print_r($param);die();
 			
 			if($this->input->post('CurrentDataID') ==''):
@@ -277,7 +316,7 @@ class Allcontents extends CI_Controller {
 	{  
 		$this->admin_model->authCheck('edit_data');
 		$param['status']		=	$statusType;
-		$this->common_model->editData('uw_contents',$param,'content_id',(int)$changeStatusId);
+		$this->common_model->editData('uw_contents',$param,'_id', new MongoDB\BSON\ObjectId($changeStatusId) );
 		$this->session->set_flashdata('alert_success',lang('statussuccess'));
 		redirect(correctLink('CMSCONTENTS',$this->session->userdata('UW_ADMIN_CURRENT_PATH').$this->router->fetch_class().'/index'));
 	}
@@ -292,21 +331,100 @@ class Allcontents extends CI_Controller {
 	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 	function deletedata($deleteId='')
 	{  	
-		if($deleteId):
-			$this->admin_model->authCheck('edit_data');
-			$data			=	$this->common_model->getDataByParticularField('uw_contents','content_id',(int)$deleteId);
-			$imageName = $data['image'];
-			$this->load->library("upload_crop_img");
-			$this->upload_crop_img->_delete_image(trim($imageName)); 
-		endif;
-
 		$this->admin_model->authCheck('delete_data');
-		$this->common_model->deleteData('uw_contents','content_id',(int)$deleteId);
+		if($deleteId):
+			$this->deleteContentById($deleteId);
+		endif;
 		
 		$this->session->set_flashdata('alert_success',lang('deletesuccess'));
 		
 		redirect(correctLink('CMSCONTENTS',$this->session->userdata('UW_ADMIN_CURRENT_PATH').$this->router->fetch_class().'/index'));
-	}	
+	}
+
+	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 + + Function name : bulkdeletedata
+	 + + Developed By  : Dilip Halder
+	 + + Purpose       : Delete multiple contents by selected checkboxes
+	 + + Date          : 14 May 2026
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+	function bulkdeletedata()
+	{
+		$this->admin_model->authCheck('delete_data');
+
+		$ids = $this->input->post('ids');
+		if(empty($ids) || !is_array($ids)):
+			if($this->input->is_ajax_request()):
+				header('Content-Type: application/json');
+				echo json_encode(array('status' => false, 'message' => 'Please select at least one row to delete.'));
+				die;
+			endif;
+			$this->session->set_flashdata('alert_error', 'Please select at least one row to delete.');
+			redirect(correctLink('CMSCONTENTS', $this->session->userdata('UW_ADMIN_CURRENT_PATH').$this->router->fetch_class().'/index'));
+		endif;
+
+		$deletedCount = 0;
+		foreach($ids as $deleteId):
+			$deleteId = trim((string)$deleteId);
+			if($deleteId === ''):
+				continue;
+			endif;
+			if($this->deleteContentById($deleteId)):
+				$deletedCount++;
+			endif;
+		endforeach;
+
+		if($this->input->is_ajax_request()):
+			header('Content-Type: application/json');
+			echo json_encode(array(
+				'status'  => $deletedCount > 0,
+				'message' => $deletedCount > 0 ? $deletedCount.' item(s) deleted successfully.' : 'No items could be deleted.',
+				'count'   => $deletedCount
+			));
+			die;
+		endif;
+
+		if($deletedCount > 0):
+			$this->session->set_flashdata('alert_success', lang('deletesuccess'));
+		else:
+			$this->session->set_flashdata('alert_error', 'No items could be deleted.');
+		endif;
+
+		redirect(correctLink('CMSCONTENTS', $this->session->userdata('UW_ADMIN_CURRENT_PATH').$this->router->fetch_class().'/index'));
+	}
+
+	private function deleteContentById($deleteId='')
+	{
+		if($deleteId === ''):
+			return false;
+		endif;
+
+		try {
+			$objectId = new MongoDB\BSON\ObjectId($deleteId);
+		} catch (Exception $e) {
+			return false;
+		}
+
+		$data = $this->common_model->getDataByParticularField('uw_contents', '_id', $objectId);
+		if(empty($data)):
+			return false;
+		endif;
+
+		$this->load->library('upload_crop_img');
+		if(!empty($data['image'])):
+			$this->upload_crop_img->_delete_image(trim($data['image']));
+		endif;
+		if(!empty($data['link_thumbnail'])):
+			$this->upload_crop_img->_delete_image(trim($data['link_thumbnail']));
+		endif;
+		if(!empty($data['video'])):
+			$this->upload_crop_img->_delete_image(trim($data['video']));
+		endif;
+
+		$this->common_model->deleteData('uw_contents', '_id', $objectId);
+		return true;
+	}
 
 
 	/***********************************************************************
@@ -351,4 +469,39 @@ class Allcontents extends CI_Controller {
         return $randomString . time(); // Append timestamp to avoid collisions
     }
 
-}
+	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 + + Function name 	: settings
+	 + + Developed By 	: Dilip Halder
+	 + + Purpose  		: This function used for Update Order via Drag and Drop
+	 + + Date 			: 25 November 2025
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+	function settings()
+	{  
+		$this->admin_model->authCheck('edit_data');
+		$orderData = json_decode($this->input->post('order'), true);
+		if(empty($orderData) || !is_array($orderData)):
+			echo json_encode(array('status' => false, 'message' => 'Invalid order data'));
+			return;
+		endif;
+		$successCount = 0;
+		foreach($orderData as $item):
+			if(!empty($item['id']) && !empty($item['position'])):
+				$param = array();
+				$param['position'] = (int)$item['position'];
+				$result = $this->common_model->editData('uw_contents',$param,'_id', new MongoDB\BSON\ObjectId($item['id']) );
+				if(!empty($result)):
+					$successCount++;
+				endif;
+			endif;
+		endforeach;
+		
+		if($successCount == count($orderData)):
+			echo json_encode(array('status' => true, 'message' => 'Order updated successfully'));
+		else:
+			echo json_encode(array('status' => false, 'message' => 'Some items could not be updated'));
+		endif;
+	}
+
+} 

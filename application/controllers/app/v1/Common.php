@@ -99,8 +99,8 @@ class Common extends CI_Controller {
 	 * * Updated By 	: Dilip Halder
 	 * * Updated Date 	: 04 October 2024
 	 * * **********************************************************************/
-	public function pageContent()
-	{
+	 public function pageContent()
+	 {
 		$apiHeaderData 		=	getApiHeaderData();
 		$this->generatelogs->putLog('APP',logOutPut($_POST));
 		$result 			= 	array();	
@@ -116,7 +116,6 @@ class Common extends CI_Controller {
             elseif(empty($added_for)):
                 echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_PAGE_NAME'),$result);die();
             else:
-
 
             	if($added_for):
             		$Added_For_Array = explode(',', $added_for);
@@ -147,24 +146,24 @@ class Common extends CI_Controller {
             	if(!empty($Added_for_Data)):
 	        		$whereCon['where']['added_for'] = array('$all' => $Added_for_Data);
             	endif;
-
 	        	if(!empty($added_for_prefix)):
 		        	foreach ($added_for_prefix as $key => $items):
 		        		$whereCon['where'][$items] = array('$all' => $added_for_prefix_data);
 		        	endforeach;
 	        	endif;
-
 	        	if(!empty($upload_type)):
 	        		$whereCon['where']['upload_type'] = $upload_type;
 	        	endif;
-
 	        	$created_date = $this->input->post('created_date');
 	        	if(!empty($created_date)):
 	        		$whereCon['where']['created_date'] = $created_date;
 				endif;
 
-	        	// echo "<pretotalcount>";print_r($whereCon);die();
+				$date = date('Y-m-d H:i');
+				$whereCon['where']['live_date_time'] = array('$lte' =>  strtotime($date) );
 	        	$totalcount	 = $this->common_model->getData('count',$tblName,$whereCon);
+				// echo "<pre>";print_r($totalcount);die();	
+				
 	        	// Sample long array with data
 				$longArray = $totalcount;
 				// Current page number (received from URL query parameter, e.g., ?page=2)
@@ -182,14 +181,31 @@ class Common extends CI_Controller {
 				         $totalpage[] = $i;
 				    }
 				}
-
+				$shortField = array("position" => 1);
 				$startIndex    = ($page - 1) * $itemsPerPage;
 	        	$PageData 	   = $this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$itemsPerPage,$startIndex);
+				// Banner Time update query start..
+				// if(!empty($PageData)):
+				// 	foreach($PageData as $key => $items):
+				// 		$date = date('Y-m-d H:i');
+				// 		if( !empty($items['live_date_time_later']) && strtotime($date) > $items['live_date_time_later']):
+				// 			$param['position'] 		 = $items['new_position'];
+				// 			$param['live_date_time'] = $items['live_date_time_later'];
+				// 			$param['new_position']   	   = "";
+				// 			$param['live_date_time_later'] = "";
+				// 			$param['updated_ip'] 	 = $apiHeaderData['ip'];
+				// 			$param['updated_by'] 	 = $apiHeaderData['user_id'];
+				// 			$this->common_model->editData($tblName, $param ,'_id', new MongoDB\BSON\ObjectId($items['_id']->{'$id'}) );
+				// 		endif;
+				// 	endforeach;
+				// endif;
+				// Banner Time update query end..
+				$PageData 	   = $this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$itemsPerPage,$startIndex);
 			    if(!empty($PageData)):
-			    	$totalpage 				    = count($totalpage);
-			    	$result['current_page']     = $current_page;
-					$result['total_page'] 	    =   $totalpage;
-		    		$result['PageData'] = $PageData;
+			    	$totalpage 				 = count($totalpage);
+			    	$result['current_page']  = $current_page;
+					$result['total_page'] 	 = $totalpage;
+		    		$result['PageData']      = $PageData;
 		        	echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);die();
 			    else:
 					echo outPut(0,lang('FORBIDDEN_CODE'),lang('DATA_NOT_FOUND'),$result);die();
@@ -199,7 +215,108 @@ class Common extends CI_Controller {
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
-	}
+	 }
+	// public function pageContent()
+	// {
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 			= 	array();	
+	// 	if(requestAuthenticate(APIKEY,'POST')):
+	// 		$users_id     = $this->input->post('users_id');
+	// 		$added_for    = $this->input->post('added_for');
+	// 		$itemsPerPage = $this->input->post('itemsPerPage');
+	// 		$pageno 	  = $this->input->post('page');
+
+	// 		$upload_type  = $this->input->post('upload_type');
+	// 		if(empty($users_id)):
+    //             echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
+    //         elseif(empty($added_for)):
+    //             echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_PAGE_NAME'),$result);die();
+    //         else:
+
+
+    //         	if($added_for):
+    //         		$Added_For_Array = explode(',', $added_for);
+    //         		$SortedArray 	 = array_values(array_filter(array_map('trim', $Added_For_Array)));
+    //         		$Added_for_Data  = array_values(array_diff($SortedArray, array("Website", "App","POS")));
+
+    //         		$added_for_prefix = array_map(function($item) {
+	// 				    return 'added_for_'.str_replace(' ', '_', strtolower($item));
+	// 				}, $Added_for_Data);
+
+    //     			$added_for_prefix_data = [];
+    //         		if(isset($SortedArray) &&  in_array('App', $SortedArray)):
+    //     			 	array_push($added_for_prefix_data, 'App');
+    //         		endif;
+    //         		if(isset($SortedArray) &&  in_array('Website', $SortedArray)):
+    // 			 		array_push($added_for_prefix_data, 'Website');
+    //         		endif;
+
+    //         		if(isset($SortedArray) &&  in_array('POS', $SortedArray)):
+    //     			 	array_push($added_for_prefix_data, 'POS');
+    //         		endif;
+
+    //         	endif;
+    //     		//Using these variables to getting datas.  1) SortedArray  2) added_for_prefix_data 3) Added_for_Data
+    //         	$tblName    					= 'uw_contents';
+    //         	$whereCon['where']['status']    = 'A';
+
+    //         	if(!empty($Added_for_Data)):
+	//         		$whereCon['where']['added_for'] = array('$all' => $Added_for_Data);
+    //         	endif;
+
+	//         	if(!empty($added_for_prefix)):
+	// 	        	foreach ($added_for_prefix as $key => $items):
+	// 	        		$whereCon['where'][$items] = array('$all' => $added_for_prefix_data);
+	// 	        	endforeach;
+	//         	endif;
+
+	//         	if(!empty($upload_type)):
+	//         		$whereCon['where']['upload_type'] = $upload_type;
+	//         	endif;
+
+	//         	$created_date = $this->input->post('created_date');
+	//         	if(!empty($created_date)):
+	//         		$whereCon['where']['created_date'] = $created_date;
+	// 			endif;
+
+	//         	// echo "<pretotalcount>";print_r($whereCon);die();
+	//         	$totalcount	 = $this->common_model->getData('count',$tblName,$whereCon);
+	//         	// Sample long array with data
+	// 			$longArray = $totalcount;
+	// 			// Current page number (received from URL query parameter, e.g., ?page=2)
+	// 			$page = isset($pageno) ? (int)$pageno : 1;
+
+	// 			// Calculate total number of pages
+	// 			$totalPages = ceil($longArray / $itemsPerPage);
+	// 			$totalpage= array();
+	// 			// Pagination links
+	// 			for ($i = 1; $i <= $totalPages; $i++) {
+	// 			    if ($i == $page) {
+	// 			         $current_page = $i;
+	// 			         $totalpage[] = $i;
+	// 			    } else {
+	// 			         $totalpage[] = $i;
+	// 			    }
+	// 			}
+
+	// 			$startIndex    = ($page - 1) * $itemsPerPage;
+	//         	$PageData 	   = $this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$itemsPerPage,$startIndex);
+	// 		    if(!empty($PageData)):
+	// 		    	$totalpage 				    = count($totalpage);
+	// 		    	$result['current_page']     = $current_page;
+	// 				$result['total_page'] 	    =   $totalpage;
+	// 	    		$result['PageData'] = $PageData;
+	// 	        	echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);die();
+	// 		    else:
+	// 				echo outPut(0,lang('FORBIDDEN_CODE'),lang('DATA_NOT_FOUND'),$result);die();
+	// 		    endif;
+	// 		endif;
+	// 		echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }
 
 	/* * *********************************************************************
 	 * * Function name  : contactUs
@@ -630,7 +747,7 @@ class Common extends CI_Controller {
 			    $whereCon['where']  = array('users_id' => (int)$usersID );
 				$userDetails 		= $this->common_model->getParticularFieldByMultipleCondition($FieldList,$tableName,$whereCon);
 				// echo "<pre>";print_r($userDetails);die();
-			 	if($userDetails['status'] == 'A' && ( $userDetails['is_verify'] == "Y" || $userDetails['is_varified'] == "Y") ):
+			 	if($userDetails['status'] == 'A'):
 			     	$param['status']     	= "D";
 			     	$param['delete_reason'] = $reason;
 					$param['update_date'] 	= date('Y-m-d H:i:s');

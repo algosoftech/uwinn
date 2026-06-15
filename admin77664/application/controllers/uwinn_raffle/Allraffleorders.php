@@ -260,7 +260,7 @@ class Allraffleorders extends CI_Controller {
 			$refundparam["availableArabianPoints"] 	 =	(float)$UserData['availableArabianPoints'];
 			$refundparam["end_balance"] 			 =	(float)$UserData['availableArabianPoints'] + (float)$cancleOrderData['total_price'];
 		    $refundparam["record_type"] 			 =	'Credit';
-		    $refundparam["narration"]				 =	'Raffle Order Cancalled';
+		    $refundparam["narration"]				 =	'Raffle Order Cancelled';
 		    $refundparam["remarks"]				 =	'Ticket ID : '.$cancleOrderData['order_id'];
 		    $refundparam["creation_ip"] 			 =	$this->input->ip_address();
 		    $refundparam["created_at"] 			 =	date('Y-m-d H:i');

@@ -29,8 +29,8 @@ if (!function_exists('getCurrentBasePath')) {
 if (!function_exists('getCurrentControllerPath')) {
 	function getCurrentControllerPath($postfixUrl=''){
 		$CI =& get_instance();
-		$functionArray 				=	array('index','addeditdata','deletedata','changestatus','imageUpload','imageDelete','deleteContent','memberDelete','viewdata','changedatastatus','getdatabyajax','getCoupon','getAllusers','prizeList','addwinners','winnerlist','exportexcel'); 
-		$baseUrl 					=	getCurrentBasePath();
+$functionArray 				=	array('index','addeditdata','deletedata','changestatus','imageUpload','imageDelete','deleteContent','memberDelete','viewdata','changedatastatus','getdatabyajax','getCoupon','getAllusers','prizeList','addwinners','winnerlist','exportexcel','exportexcelApi','exportshopexcel','exportshopexcelApi','exportshopexcelDownload','combinedexportexcel','combinedexportexcelDownload','combinedexportexcelApi','checkpreview','uploadVoucher'); 
+				$baseUrl 					=	getCurrentBasePath();
 		if(in_array($CI->uri->segment(4),$functionArray)):  
 		    $baseUrl 				=	$baseUrl.$CI->uri->segment(1).'/'.$CI->uri->segment(2).'/'.$CI->uri->segment(3).'/'.$postfixUrl;
 		elseif(in_array($CI->uri->segment(3),$functionArray)):	
@@ -71,7 +71,8 @@ if (!function_exists('showStatus')) {
 								  'CL'=>'<label class="badge badge-light-danger">Cancelled</label>',
 								  'RJ'=>'<label class="badge badge-light-danger">Rejected</label>' ,
 								  'Dlvi'=>'<label class="badge badge-light-success">Delivered</label>', 
-								  'Disp'=>'<label class="badge badge-light-success">Dispatched</label>');
+								  'Disp'=>'<label class="badge badge-light-success">Dispatched</label>',
+								  'Redeemed'=>'<label class="badge badge-light-info">Redeemed</label>');
 								  
 		return $statusArray[$text];
 	}

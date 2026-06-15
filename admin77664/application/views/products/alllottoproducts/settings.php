@@ -239,6 +239,37 @@
                                         </div>
                                     </fieldset>
 
+                                    <fieldset>
+                                        <legend>Choose Colors</legend>
+                                        <div class="row">
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                                                <label for="primary_color">Primary Color</label>
+                                                <input type="color" id="primary_color" name="primary_color" class="form-control" value="<?= isset($EDITDATA['primary_color']) ? $EDITDATA['primary_color'] : '#000000' ?>">
+                                            </div>
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                                                <label for="secondary_color">Secondary Color</label>
+                                                <input type="color" id="secondary_color" name="secondary_color" class="form-control" value="<?= isset($EDITDATA['secondary_color']) ? $EDITDATA['secondary_color'] : '#ffffff' ?>">
+                                            </div>
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                                                <label>Gradient Preview</label>
+                                                <div id="gradient_preview" style="width: 100%; height: 100px; border: 1px solid #ddd; border-radius: 4px; background: linear-gradient(90deg, <?= isset($EDITDATA['primary_color']) ? $EDITDATA['primary_color'] : '#000000' ?>, <?= isset($EDITDATA['secondary_color']) ? $EDITDATA['secondary_color'] : '#ffffff' ?>);"></div>
+                                            </div>
+                                        </div>
+                                        <script>
+                                            // Update gradient preview on color input change
+                                            $(document).ready(function() {
+                                                function updateGradientPreview() {
+                                                    var primary = $("#primary_color").val() || "#000000";
+                                                    var secondary = $("#secondary_color").val() || "#ffffff";
+                                                    $("#gradient_preview").css("background", "linear-gradient(90deg, " + primary + ", " + secondary + ")");
+                                                }
+                                                $("#primary_color, #secondary_color").on('input change', updateGradientPreview);
+                                                updateGradientPreview(); // Initial set
+                                            });
+                                        </script>
+                                    </fieldset>
+
+
                                   </div>
                             </div>      
                                 

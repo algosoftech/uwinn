@@ -27,6 +27,10 @@ class Stripe extends CI_Controller {
 		$result 			= 	array();	
 		if(requestAuthenticate(APIKEY,'POST')):
 
+				echo outPut(1,lang('SUCCESS_CODE'),"Payment gateway under maintenance",$result); die();
+
+
+
 			try {
 				$userID   = $this->input->post('user_id');
 				$currency = $this->input->post('currency');

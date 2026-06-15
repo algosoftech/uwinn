@@ -43,14 +43,21 @@
                         <input type="hidden" name="CurrentDataID" id="CurrentDataID" value="<?=$EDITDATA['sub_category_id']?>"/>
                         <input type="hidden" name="<?php echo $this->security->get_csrf_token_name();?>" value="<?php echo $this->security->get_csrf_hash();?>">
                         <div class="row">
-                      <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('category_id')): ?>error<?php endif; ?>">
+                      <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('category_oid')): ?>error<?php endif; ?>">
                         <label>Category<span class="required">*</span></label>
-                        <?php if(set_value('category_id')): $categoryiddata = explode('_____',set_value('category_id')); $category_id = $categoryiddata[0]; elseif($EDITDATA['category_id']): $category_id = stripslashes($EDITDATA['category_id']); else: $category_id = ''; endif; ?>
-                        <select name="category_id" id="category_id" class="form-control required">
-                          <?php echo $this->admin_model->getProductCategory($category_id); ?>
+                        <?php
+                           $category_oid = '';
+                           if (set_value('category_oid')):
+                              $category_oid = set_value('category_oid');
+                           elseif (!empty($EDITDATA['category_oid']) && isset($EDITDATA['category_oid']->{'$id'})):
+                              $category_oid = $EDITDATA['category_oid']->{'$id'};
+                           endif;
+                        ?>
+                        <select name="category_oid" id="category_oid" class="form-control required">
+                          <?php echo $this->admin_model->getCampaignCategory($category_oid); ?>
                         </select>
-                        <?php if(form_error('category_id')): ?>
-                          <span for="category_id" generated="true" class="help-inline"><?php echo form_error('category_id'); ?></span>
+                        <?php if(form_error('category_oid')): ?>
+                          <span for="category_oid" generated="true" class="help-inline"><?php echo form_error('category_oid'); ?></span>
                         <?php endif; ?>
                       </div>
                       <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('sub_category')): ?>error<?php endif; ?>">

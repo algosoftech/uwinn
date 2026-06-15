@@ -179,13 +179,26 @@ $(function(){
                                   </td>
                                   <td><?=($ALLDATAINFO['status'] == 1 )?showStatus("A"):showStatus("I");?> </td>
                                   <td>
-                                    <?php if($ALLDATAINFO['redeem_status'] == 'paid'): ?>
-                                     <a class="btn btn-sm btn-primary" href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['voucher_id'].'/settle')?>" onClick="return confirm('DO you want to Settle!');" ><i class="fa fa-undo"></i> Settle</a>
-                                    <?php endif; ?>
+                                      <div class="btn-group">
+                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
+                                        <ul class="dropdown-menu" role="menu">
+                                            <?php if($ALLDATAINFO['redeem_status'] == 'paid'): ?>
+                                            <li> 
+                                                 <a class="btn btn-sm " href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/settle')?>" onClick="return confirm('DO you want to Settle!');" ><i class="fa fa-undo"></i> Settle</a>
+                                            </li>
+                                            <li>
+                                              <a class="btn btn-sm " href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/unpaid')?>" onClick="return confirm('Do you want to proceess this request');" ><i class="fa fa-money-bill"></i> Mark As Unpaid</a>
+                                            </li>
+                                            <?php endif; ?>
 
-                                    <?php if($ALLDATAINFO['redeem_status'] == ''): ?>
-                                     <a class="btn btn-sm btn-primary" href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['voucher_id'].'/paid')?>" onClick="return confirm('Do you want to proceess this request');" ><i class="fa fa-money-bill"></i> Pay</a>
-                                    <?php endif; ?>
+                                         <?php if($ALLDATAINFO['redeem_status'] == ''): ?>
+                                          <li>
+                                           <a class="btn btn-sm " href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/paid')?>" onClick="return confirm('Do you want to proceess this request');" ><i class="fa fa-money-bill"></i> Pay</a>
+                                          </li>
+                                          <?php endif; ?>
+                                          
+                                         </ul>
+                                      </div>
                                   </td>
                                 </tr>
                                 <?php $j++; endforeach; else: ?>

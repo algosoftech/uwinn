@@ -121,6 +121,7 @@ class Allsubcategory extends CI_Controller {
 		
 		if($this->input->post('SaveChanges')):
 			$error					=	'NO';
+			$this->form_validation->set_rules('category_oid', 'Category', 'trim|required');
 			$this->form_validation->set_rules('sub_category', 'Sub Category', 'trim');
 			if (empty($_FILES['sub_cat_image']['name'])):
 			    $this->form_validation->set_rules('sub_cat_image', 'Image', 'trim');
@@ -130,10 +131,14 @@ class Allsubcategory extends CI_Controller {
 
 			if($this->form_validation->run() && $error == 'NO'): 
 
-				$categoryData						=	explode('_____',$this->input->post('category_id'));
-				$param['category_id']			= 	(int)$categoryData[0];
-				$param['category_name']		= 	addslashes($categoryData[1]);
-				$param['category_slug']		= 	url_title(strtolower($param['category_name']));
+				$categoryOid = $this->input->post('category_oid');
+				$categoryWhereCon = array();
+				$categoryWhereCon['where'] = array('_id' => new MongoDB\BSON\ObjectId($categoryOid));
+				$categoryInfo = $this->common_model->getData('single', 'uw_category', $categoryWhereCon);
+				$param['category_oid'] = new MongoDB\BSON\ObjectId($categoryOid);
+				$param['category_id'] = isset($categoryInfo['category_id']) ? (int)$categoryInfo['category_id'] : 0;
+				$param['category_name'] = addslashes(isset($categoryInfo['category_name']) ? $categoryInfo['category_name'] : '');
+				$param['category_slug'] = url_title(strtolower($param['category_name']));
 				
 				$param['sub_category']	= 	addslashes($this->input->post('sub_category'));
 				$param['sub_category_slug']	= 	url_title(strtolower($param['sub_category']));

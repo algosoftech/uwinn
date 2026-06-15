@@ -49,20 +49,63 @@ fieldset{
                     <input type="hidden" name="CurrentDataID" id="CurrentDataID" value="<?=$EDITDATA['content_id']?>"/>
                     <input type="hidden" name="<?php echo $this->security->get_csrf_token_name();?>" value="<?php echo $this->security->get_csrf_hash();?>">
 
-                      <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('upload_type')): ?>error<?php endif; ?>">
-                        <label>Upload Type <span class="required">*</span></label>
-                        <select id="upload_type" name="upload_type" class="form-control required">
-                          <option value="">select</option>
-                          <option value="image_section" <?= isset($EDITDATA['upload_type']) && $EDITDATA['upload_type']== 'image_section'? 'selected':'';?>>Image</option>
-                          <option value="video_section" <?= isset($EDITDATA['upload_type']) && $EDITDATA['upload_type']== 'video_section'? 'selected':'';?>>Video</option>
-                          <option value="link_section"  <?= isset($EDITDATA['upload_type']) && $EDITDATA['upload_type']== 'link_section'? 'selected':'';?>>Link</option>
-                        </select>
-                        <?php if(form_error('upload_type')): ?>
-                          <span for="upload_type" generated="true" class="help-inline"><?php echo form_error('upload_type'); ?></span>
-                        <?php endif; ?>
-                      </div>
+                    <div class="form-group-inner col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class='row'>
+                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('upload_type')): ?>error<?php endif; ?>">
+                                <label>Upload Type <span class="required">*</span></label>
+                                <select id="upload_type" name="upload_type" class="form-control required">
+                                <option value="">select</option>
+                                <option value="image_section" <?= isset($EDITDATA['upload_type']) && $EDITDATA['upload_type']== 'image_section'? 'selected':'';?>>Image</option>
+                                <option value="video_section" <?= isset($EDITDATA['upload_type']) && $EDITDATA['upload_type']== 'video_section'? 'selected':'';?>>Video</option>
+                                <option value="link_section"  <?= isset($EDITDATA['upload_type']) && $EDITDATA['upload_type']== 'link_section'? 'selected':'';?>>Link</option>
+                                </select>
+                                <?php if(form_error('upload_type')): ?>
+                                <span for="upload_type" generated="true" class="help-inline"><?php echo form_error('upload_type'); ?></span>
+                                <?php endif; ?>
+                            </div>
+                             
+                        </div>
 
-                      <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image_section contetnt-section <?= $EDITDATA['upload_type'] != 'image_section'? 'd-none':'';?>">
+                        <div class="row">
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('position')): ?>error<?php endif; ?>">
+                            <label>Position (Current )<span class="required">*</span></label>
+                            <input type="number" name="position" id="position" class="form-control required" value="<?php if(set_value('position')): echo set_value('position'); else: echo stripslashes($EDITDATA['position']);endif; ?>" placeholder="Position">
+                            <?php if(form_error('position')): ?>
+                            <span for="position" generated="true" class="help-inline"><?php echo form_error('position'); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('live_date_time')): ?>error<?php endif; ?>">
+                            <label> Lauching Date & Time<span class="required">*</span></label>
+                            <input type="datetime-local" name="live_date_time" id="live_date_time" class="form-control required" value="<?php if(set_value('live_date_time')): echo set_value('live_date_time'); else: echo $EDITDATA['live_date_time'] ? date('Y-m-d H:i',$EDITDATA['live_date_time']) : date('Y-m-d H:i') ;endif; ?>" placeholder="live_date_time">
+                            <?php if(form_error('live_date_time')): ?>
+                            <span for="live_date_time" generated="true" class="help-inline"><?php echo form_error('live_date_time'); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                         <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('new_position')): ?>error<?php endif; ?>">
+                            <label>New Position ( Later )</label>
+                            <input type="number" name="new_position" id="new_position" class="form-control" value="<?php if(set_value('new_position')): echo set_value('new_position'); else: echo stripslashes($EDITDATA['new_position']);endif; ?>" placeholder="Position Later">
+                            <?php if(form_error('new_position')): ?>
+                            <span for="new_position" generated="true" class="help-inline"><?php echo form_error('new_position'); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('live_date_time_later')): ?>error<?php endif; ?>">
+                            <label> Lauching Date & Time ( Later)</label>
+                            <input type="datetime-local" name="live_date_time_later" id="live_date_time_later" class="form-control" value="<?php if(set_value('live_date_time_later')): echo set_value('live_date_time_later'); else: echo $EDITDATA['live_date_time_later'] ? date('Y-m-d H:i', $EDITDATA['live_date_time_later']) : date('Y-m-d H:i') ;endif; ?>" placeholder="live_date_time_later">
+                            <?php if(form_error('live_date_time_later')): ?>
+                            <span for="live_date_time_later" generated="true" class="help-inline"><?php echo form_error('live_date_time_later'); ?></span>
+                            <?php endif; ?>
+                        </div>
+                       
+                    </div>
+
+
+                        
+                    </div>
+                     
+                    <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image_section contetnt-section <?= $EDITDATA['upload_type'] != 'image_section'? 'd-none':'';?>">
                         <legend>Image Section</legend>
                         <div class="row">
                           <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('image')): ?>error<?php endif; ?>">
@@ -77,9 +120,8 @@ fieldset{
                             <?php endif; ?>
                           </div>
                         </div>
-                      </fieldset>
-
-                      <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12 video_section contetnt-section <?= $EDITDATA['upload_type'] != 'video_section'? 'd-none':'';?>">
+                    </fieldset>
+                    <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12 video_section contetnt-section <?= $EDITDATA['upload_type'] != 'video_section'? 'd-none':'';?>">
                         <legend>Video Section</legend>
                         <div class="row">
                           <!-- <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('video')): ?>error<?php endif; ?>">
@@ -111,9 +153,8 @@ fieldset{
                               <?php endif; ?>
                           </div>
                         </div>
-                      </fieldset>
-
-                      <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12 link_section contetnt-section <?= $EDITDATA['upload_type'] != 'link_section'? 'd-none':'';?>">
+                    </fieldset>
+                    <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12 link_section contetnt-section <?= $EDITDATA['upload_type'] != 'link_section'? 'd-none':'';?>">
                         <legend>Link section</legend>
                         <div class="row">
                           <!-- URL Link -->
@@ -154,10 +195,8 @@ fieldset{
                               <span for="link_thumbnail" generated="true" class="help-inline"><?php echo form_error('link_thumbnail'); ?></span>
                               <?php endif; ?>
                           </div>
-
                         </div>
-                      </fieldset>
-
+                    </fieldset>
                     <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <legend>Top Banner</legend>
                         <div class="row">
@@ -187,8 +226,6 @@ fieldset{
                             </div>
                         </div>
                     </fieldset>
-
-
                     <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <legend>Recent Winners</legend>
                         <div class="row">
@@ -218,7 +255,6 @@ fieldset{
                             </div>
                         </div>
                     </fieldset>
-
                     <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <legend>Result Page</legend>
                         <div class="row">
@@ -248,7 +284,6 @@ fieldset{
                             </div>
                         </div>
                     </fieldset>
-
                     <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <legend>Winner Gallery</legend>
                         <div class="row">
@@ -278,7 +313,6 @@ fieldset{
                             </div>
                         </div>
                     </fieldset>
-
                     <div class="login-btn-inner col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="inline-remember-me mt-4">
                             <input type="hidden" name="SaveChanges" id="SaveChanges" value="Yes">

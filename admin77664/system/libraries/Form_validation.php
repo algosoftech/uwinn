@@ -1122,7 +1122,18 @@ class CI_Form_validation {
 		//	? ($this->CI->db->limit(1)->get_where($table, array($field => $str))->num_rows() === 0)
 		//	: FALSE;
 
-		if($this->CI->input->post('user_id')):	
+		$wherenef	=	'';
+		$wherenev	=	'';
+
+		if($this->CI->input->post('current_user_id')):	
+
+			$str		=	str_replace(' ','',trim($str));
+			$str		=	($dataType=='integer')?(int)$str:$str;
+			$where		=	array($field=>$str);
+			$wherenef	=	'users_id';
+			$wherenev	=	(int)$this->CI->input->post('current_user_id');
+
+		elseif($this->CI->input->post('user_id')):	
 
 			$str		=	str_replace(' ','',trim($str));
 			$str		=	($dataType=='integer')?(int)$str:$str;
@@ -1168,7 +1179,7 @@ class CI_Form_validation {
 				$where	=	array($field=>$str);
 			endif;
 		endif;
-		
+
 		if(isset($this->CI->mongo_db)):
 			$this->CI->mongo_db->select('*');
 			$this->CI->mongo_db->where($where);

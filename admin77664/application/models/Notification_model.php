@@ -126,7 +126,7 @@ class Notification_model extends CI_Model
 			$NDparams['is_read']					=	"N";
 			$NDparams['sound']						=	"Coin";
 			$NDparams['creation_ip']				=	$this->input->ip_address();
-			$NDparams['creation_date']				=	strtotime(date('Y-m-d H:i'));
+			$NDparams['creation_date']				=	(int)$this->timezone->utc_time();
 			$NDparams['created_by']					=	(int)$this->session->userdata('UW_ADMIN_ID');
 			$NDparams['status']						=	'A';
 			$this->common_model->addData('uw_notifications_details', $NDparams);
@@ -149,4 +149,48 @@ class Notification_model extends CI_Model
 			$response   			=  $this->notification_model->sendNotificationToMultipleUserFunction($device_id,$message,$data,$deviceType); 
 		endif;
 	} // End of function
+
+	public function backgroundInsert() {
+        // $creationDate = date('Y-m-d H:i:s');
+		$creationDate = (int) gmdate("U");
+
+        // Fetch all users
+        $whereCon = ['where' => ['users_type' => 'Users']];
+        $recipients = $this->common_model->getDataByNewQuery(['users_id', 'device_id'], 'multiple', 'uw_users', $whereCon);
+		$wcon = ['where' => ['broadcast_type' => 'all']];
+    	$shortField = ['notification_id' => -1];
+    	$result = $this->common_model->getData('single', 'uw_notifications', $wcon, $shortField, 1, 0);
+		if(empty($recipients)) return false;
+
+        $bulkInsert = [];
+        foreach ($recipients as $r) {
+            $bulkInsert[] = [
+                'notification_details_id' => (int)$this->common_model->getNextSequence('uw_notifications_details'),
+                'users_id' => $r['users_id'],
+                'notification_id' => $result['notification_id'],
+                'notific_title' => $result['notific_title'],
+                'notific_message' => $result['notific_message'],
+                'link' => '',
+                'image' => '',
+                'is_read' => 'N',
+                'creation_ip' => $result['creation_ip'],
+                'creation_date' => $creationDate,
+                'created_by' => $result['created_by'],
+                'status' => 'A',
+                'push_status' => 1,
+                'broadcast_type' => 'all',
+				'show_on' => 'android'
+            ];
+        }
+
+        // Chunk insert for performance
+        $chunks = array_chunk($bulkInsert, 1000);
+        foreach($chunks as $chunk){
+            $this->mongo_db->batch_insert('uw_notifications_details', $chunk);
+        }
+
+        // Optional log
+        file_put_contents(FCPATH.'background_insert.log', "[".date('Y-m-d H:i:s')."] Inserted ".count($bulkInsert)." notifications\n", FILE_APPEND);
+        return true;
+    }
 }	

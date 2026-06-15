@@ -48,11 +48,55 @@ class Emailsendgrid_model extends CI_Model
 
 		try {
 			if(!empty($to) && !empty($otp)):
- 				$html     = "Your 4 digit OTP is ".$otp.'.';
- 				$subject  = "OTP Verification";
- 				$curl = curl_init();
+ 				// $html     = "Your 4 digit OTP is ".$otp.'.';
+ 				// $subject  = "OTP Verification";
+ 				// $curl = curl_init();
+				// curl_setopt_array($curl, array(
+				//   CURLOPT_URL => 'https://api.mailjet.com/v3.1/send',
+				//   CURLOPT_RETURNTRANSFER => true,
+				//   CURLOPT_ENCODING => '',
+				//   CURLOPT_MAXREDIRS => 10,
+				//   CURLOPT_TIMEOUT => 0,
+				//   CURLOPT_FOLLOWLOCATION => true,
+				//   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+				//   CURLOPT_CUSTOMREQUEST => 'POST',
+				//   CURLOPT_POSTFIELDS =>'{
+				// 		"Messages":[
+				// 			{
+				// 				"From": {
+				// 						"Email": "info@u-winn.com",
+				// 						"Name": "Uwinn"
+				// 				},
+				// 				"To": [
+				// 						{
+				// 						  "Email": "'.$to.'"
+				// 						}
+				// 				],
+				// 				"Subject" : "'.$subject.'",
+				// 				"TextPart": "'.$html.'",
+				// 				"HTMLPart": "'.$html.'"
+				// 			}
+				// 		]
+				// 	}',
+				//   CURLOPT_HTTPHEADER => array(
+				//     'Content-Type: application/json',
+				//     'Authorization: Basic '.MAILJET
+				//   ),
+				// ));
+				// $response = curl_exec($curl);
+				// curl_close($curl);
+				// $result   = json_decode($response ,true);
+				// if(!empty($result['Messages'][0]['Status']) && $result['Messages'][0]['Status'] != 'success'):
+				// 	throw new Exception("Email not send", 1);
+				// elseif($result['StatusCode'] == 400):
+				// 	throw new Exception("Email not send", 1);
+				// endif;
+				
+				$subject  = "OTP Verification";
+				$html     = "<p>Your 4 digit OTP is $otp .</p>";
+				$curl = curl_init();
 				curl_setopt_array($curl, array(
-				  CURLOPT_URL => 'https://api.mailjet.com/v3.1/send',
+				  CURLOPT_URL => 'https://api.brevo.com/v3/smtp/email',
 				  CURLOPT_RETURNTRANSFER => true,
 				  CURLOPT_ENCODING => '',
 				  CURLOPT_MAXREDIRS => 10,
@@ -61,36 +105,29 @@ class Emailsendgrid_model extends CI_Model
 				  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 				  CURLOPT_CUSTOMREQUEST => 'POST',
 				  CURLOPT_POSTFIELDS =>'{
-						"Messages":[
-							{
-								"From": {
-										"Email": "info@u-winn.com",
-										"Name": "Uwinn"
-								},
-								"To": [
-										{
-										  "Email": "'.$to.'"
-										}
-								],
-								"Subject" : "'.$subject.'",
-								"TextPart": "'.$html.'",
-								"HTMLPart": "'.$html.'"
-							}
-						]
-					}',
+				    "sender": {
+				      "name": "u-winn",
+				      "email": "info@u-winn.com"
+				    },
+				    "to": [
+				      { "email": "'.$to.'"}
+				    ],
+				    "subject"     : "'.$subject.'",
+				    "htmlContent" : "'.$html.'"
+				  }',
 				  CURLOPT_HTTPHEADER => array(
-				    'Content-Type: application/json',
-				    'Authorization: Basic '.MAILJET
+				    'accept: application/json',
+				    'api-key: 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',
+				    'content-type: application/json'
 				  ),
 				));
 				$response = curl_exec($curl);
 				curl_close($curl);
 				$result   = json_decode($response ,true);
-				if(!empty($result['Messages'][0]['Status']) && $result['Messages'][0]['Status'] != 'success'):
-					throw new Exception("Email not send", 1);
-				elseif($result['StatusCode'] == 400):
+				if(!empty($result['code']) && $result['code'] == 'unauthorized'):
 					throw new Exception("Email not send", 1);
 				endif;
+
 			else:
 				throw new Exception("Email not send", 1);
 			endif; 
@@ -137,11 +174,55 @@ class Emailsendgrid_model extends CI_Model
 
 		try {
 			if(!empty($to) && !empty($otp)):
-				$html     = "Your OTP is ".$otp.".";
+				// $html     = "Your OTP is ".$otp.".";
+				// $subject  = "OTP Verification";
+				// $curl = curl_init();
+				// curl_setopt_array($curl, array(
+				//   CURLOPT_URL => 'https://api.mailjet.com/v3.1/send',
+				//   CURLOPT_RETURNTRANSFER => true,
+				//   CURLOPT_ENCODING => '',
+				//   CURLOPT_MAXREDIRS => 10,
+				//   CURLOPT_TIMEOUT => 0,
+				//   CURLOPT_FOLLOWLOCATION => true,
+				//   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+				//   CURLOPT_CUSTOMREQUEST => 'POST',
+				//   CURLOPT_POSTFIELDS =>'{
+				// 		"Messages":[
+				// 			{
+				// 				"From": {
+				// 						"Email": "info@u-winn.com",
+				// 						"Name": "Uwinn"
+				// 				},
+				// 				"To": [
+				// 						{
+				// 						  "Email": "'.$to.'"
+				// 						}
+				// 				],
+				// 				"Subject" : "'.$subject.'",
+				// 				"TextPart": "'.$html.'",
+				// 				"HTMLPart": "'.$html.'"
+				// 			}
+				// 		]
+				// 	}',
+				//   CURLOPT_HTTPHEADER => array(
+				//     'Content-Type: application/json',
+				//     'Authorization: Basic '.MAILJET
+				//   ),
+				// ));
+				// $response = curl_exec($curl);
+				// curl_close($curl);
+				// $result   = json_decode($response ,true);
+				// if(!empty($result['Messages'][0]['Status']) && $result['Messages'][0]['Status'] != 'success'):
+				// 	throw new Exception("Email not send", 1);
+				// elseif($result['StatusCode'] == 400):
+				// 	throw new Exception("Email not send", 1);
+				// endif;
+
 				$subject  = "OTP Verification";
+				$html     = "<p>Your OTP is $otp.</p>";
 				$curl = curl_init();
 				curl_setopt_array($curl, array(
-				  CURLOPT_URL => 'https://api.mailjet.com/v3.1/send',
+				  CURLOPT_URL => 'https://api.brevo.com/v3/smtp/email',
 				  CURLOPT_RETURNTRANSFER => true,
 				  CURLOPT_ENCODING => '',
 				  CURLOPT_MAXREDIRS => 10,
@@ -150,36 +231,30 @@ class Emailsendgrid_model extends CI_Model
 				  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 				  CURLOPT_CUSTOMREQUEST => 'POST',
 				  CURLOPT_POSTFIELDS =>'{
-						"Messages":[
-							{
-								"From": {
-										"Email": "info@u-winn.com",
-										"Name": "Uwinn"
-								},
-								"To": [
-										{
-										  "Email": "'.$to.'"
-										}
-								],
-								"Subject" : "'.$subject.'",
-								"TextPart": "'.$html.'",
-								"HTMLPart": "'.$html.'"
-							}
-						]
-					}',
+				    "sender": {
+				      "name": "u-winn",
+				      "email": "info@u-winn.com"
+				    },
+				    "to": [
+				      { "email": "'.$to.'"}
+				    ],
+				    "subject"     : "'.$subject.'",
+				    "htmlContent" : "'.$html.'"
+				  }',
 				  CURLOPT_HTTPHEADER => array(
-				    'Content-Type: application/json',
-				    'Authorization: Basic '.MAILJET
+				    'accept: application/json',
+				    'api-key: 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',
+				    'content-type: application/json'
 				  ),
 				));
 				$response = curl_exec($curl);
 				curl_close($curl);
 				$result   = json_decode($response ,true);
-				if(!empty($result['Messages'][0]['Status']) && $result['Messages'][0]['Status'] != 'success'):
-					throw new Exception("Email not send", 1);
-				elseif($result['StatusCode'] == 400):
+				if(!empty($result['code']) && $result['code'] == 'unauthorized'):
 					throw new Exception("Email not send", 1);
 				endif;
+
+				
 			else:
 				throw new Exception("Email not send", 1);
 			endif; 
@@ -228,11 +303,55 @@ class Emailsendgrid_model extends CI_Model
 		$to = $to['users_email'];
 		try {
 			if(!empty($to)):
- 				$subject  = "Password Reset successfully";
- 				$html = "Your password reset successfully.";
- 				$curl = curl_init();
+ 				// $subject  = "Password Reset successfully";
+ 				// $html = "Your password reset successfully.";
+ 				// $curl = curl_init();
+				// curl_setopt_array($curl, array(
+				//   CURLOPT_URL => 'https://api.mailjet.com/v3.1/send',
+				//   CURLOPT_RETURNTRANSFER => true,
+				//   CURLOPT_ENCODING => '',
+				//   CURLOPT_MAXREDIRS => 10,
+				//   CURLOPT_TIMEOUT => 0,
+				//   CURLOPT_FOLLOWLOCATION => true,
+				//   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+				//   CURLOPT_CUSTOMREQUEST => 'POST',
+				//   CURLOPT_POSTFIELDS =>'{
+				// 		"Messages":[
+				// 			{
+				// 				"From": {
+				// 						"Email": "info@u-winn.com",
+				// 						"Name": "Uwinn"
+				// 				},
+				// 				"To": [
+				// 						{
+				// 						  "Email": "'.$to.'"
+				// 						}
+				// 				],
+				// 				"Subject" : "'.$subject.'",
+				// 				"TextPart": "'.$html.'",
+				// 				"HTMLPart": "'.$html.'"
+				// 			}
+				// 		]
+				// 	}',
+				//   CURLOPT_HTTPHEADER => array(
+				//     'Content-Type: application/json',
+				//     'Authorization: Basic '.MAILJET
+				//   ),
+				// ));
+				// $response = curl_exec($curl);
+				// curl_close($curl);
+				// $result   = json_decode($response ,true);
+				// if(!empty($result['Messages'][0]['Status']) && $result['Messages'][0]['Status'] != 'success'):
+				// 	throw new Exception("Email not send", 1);
+				// elseif($result['StatusCode'] == 400):
+				// 	throw new Exception("Email not send", 1);
+				// endif;
+
+				$subject  = "Password Reset successfully";
+				$html     = "<p>Your password reset successfully.</p>";
+				$curl     = curl_init();
 				curl_setopt_array($curl, array(
-				  CURLOPT_URL => 'https://api.mailjet.com/v3.1/send',
+				  CURLOPT_URL => 'https://api.brevo.com/v3/smtp/email',
 				  CURLOPT_RETURNTRANSFER => true,
 				  CURLOPT_ENCODING => '',
 				  CURLOPT_MAXREDIRS => 10,
@@ -241,34 +360,26 @@ class Emailsendgrid_model extends CI_Model
 				  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 				  CURLOPT_CUSTOMREQUEST => 'POST',
 				  CURLOPT_POSTFIELDS =>'{
-						"Messages":[
-							{
-								"From": {
-										"Email": "info@u-winn.com",
-										"Name": "Uwinn"
-								},
-								"To": [
-										{
-										  "Email": "'.$to.'"
-										}
-								],
-								"Subject" : "'.$subject.'",
-								"TextPart": "'.$html.'",
-								"HTMLPart": "'.$html.'"
-							}
-						]
-					}',
+				    "sender": {
+				      "name": "u-winn",
+				      "email": "info@u-winn.com"
+				    },
+				    "to": [
+				      { "email": "'.$to.'"}
+				    ],
+				    "subject"     : "'.$subject.'",
+				    "htmlContent" : "'.$html.'"
+				  }',
 				  CURLOPT_HTTPHEADER => array(
-				    'Content-Type: application/json',
-				    'Authorization: Basic '.MAILJET
+				    'accept: application/json',
+				    'api-key: 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',
+				    'content-type: application/json'
 				  ),
 				));
 				$response = curl_exec($curl);
 				curl_close($curl);
 				$result   = json_decode($response ,true);
-				if(!empty($result['Messages'][0]['Status']) && $result['Messages'][0]['Status'] != 'success'):
-					throw new Exception("Email not send", 1);
-				elseif($result['StatusCode'] == 400):
+				if(!empty($result['code']) && $result['code'] == 'unauthorized'):
 					throw new Exception("Email not send", 1);
 				endif;
 			else:
@@ -322,11 +433,55 @@ class Emailsendgrid_model extends CI_Model
 		try {
 			if(!empty($to)):
 
- 				$subject  = "Password Reset successfully";
- 				$html = "Your account verified successfully.";
- 				$curl = curl_init();
+ 				// $subject  = "Password Reset successfully";
+ 				// $html = "Your account verified successfully.";
+ 				// $curl = curl_init();
+				// curl_setopt_array($curl, array(
+				//   CURLOPT_URL => 'https://api.mailjet.com/v3.1/send',
+				//   CURLOPT_RETURNTRANSFER => true,
+				//   CURLOPT_ENCODING => '',
+				//   CURLOPT_MAXREDIRS => 10,
+				//   CURLOPT_TIMEOUT => 0,
+				//   CURLOPT_FOLLOWLOCATION => true,
+				//   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+				//   CURLOPT_CUSTOMREQUEST => 'POST',
+				//   CURLOPT_POSTFIELDS =>'{
+				// 		"Messages":[
+				// 			{
+				// 				"From": {
+				// 						"Email": "info@u-winn.com",
+				// 						"Name": "Uwinn"
+				// 				},
+				// 				"To": [
+				// 						{
+				// 						  "Email": "'.$to.'"
+				// 						}
+				// 				],
+				// 				"Subject" : "'.$subject.'",
+				// 				"TextPart": "'.$html.'",
+				// 				"HTMLPart": "'.$html.'"
+				// 			}
+				// 		]
+				// 	}',
+				//   CURLOPT_HTTPHEADER => array(
+				//     'Content-Type: application/json',
+				//     'Authorization: Basic '.MAILJET
+				//   ),
+				// ));
+				// $response = curl_exec($curl);
+				// curl_close($curl);
+				// $result   = json_decode($response ,true);
+				// if(!empty($result['Messages'][0]['Status']) && $result['Messages'][0]['Status'] != 'success'):
+				// 	throw new Exception("Email not send", 1);
+				// elseif($result['StatusCode'] == 400):
+				// 	throw new Exception("Email not send", 1);
+				// endif;
+
+				$subject  = "Password Reset successfully";
+				$html     = "<p>Your account verified successfully.</p>";
+				$curl = curl_init();
 				curl_setopt_array($curl, array(
-				  CURLOPT_URL => 'https://api.mailjet.com/v3.1/send',
+				  CURLOPT_URL => 'https://api.brevo.com/v3/smtp/email',
 				  CURLOPT_RETURNTRANSFER => true,
 				  CURLOPT_ENCODING => '',
 				  CURLOPT_MAXREDIRS => 10,
@@ -335,36 +490,29 @@ class Emailsendgrid_model extends CI_Model
 				  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 				  CURLOPT_CUSTOMREQUEST => 'POST',
 				  CURLOPT_POSTFIELDS =>'{
-						"Messages":[
-							{
-								"From": {
-										"Email": "info@u-winn.com",
-										"Name": "Uwinn"
-								},
-								"To": [
-										{
-										  "Email": "'.$to.'"
-										}
-								],
-								"Subject" : "'.$subject.'",
-								"TextPart": "'.$html.'",
-								"HTMLPart": "'.$html.'"
-							}
-						]
-					}',
+				    "sender": {
+				      "name": "u-winn",
+				      "email": "info@u-winn.com"
+				    },
+				    "to": [
+				      { "email": "'.$to.'"}
+				    ],
+				    "subject"     : "'.$subject.'",
+				    "htmlContent" : "'.$html.'"
+				  }',
 				  CURLOPT_HTTPHEADER => array(
-				    'Content-Type: application/json',
-				    'Authorization: Basic '.MAILJET
+				    'accept: application/json',
+				    'api-key: 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',
+				    'content-type: application/json'
 				  ),
 				));
 				$response = curl_exec($curl);
 				curl_close($curl);
 				$result   = json_decode($response ,true);
-				if(!empty($result['Messages'][0]['Status']) && $result['Messages'][0]['Status'] != 'success'):
-					throw new Exception("Email not send", 1);
-				elseif($result['StatusCode'] == 400):
+				if(!empty($result['code']) && $result['code'] == 'unauthorized'):
 					throw new Exception("Email not send", 1);
 				endif;
+
 			else:
 				throw new Exception("Email not send", 1);
 			endif; 
@@ -373,6 +521,59 @@ class Emailsendgrid_model extends CI_Model
 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
 		}
 
+	} 
+
+	/***********************************************************************
+	** Function name : sendEmail
+	** Developed By  : Dilip Halder
+	** Purpose  	 : This is send email.
+	** Date 		 : 27 January 2026
+	************************************************************************/
+	function sendEmail($to='',$subject= "",$msg="")
+	{	
+		try {
+			if(!empty($to) && !empty($subject) && !empty($msg)):
+				$curl = curl_init();
+				curl_setopt_array($curl, array(
+				  CURLOPT_URL => 'https://api.brevo.com/v3/smtp/email',
+				  CURLOPT_RETURNTRANSFER => true,
+				  CURLOPT_ENCODING => '',
+				  CURLOPT_MAXREDIRS => 10,
+				  CURLOPT_TIMEOUT => 0,
+				  CURLOPT_FOLLOWLOCATION => true,
+				  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+				  CURLOPT_CUSTOMREQUEST => 'POST',
+				  CURLOPT_POSTFIELDS =>'{
+				    "sender": {
+				      "name": "u-winn",
+				      "email": "info@u-winn.com"
+				    },
+				    "to": [
+				      { "email": "'.$to.'"}
+				    ],
+				    "subject"     : "'.$subject.'",
+				    "htmlContent" : "'.$msg.'"
+				  }',
+				  CURLOPT_HTTPHEADER => array(
+				    'accept: application/json',
+				    'api-key: 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',
+				    'content-type: application/json'
+				  ),
+				));
+				$response = curl_exec($curl);
+				curl_close($curl);
+				$result   = json_decode($response ,true);
+				if(!empty($result['code']) && $result['code'] == 'unauthorized'):
+					throw new Exception("Email not send", 1);
+				endif;
+
+			else:
+				throw new Exception("Email not send", 1);
+			endif; 
+			
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+		}
 	} 
 }	
 ?>

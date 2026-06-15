@@ -1,11 +1,40 @@
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<?php
+// Initialize variables to prevent undefined variable errors
+$forAction = $forAction ?? '';
+$searchField = $searchField ?? '';
+$searchValue = $searchValue ?? '';
+$fromDate = $fromDate ?? '';
+$toDate = $toDate ?? '';
+$ALLPRODUCT = $ALLPRODUCT ?? array();
+$productIds = $productIds ?? array();
+$ALLHOURLYGAME = $ALLHOURLYGAME ?? array();
+$hourlyGameIds = $hourlyGameIds ?? array();
+$HourReport = $HourReport ?? array();
+$searchMode = $searchMode ?? 'default';
+$j = 0;
+
+$formatReportTime = function($value, $format = 'd-m-Y H:i') {
+  if ($value === null || $value === '') {
+    return '';
+  }
+  if (is_numeric($value)) {
+    return date($format, (int)$value);
+  }
+  $time = strtotime((string)$value);
+  if ($time === false) {
+    return (string)$value;
+  }
+  return date($format, $time);
+};
+?>
 <style type="text/css">
    /*.d-card-body {
    overflow-y: auto;
    height: 300px;
    }*/
-   #container {
+   #container { 
    height: 400px;
    }
    .highcharts-figure, .highcharts-data-table table {
@@ -69,6 +98,7 @@
               </div>
               <div class="card-body">
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
+                  <input type="hidden" name="activeFilterType" id="activeFilterType" value="">
                   <div class="dt-responsive table-responsive">
                     <div id="simpletable_wrapper" class="dataTables_wrapper dt-bootstrap4">
                       <div class="dt-responsive table-responsive">
@@ -94,38 +124,143 @@
                             <div class="col-sm-6 col-md-6">
                                 <div class="row" >
                                   <div class="col-sm-12 col-md-4">
-                                    <input type="datetime-local" name="fromDate" id="fromDate" autocomplete="off" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
+                                    <input type="datetime-local" name="fromDate" id="fromDate" step="1" autocomplete="off" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
                                   </div>
                                   <div class="col-sm-12 col-md-4">
-                                    <input type="datetime-local" name="toDate" id="toDate" autocomplete="off" value="<?php echo $toDate; ?>" class="form-control form-control-sm" placeholder="To Date">
+                                    <input type="datetime-local" name="toDate" id="toDate" step="1" autocomplete="off" value="<?php echo $toDate; ?>" class="form-control form-control-sm  mr-2" placeholder="To Date">
                                   </div>
-                                  <div class="col-sm-12 col-md-4">
-                                    <input type="submit" name="Search" value="Search" class="btn btn-sm btn-primary">
+                                  <div class="col-sm-12 col-md-1">
+                                    <input type="submit" name="Search" value="Search" class="btn btn-sm btn-primary ">
+                                  </div>
+                                  <div class="col-sm-12 col-md-3 mr">
+                                    <input type="button" name="clearAllSearch" id="clearAllSearch" value="Clear All Search" class="btn btn-sm btn-primary pull-right">
                                   </div>
                                 </div>
                             </div>
+                            <div class="col-sm-12 col-md-6">
+                              <fieldset>
+                                <legend>Product List</legend>
+                                <div class="row mt-2 draw-time-group">
+                                  <?php if(!empty($ALLPRODUCT)): foreach($ALLPRODUCT as $ALLPRODUCTINFO): ?>
+                                    <?php
+                                      $productValidUptoDate = trim((string)($ALLPRODUCTINFO['validuptodate'] ?? ($ALLPRODUCTINFO['valid_upto_date'] ?? '')));
+                                      $productValidUptoTime = trim((string)($ALLPRODUCTINFO['validuptotime'] ?? ($ALLPRODUCTINFO['valid_upto_time'] ?? '')));
+                                      $productValidUpto = '';
+
+                                      if($productValidUptoDate !== '' && $productValidUptoTime !== ''):
+                                        // Normalize dd-mm-yyyy to yyyy-mm-dd before combining with time.
+                                        if(preg_match('/^\d{2}-\d{2}-\d{4}$/', $productValidUptoDate)):
+                                          $dateParts = explode('-', $productValidUptoDate);
+                                          $productValidUptoDate = $dateParts[2] . '-' . $dateParts[1] . '-' . $dateParts[0];
+                                        endif;
+                                        $combinedValidUptoTs = strtotime($productValidUptoDate . ' ' . $productValidUptoTime);
+                                        if($combinedValidUptoTs !== false):
+                                          $productValidUpto = date('Y-m-d\TH:i', $combinedValidUptoTs);
+                                        endif;
+                                      endif;
+
+                                      // Fallback for old schemas where one datetime field is saved.
+                                      if($productValidUpto === ''):
+                                        $fallbackKeys = array('valid_upto', 'expiry_date', 'end_date');
+                                        foreach($fallbackKeys as $fallbackKey):
+                                          if(!empty($ALLPRODUCTINFO[$fallbackKey])):
+                                            $rawFallback = $ALLPRODUCTINFO[$fallbackKey];
+                                            if(is_numeric($rawFallback)):
+                                              $productValidUpto = date('Y-m-d\TH:i', (int)$rawFallback);
+                                            else:
+                                              $fallbackTs = strtotime((string)$rawFallback);
+                                              if($fallbackTs !== false):
+                                                $productValidUpto = date('Y-m-d\TH:i', $fallbackTs);
+                                              endif;
+                                            endif;
+                                            if($productValidUpto !== ''):
+                                              break;
+                                            endif;
+                                          endif;
+                                        endforeach;
+                                      endif;
+                                    ?>
+                                    <div class="col-sm-12 col-md-6">
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="productIds[]" data-draw-time="<?=$ALLPRODUCTINFO['draw_time']?>" data-valid-upto="<?=$productValidUpto?>" value="<?=$ALLPRODUCTINFO['products_id']?>"
+                                         <?php if(!empty($productIds) && in_array($ALLPRODUCTINFO['products_id'], $productIds)) echo 'checked'; ?> id="<?=$ALLPRODUCTINFO['products_id']?>
+                                        ">
+
+                                        <label class="form-check-label" for="<?=$ALLPRODUCTINFO['products_id']?>"><?=$ALLPRODUCTINFO['title']?> ( <?=$ALLPRODUCTINFO['draw_time']?> ) </label>
+                                      </div>
+                                    </div>
+                                  <?php endforeach; endif; ?>
+                                 
+                                </div>
+                              </fieldset>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                              <fieldset>
+                                <legend>Hourly Game List</legend>
+                                <div class="row mt-2 hourly-game-group">
+                                  <?php if(!empty($ALLHOURLYGAME)): foreach($ALLHOURLYGAME as $HOURLYINFO): ?>
+                                    <?php
+                                      $hourlyId = (int)($HOURLYINFO['products_id'] ?? 0);
+                                      $startDate = !empty($HOURLYINFO['start_date']) ? date('Y-m-d\TH:i', (int)$HOURLYINFO['start_date']) : '';
+                                      $endDate = !empty($HOURLYINFO['expiry_date']) ? date('Y-m-d\TH:i', (int)$HOURLYINFO['expiry_date']) : '';
+                                    ?>
+                                    <div class="col-sm-12 col-md-6">
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="hourlyGameIds[]" value="<?=$hourlyId?>"
+                                          data-start-date="<?=$startDate?>" data-end-date="<?=$endDate?>"
+                                          <?php if(!empty($hourlyGameIds) && in_array($hourlyId, $hourlyGameIds)) echo 'checked'; ?>
+                                          id="hourly_<?=$hourlyId?>">
+                                        <label class="form-check-label" for="hourly_<?=$hourlyId?>">
+                                          <?=stripslashes($HOURLYINFO['title'] ?? '')?>
+                                        </label>
+                                      </div>
+                                    </div>
+                                  <?php endforeach; endif; ?>
+                                </div>
+                              </fieldset>
+                            </div>
+
                           </div>
                         </div>
                       </div>
 
 
                     <?php  
-                     $sales =0;
+                     $sales = 0;
+                     $total_order = 0;
+                     $total_winning_amount = 0;
                      $ReportRecord = array();
+                     $ArrayHeading = array();
+                     
                      foreach ($HourReport as $key1 => $Report):
-                      foreach ($Report as $key2 => $ReportItems):
+                      if(is_array($Report)):
+                        foreach ($Report as $key2 => $ReportItems):
+                          if(is_array($ReportItems)):
                             $ReportRecord[] = $ReportItems;
-                            $sales          += $ReportItems['sales'];
-                            $total_order    += $ReportItems['total_order'];
-                      endforeach;
+                            $sales          += $ReportItems['sales'] ?? 0;
+                            $total_order    += $ReportItems['total_order'] ?? 0;
+                            $total_winning_amount += $ReportItems['winning_amount'] ?? 0;
+                          endif;
+                        endforeach;
+                      endif;
                      endforeach;
                      
                      foreach ($HourReport as $key1 => $Report):
-                      foreach ($Report as $key2 => $ArrayHeading):
-                            $ArrayHeading = array_keys($ArrayHeading);    
-                      endforeach;
+                      if(is_array($Report)):
+                        foreach ($Report as $key2 => $ReportItems):
+                          if(is_array($ReportItems) && !empty($ReportItems)):
+                            $ArrayHeading = array_keys($ReportItems);
+                            break 2; // Break out of both loops once we get the keys
+                          endif;
+                        endforeach;
+                      endif;
                      endforeach;
-                     $ArrayHeading = str_replace('_', ' ',  $ArrayHeading);
+                     
+                     if(!empty($ArrayHeading)):
+                       $ArrayHeading = array_map(function($item) {
+                         return str_replace('_', ' ', $item);
+                       }, $ArrayHeading);
+                     endif;
                     ?>
 
                       <div class="row">
@@ -144,8 +279,8 @@
                                     <?php 
                                         foreach ($ReportRecord as $key => $item): ?>
                                           <tr>
-                                              <th><?php echo date('H:i', strtotime($item['start_time'])) .' - '.date('H:i', strtotime($item['end_time'])) ;?></th>
-                                              <td><?php echo $item['sales'];?></td>
+                                              <th><?php echo isset($item['start_time']) ? $formatReportTime($item['start_time'], 'H:i') : ''; ?> <?php echo (isset($item['start_time']) && isset($item['end_time'])) ? ' - ' : ''; ?> <?php echo isset($item['end_time']) ? $formatReportTime($item['end_time'], 'H:i') : ''; ?></th>
+                                              <td><?php echo $item['sales'] ?? 0;?></td>
                                           </tr>
                                           <?php endforeach; ?>
                                   </tbody>
@@ -157,17 +292,23 @@
 
                       <div class="row">
                         <div class="col-sm-12 col-md-12 col-lg-12">
-                          <table id="simpletable" class="table table-striped table-bordered nowrap dataTable w-25" role="grid" aria-describedby="simpletable_info">
+                          <table id="simpletable" class="table table-striped table-bordered nowrap dataTable <?php echo ($searchMode === 'hourly') ? 'w-50' : 'w-25'; ?>" role="grid" aria-describedby="simpletable_info">
                             <thead style="text-align: center;">
                               <tr role="row">
                                 <th width="5%">Total Orders</th>
                                 <th width="5%">Total Sales</th>
+                                <?php if($searchMode === 'hourly'): ?>
+                                <th width="5%">Total Winning Amount</th>
+                                <?php endif; ?>
                               </tr>
                             </thead>
                             <tbody style="text-align: center;">
                               <tr>
                                 <td><?=$total_order; ?></td>
                                 <td><?=$sales; ?></td>
+                                <?php if($searchMode === 'hourly'): ?>
+                                <td><?=$total_winning_amount; ?></td>
+                                <?php endif; ?>
                               </tr>
                             </tbody>
                           </table>
@@ -185,13 +326,19 @@
                                   </tr>
                                 </thead>
                                 <tbody style="text-align: center;">
-                                  <?php if($ReportRecord <> ""): foreach($ReportRecord as $listKey=>  $ALLDATAINFO): ?>
+                                  <?php if(!empty($ReportRecord)): foreach($ReportRecord as $listKey=>  $ALLDATAINFO): ?>
                                     <tr>
-                                      <?php if($j%2==0): $rowClass = 'odd';   else: $rowClass = 'even'; endif; ?>
+                                      <?php if($j%2==0): $rowClass = 'odd';   else: $rowClass = 'even'; endif; $j++; ?>
                                       <?php foreach($ALLDATAINFO as $listKey => $item): ?>
                                         <?php if($listKey != '_id'): ?>
                                           <td>
-                                            <?=$item;?>
+                                            <?php
+                                              if (in_array($listKey, array('start_time', 'end_time', 'start_date', 'expiry_date', 'created_at'), true)) {
+                                                echo $formatReportTime($item);
+                                              } else {
+                                                echo $item ?? '';
+                                              }
+                                            ?>
                                           </td>
                                         <?php endif; ?>
                                       <?php endforeach; ?>
@@ -245,4 +392,180 @@
       }
     }
    });
+
+
+  function resetDateRangeToDefault() {
+    let fromDate = "<?= date('Y-m-d', strtotime('-1 day')) . 'T22:01'; ?>";
+    let toDate   = "<?= date('Y-m-d') . 'T22:00'; ?>";
+    $('#fromDate').val(fromDate);
+    $('#toDate').val(toDate);
+  }
+
+  function getTimePart(value) {
+    if (!value) return '';
+    if (value.indexOf('T') > -1) return value.split('T')[1].slice(0, 5);
+    if (value.indexOf(' ') > -1) return value.split(' ')[1].slice(0, 5);
+    return value.slice(0, 5);
+  }
+
+  function pad2(value) {
+    return value < 10 ? '0' + value : '' + value;
+  }
+
+  function formatDateTimeLocal(dateObj) {
+    return dateObj.getFullYear() + '-' +
+      pad2(dateObj.getMonth() + 1) + '-' +
+      pad2(dateObj.getDate()) + 'T' +
+      pad2(dateObj.getHours()) + ':' +
+      pad2(dateObj.getMinutes());
+  }
+
+  function applyProductDateRangeByDrawTime(drawTime, validUpto) {
+    if (!drawTime || drawTime.indexOf(':') === -1) return;
+
+    var parts = drawTime.split(':');
+    var drawHour = parseInt(parts[0], 10);
+    var drawMinute = parseInt(parts[1], 10);
+    if (isNaN(drawHour) || isNaN(drawMinute)) return;
+
+    var toDate = null;
+    if (validUpto) {
+      var validUptoValue = (validUpto + '').replace(' ', 'T');
+      var parsedValidUpto = new Date(validUptoValue);
+      if (!isNaN(parsedValidUpto.getTime())) {
+        toDate = parsedValidUpto;
+      }
+    }
+
+    if (!toDate) {
+      var now = new Date();
+      toDate = new Date();
+      toDate.setHours(drawHour, drawMinute, 0, 0);
+      // Fallback for products where valid upto fields are unavailable.
+      if (now.getTime() < toDate.getTime()) {
+        toDate.setDate(toDate.getDate() - 1);
+      }
+    }
+
+    var fromDate = new Date(toDate.getTime());
+    fromDate.setDate(fromDate.getDate() - 1);
+    fromDate.setMinutes(fromDate.getMinutes() + 1);
+
+    $('#fromDate').val(formatDateTimeLocal(fromDate)).trigger('change');
+    $('#toDate').val(formatDateTimeLocal(toDate)).trigger('change');
+  }
+
+  function applyProductDrawTimeLock() {
+    var $checkedProducts = $('input[name="productIds[]"]:checked');
+    var $productChecks = $('input[name="productIds[]"]');
+    var $hourlyChecks = $('input[name="hourlyGameIds[]"]');
+
+    if ($checkedProducts.length === 0) {
+      $productChecks.prop('disabled', false);
+      $hourlyChecks.prop('disabled', false);
+      return;
+    }
+
+    $('#activeFilterType').val('product');
+    var selectedDrawTime = ($checkedProducts.first().attr('data-draw-time') || '').trim();
+
+    // In product mode, only same draw-time products can be selected together.
+    $productChecks.each(function() {
+      var rowDrawTime = (($(this).attr('data-draw-time') || '') + '').trim();
+      var isSameDrawTime = selectedDrawTime !== '' && rowDrawTime === selectedDrawTime;
+      $(this).prop('disabled', !isSameDrawTime);
+    });
+
+    // Hourly checkboxes stay disabled while product filter is active.
+    $hourlyChecks.prop('checked', false).prop('disabled', true);
+  }
+
+  $(document).on('change', 'input[name="productIds[]"], input[name="hourlyGameIds[]"]', function() {
+    var isHourly = $(this).attr('name') === 'hourlyGameIds[]';
+    var $allChecks = $('input[name="productIds[]"], input[name="hourlyGameIds[]"]');
+    var $checkedOthers = $allChecks.not(this).filter(':checked');
+
+    if (!$(this).is(':checked')) {
+      if ($('input[name="productIds[]"]:checked, input[name="hourlyGameIds[]"]:checked').length === 0) {
+        $allChecks.prop('disabled', false);
+        resetDateRangeToDefault();
+        $('input[name="productIds[]"]').closest('.col-sm-12.col-md-6').show();
+        $('input[name="productIds[]"]').prop('disabled', false).prop('checked', false);
+      }
+      return;
+    }
+
+    if (isHourly) {
+      $('#activeFilterType').val('hourly');
+      var startDate = $(this).attr('data-start-date') || '';
+      var endDate = $(this).attr('data-end-date') || '';
+
+      if (startDate.indexOf(' ') > -1) startDate = startDate.replace(' ', 'T');
+      if (endDate.indexOf(' ') > -1) endDate = endDate.replace(' ', 'T');
+
+      if (startDate && endDate) {
+        $('#fromDate').val(startDate).trigger('change');
+        $('#toDate').val(endDate).trigger('change');
+      }
+
+      // Hourly mode: do not use product selection in search.
+      $('input[name="productIds[]"]').prop('checked', false).prop('disabled', true);
+
+      // Allow multiple hourly selections only when start/end window is same.
+      var selectedStart = getTimePart(startDate);
+      var selectedEnd = getTimePart(endDate);
+      $('input[name="hourlyGameIds[]"]').each(function() {
+        var rowStart = getTimePart($(this).attr('data-start-date') || '');
+        var rowEnd = getTimePart($(this).attr('data-end-date') || '');
+        var isSameWindow = (rowStart === selectedStart && rowEnd === selectedEnd);
+        $(this).prop('disabled', !isSameWindow);
+      });
+
+      // Keep all products visible but disabled in hourly mode.
+      var matchTime = getTimePart(endDate) || getTimePart(startDate);
+      var $productChecks = $('input[name="productIds[]"]');
+      if (matchTime) {
+        $productChecks.prop('checked', false).prop('disabled', true);
+        $productChecks.each(function() {
+          var $row = $(this).closest('.col-sm-12.col-md-6');
+          $row.show();
+        });
+      }
+    } else {
+      $('#activeFilterType').val('product');
+      applyProductDrawTimeLock();
+      let drawTime  = $(this).attr('data-draw-time');
+      let validUpto = $(this).attr('data-valid-upto') || '';
+      if (drawTime) {
+        applyProductDateRangeByDrawTime(drawTime, validUpto);
+      } else if (!$('#fromDate').val() && !$('#toDate').val()) {
+        resetDateRangeToDefault();
+      }
+    }
+  });
+
+$(document).on('click', '#clearAllSearch', function() { // clear all search button click event  
+  try {
+
+    console.log('clearAllSearch');
+
+    $('input[name="productIds[]"], input[name="hourlyGameIds[]"]').prop('checked', false).prop('disabled', false);
+    $('#activeFilterType').val('');
+    $('input[name="productIds[]"]').closest('.col-sm-12.col-md-6').show();
+    $('input[type="datetime-local"]').val('');
+    console.log('clearAllSearch');
+  } catch (error) {
+    console.log('erro : ', error);
+  }
+}); // end of change event
+
+$(function() {
+  var hasSelectedDateRange = !!($('#fromDate').val() || $('#toDate').val());
+  var $checked = $('input[name="productIds[]"]:checked, input[name="hourlyGameIds[]"]:checked').first();
+  // On reload, keep user-selected date range intact.
+  if ($checked.length && !hasSelectedDateRange) {
+    $checked.data('force-select', 1).trigger('change').removeData('force-select');
+  }
+});
+
 </script>

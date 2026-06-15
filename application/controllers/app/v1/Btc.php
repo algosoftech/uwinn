@@ -20,7 +20,7 @@ class Btc extends CI_Controller {
         $this->user_agent       =   $_SERVER['HTTP_USER_AGENT'];
         $this->request_url      =   $_SERVER['REDIRECT_URL'];
         $this->method_name      =   $_SERVER['REDIRECT_QUERY_STRING'];
-
+		$this->load->library('mongodb_client');
         $this->load->library('generatelogs',array('type'=>'common'));
     } 
 
@@ -712,119 +712,269 @@ class Btc extends CI_Controller {
 	 * * Date          : 24 February 2025
 	 * * **********************************************************************/
 	public function moveToWallet()
-	{	
-		$apiHeaderData 		=	getApiHeaderData();
-		$this->generatelogs->putLog('APP',logOutPut($_POST));
-		$result 							= 	array();	
-		if(requestAuthenticate(APIKEY,'POST')):
-			
-			/* Added post variable getting from post request */
-			$userID       = $this->input->post('users_id');
-			$orderID      = $this->input->post('order_id');
-			$redeemStatus = $this->input->post('redeem_status');
-			$redeemByMode = $this->input->post('redeem_by_mode');
+	{
 
-			/* Added conditions to prevent empty required post datas. */ 
-			if(empty($userID)){
-				echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);
-			}elseif(empty($orderID)){
-				echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);
+	    $result = [];
+
+	    if (!requestAuthenticate(APIKEY, 'POST')) {
+	        echo outPut(0, lang('FORBIDDEN_CODE'), lang('FORBIDDEN_MSG'), $result);
+	        return;
+	    }
+
+	    try {
+			/*===============================
+				POST DATA
+			=============================== */
+			$userID        = (int)$this->input->post('users_id');
+			$orderID       = trim($this->input->post('order_id'));
+			$redeemStatus  = $this->input->post('redeem_status');
+			$redeemByMode  = $this->input->post('redeem_by_mode');
+
+			if (empty($userID)) {
+				echo outPut(0, lang('SUCCESS_CODE'), lang('USER_ID_EMPTY'), $result);
+				return;
+			}elseif (empty($orderID)) {
+				echo outPut(0, lang('SUCCESS_CODE'), lang('ORDER_ID_EMPTY'), $result);
+				return;
 			}else{
-					
-				/* Start function main section*/
-				try {
 
-					/* Checked User Validation */
-					$requestFrom 	  = "app";
-					$validationResult = $this->common_model->userValidate($userID,$requestFrom);
-					
-					// Checking coupon in collection.
-					$tableName 			= "uw_uwin_winner";
-					$whereCon['where']  = array('order_id' => $orderID , 'status' => (int)1 );
-				 	$WinnerList 	    = $this->common_model->getData( 'multiple',$tableName,$whereCon );
-					
-					if(!empty($WinnerList)):
+				/*===============================
+					USER VALIDATION
+				=============================== */
+				$this->common_model->userValidate($userID, 'app');
 
-						$tableName	  = "uw_users";
-					    $Fields 	  = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit','totalArabianPoints');
-				 	    $userDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'users_id',(int)$userID);
-				 	    // if(!empty($userDetails['redeeming_amount_limit'])):
-				 	   	// 	$redeeming_amount_limit =  $userDetails['redeeming_amount_limit']; 
-				 	    // else:
-				 	   	// 	$redeeming_amount_limit =  999; 
-				 	    // endif;
+				/* ===============================
+					FETCH WINNER DATA
+				=============================== */
+				$winnerWhere['where']['order_id'] = $orderID;
+				$winnerWhere['where']['status']   = 1;
+				$WinnerList  = $this->common_model->getData( 'multiple', 'uw_uwin_winner', $winnerWhere );
+				if (empty($WinnerList)) {
+					echo outPut(0, lang('SUCCESS_CODE'), lang('ORDER_ID_EMPTY'), $result);
+					return;
+				}else{
 
-				 	    $totalPrizeAmount    = 0;
-					 	foreach ($WinnerList as $key => $items) :
-					 	 $totalPrizeAmount   = $totalPrizeAmount+ $items['amount'];
-						 	if(!empty($items['redeem_status']) && $items['redeem_status'] == 'paid'):
-						 		echo outPut(0,lang('SUCCESS_CODE'),lang('ALREADY_REDEEM'),$result);die();
-						 	endif;
-						 	// if((int)$totalPrizeAmount >= $redeeming_amount_limit &&  $users_id != 100000000000110 ):
-						 	// 	echo outPut(0,lang('SUCCESS_CODE'),lang('BIG_WINNER_TEXT'),$result);die();
-						 	// endif;
-					 	endforeach;
+					/*===============================
+							FETCH USER DATA
+					=============================== */
+					$Fields = [ '_id', 'users_id', 'availableArabianPoints', 'totalArabianPoints','status' ];
+					$userDetails = $this->common_model ->getSingleDataByParticularField( $Fields, 'uw_users', 'users_id', $userID );
+					if(empty($userDetails)) {
+						throw new Exception('User not found');
+					}elseif($userDetails['status'] != "A") {
+						throw new Exception('ACCOUNT_INACIVE');
+					}else{
 
-					 	if($WinnerList):
-						 	$updateParams['redeem_status'] 	= $redeemStatus;
-							$updateParams['redeem_by_mode'] = $redeemByMode;
-							$updateParams["modified_at"]    = date('Y-m-d H:i');
-							$updateParams['seller_id'] 		= (int)$userID;
-							$updateParams['created_ip'] 	= currentIp();
-							$WInnner_whereCon   = array('order_id' => $orderID, 'status' => (int)'1','redeem_status' => array('$ne' => 'paid') );
-							$winnerRedeemResult = $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $updateParams,$WInnner_whereCon);
+						/*===============================
+							CALCULATE TOTAL PRIZE
+						=============================== */
+
+						$totalPrizeAmount = 0;
+
+						foreach ($WinnerList as $item) {
+							if (!empty($item['redeem_status']) && $item['redeem_status'] === 'paid') {
+								echo outPut(0, lang('SUCCESS_CODE'), lang('ALREADY_REDEEM'), $result);
+								return;
+							}
+							$totalPrizeAmount += (float)$item['amount'];
+						}
+
+						/* ===============================
+							START MONGODB TRANSACTION
+						=============================== */
+						$this->session->sess_regenerate();
+						$session = $this->mongodb_client->client->startSession();
+						$session->startTransaction();
+
+						/* ===============================
+							UPDATE WINNER STATUS
+						=============================== */
+
+						$winnerParam['redeem_status']  = $redeemStatus;
+						$winnerParam['redeem_by_mode'] = $redeemByMode;
+						$winnerParam['modified_at']    = date('Y-m-d H:i');
+						$winnerParam['seller_id']      = $userID;
+						$winnerParam['created_ip']     = currentIp();
+						
+						$winnerCondition['order_id']      = $orderID;
+						$winnerCondition['status']        = (int)1;
+						$winnerCondition['redeem_status'] = array('$ne' => 'paid');
 							
-							if($winnerRedeemResult > 0 ):
-								//Credting user's winning prize amount to users account.
-								$userParam['totalArabianPoints']      = (float)$userDetails['totalArabianPoints']      + $totalPrizeAmount;
-								$userParam['availableArabianPoints']  = (float) $userDetails['availableArabianPoints'] + $totalPrizeAmount;
-								$userParam["update_date"]    		  = date('Y-m-d H:i');
-								$userResult = $this->common_model->editData('uw_users', $userParam,'users_id',(int)$userID);
+						$tblName      = "uw_uwin_winner" ;
+						$winnerResult = $this->mongodb_client->updateDocument($tblName,$winnerCondition,['$set' => $winnerParam], $session );
+						/*1 query*/ 
+						
+						//Credting user's winning prize amount to users account.
+						$userParam['totalArabianPoints']      = (float)$userDetails['totalArabianPoints']      + $totalPrizeAmount;
+						$userParam['availableArabianPoints']  = (float) $userDetails['availableArabianPoints'] + $totalPrizeAmount;
+						$userParam["update_date"]    		  = date('Y-m-d H:i');
 
-								if(!empty($userResult)):
-									/* Load Balance Table -- after Sign Up*/
-									$Redeemparam["load_balance_id"]          =   (int)$this->geneal_model->getNextSequence('uw_loadBalance');
-									$Redeemparam["user_oid"]        	     =   new MongoDB\BSON\ObjectId($userDetails['_id']['$id']);
-									// $Redeemparam["order_oid"]       		 =   new MongoDB\BSON\ObjectId($order_oid);
-									$Redeemparam["order_id"]       		     =   $orderID;
-									$Redeemparam["product_id"]       		 =   (int)$productID;
-									$Redeemparam["user_id_deb"]              =   (int)0;
-									$Redeemparam["user_id_cred"]             =   (int)$userID;
-									$Redeemparam["upoints"]       		     =   (float)$totalPrizeAmount;
-									$Redeemparam["record_type"]              =   'Credit';
-									$Redeemparam["narration"]  			     =   'Moved winning Prize';
-									$Redeemparam["remarks"]  			     =   "Prize for ( ".$orderID." ) transferred to wallet.";
-									$Redeemparam["availableArabianPoints"] 	 =   (float)$userDetails['availableArabianPoints'];
-									$Redeemparam["end_balance"] 		 	 =   (float)$userDetails['availableArabianPoints']+$totalPrizeAmount;
-									$Redeemparam["creation_ip"]         	 =   currentIp();
-									$Redeemparam["created_at"]          	 =   date('Y-m-d H:i');
-									$Redeemparam["created_by"]         	  	 =   (int)$userID;
-									$Redeemparam["status"]               	 =   "A";
-									$this->geneal_model->addData('uw_loadBalance', $Redeemparam);
-									$result = array('payment_date' => date('Y-m-d H:i'));
-							  	 	echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die();
-						  	 	else:
-							  	 	echo outPut(1,lang('SUCCESS_CODE'),lang('BALANCE_TRANSERFER_EORROR'),$result);die();
-								endif;
+						//User balance updating..
+						$userWhere  = array('users_id' => (int)$userID);
+						$tblName    = "uw_users";
+						$userResult = $this->mongodb_client->updateDocument($tblName,$userWhere,['$set' => $userParam], $session);
+						/*2 query*/ 
+						
+						/* Load Balance Table -- after Sign Up*/
+						$Redeemparam["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+						$Redeemparam["user_oid"]        	     = new MongoDB\BSON\ObjectId($userDetails['_id']['$id']);
+						$Redeemparam["order_id"]       		     = $orderID;
+						$Redeemparam["product_id"]       		 = (int)$productID;
+						$Redeemparam["user_id_deb"]              = (int)0;
+						$Redeemparam["user_id_cred"]             = (int)$userID;
+						$Redeemparam["upoints"]       		     = (float)$totalPrizeAmount;
+						$Redeemparam["record_type"]              = 'Credit';
+						$Redeemparam["narration"]  			     = 'Moved winning Prize';
+						$Redeemparam["remarks"]  			     = "Prize for ( ".$orderID." ) transferred to wallet.";
+						$Redeemparam["availableArabianPoints"] 	 = (float)$userDetails['availableArabianPoints'];
+						$Redeemparam["end_balance"] 		 	 = (float)$userDetails['availableArabianPoints']+$totalPrizeAmount;
+						$Redeemparam["creation_ip"]         	 = currentIp();
+						$Redeemparam["created_at"]          	 = date('Y-m-d H:i');
+						$Redeemparam["created_by"]         	  	 = (int)$userID;
+						$Redeemparam["status"]               	 = "A";
+						$orderInsertID  = $this->mongodb_client->insertDocument('uw_loadBalance', $Redeemparam, $session);	
+						/*3 query*/ 
 
-							else:
-								echo outPut(0,lang('SUCCESS_CODE'),lang('ALREADY_REDEEM'),$result);
-							endif;
+						/* ===============================
+							COMMIT TRANSACTION
+						=============================== */
+						$session->commitTransaction();
+						$result = array('payment_date' => date('Y-m-d H:i'));
+						echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die();
 
-					 	endif;
-					else:
-						echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);
-					endif;
-
-				} catch (Exception $e) {
-        			echo outPut(0, lang('SUCCESS_CODE'), lang('ERROR_OCCURRED'), $e->getMessage());
+					}
 				}
-
 			}
-		else:
-			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
-		endif;
+
+	    } catch (Throwable $e) {
+
+	        if (isset($session)) {
+	            $session->abortTransaction();
+	        }
+
+	        echo outPut(
+	            0,
+	            lang('SUCCESS_CODE'),
+	            lang('ERROR_OCCURRED'),
+	            ['error' => $e->getMessage()]
+	        );
+	    }
 	}
+    
+	//  public function moveToWallet()
+	// {	
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 							= 	array();	
+	// 	if(requestAuthenticate(APIKEY,'POST')):
+			
+	// 		/* Added post variable getting from post request */
+	// 		$userID       = $this->input->post('users_id');
+	// 		$orderID      = $this->input->post('order_id');
+	// 		$redeemStatus = $this->input->post('redeem_status');
+	// 		$redeemByMode = $this->input->post('redeem_by_mode');
+
+	// 		/* Added conditions to prevent empty required post datas. */ 
+	// 		if(empty($userID)){
+	// 			echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);
+	// 		}elseif(empty($orderID)){
+	// 			echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);
+	// 		}else{
+					
+	// 			/* Start function main section*/
+	// 			try {
+
+	// 				/* Checked User Validation */
+	// 				$requestFrom 	  = "app";
+	// 				$validationResult = $this->common_model->userValidate($userID,$requestFrom);
+					
+	// 				// Checking coupon in collection.
+	// 				$tableName 			= "uw_uwin_winner";
+	// 				$whereCon['where']  = array('order_id' => $orderID , 'status' => (int)1 );
+	// 			 	$WinnerList 	    = $this->common_model->getData( 'multiple',$tableName,$whereCon );
+					
+	// 				if(!empty($WinnerList)):
+
+	// 					$tableName	  = "uw_users";
+	// 				    $Fields 	  = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit','totalArabianPoints');
+	// 			 	    $userDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'users_id',(int)$userID);
+	// 			 	    // if(!empty($userDetails['redeeming_amount_limit'])):
+	// 			 	   	// 	$redeeming_amount_limit =  $userDetails['redeeming_amount_limit']; 
+	// 			 	    // else:
+	// 			 	   	// 	$redeeming_amount_limit =  999; 
+	// 			 	    // endif;
+
+	// 			 	    $totalPrizeAmount    = 0;
+	// 				 	foreach ($WinnerList as $key => $items) :
+	// 				 	 $totalPrizeAmount   = $totalPrizeAmount+ $items['amount'];
+	// 					 	if(!empty($items['redeem_status']) && $items['redeem_status'] == 'paid'):
+	// 					 		echo outPut(0,lang('SUCCESS_CODE'),lang('ALREADY_REDEEM'),$result);die();
+	// 					 	endif;
+	// 					 	// if((int)$totalPrizeAmount >= $redeeming_amount_limit &&  $users_id != 100000000000110 ):
+	// 					 	// 	echo outPut(0,lang('SUCCESS_CODE'),lang('BIG_WINNER_TEXT'),$result);die();
+	// 					 	// endif;
+	// 				 	endforeach;
+
+	// 				 	if($WinnerList):
+	// 					 	$updateParams['redeem_status'] 	= $redeemStatus;
+	// 						$updateParams['redeem_by_mode'] = $redeemByMode;
+	// 						$updateParams["modified_at"]    = date('Y-m-d H:i');
+	// 						$updateParams['seller_id'] 		= (int)$userID;
+	// 						$updateParams['created_ip'] 	= currentIp();
+	// 						$WInnner_whereCon   = array('order_id' => $orderID, 'status' => (int)'1','redeem_status' => array('$ne' => 'paid') );
+	// 						$winnerRedeemResult = $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $updateParams,$WInnner_whereCon);
+							
+	// 						if($winnerRedeemResult > 0 ):
+	// 							//Credting user's winning prize amount to users account.
+	// 							$userParam['totalArabianPoints']      = (float)$userDetails['totalArabianPoints']      + $totalPrizeAmount;
+	// 							$userParam['availableArabianPoints']  = (float) $userDetails['availableArabianPoints'] + $totalPrizeAmount;
+	// 							$userParam["update_date"]    		  = date('Y-m-d H:i');
+	// 							$userResult = $this->common_model->editData('uw_users', $userParam,'users_id',(int)$userID);
+
+	// 							if(!empty($userResult)):
+	// 								/* Load Balance Table -- after Sign Up*/
+	// 								$Redeemparam["load_balance_id"]          =   (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+	// 								$Redeemparam["user_oid"]        	     =   new MongoDB\BSON\ObjectId($userDetails['_id']['$id']);
+	// 								// $Redeemparam["order_oid"]       		 =   new MongoDB\BSON\ObjectId($order_oid);
+	// 								$Redeemparam["order_id"]       		     =   $orderID;
+	// 								$Redeemparam["product_id"]       		 =   (int)$productID;
+	// 								$Redeemparam["user_id_deb"]              =   (int)0;
+	// 								$Redeemparam["user_id_cred"]             =   (int)$userID;
+	// 								$Redeemparam["upoints"]       		     =   (float)$totalPrizeAmount;
+	// 								$Redeemparam["record_type"]              =   'Credit';
+	// 								$Redeemparam["narration"]  			     =   'Moved winning Prize';
+	// 								$Redeemparam["remarks"]  			     =   "Prize for ( ".$orderID." ) transferred to wallet.";
+	// 								$Redeemparam["availableArabianPoints"] 	 =   (float)$userDetails['availableArabianPoints'];
+	// 								$Redeemparam["end_balance"] 		 	 =   (float)$userDetails['availableArabianPoints']+$totalPrizeAmount;
+	// 								$Redeemparam["creation_ip"]         	 =   currentIp();
+	// 								$Redeemparam["created_at"]          	 =   date('Y-m-d H:i');
+	// 								$Redeemparam["created_by"]         	  	 =   (int)$userID;
+	// 								$Redeemparam["status"]               	 =   "A";
+	// 								$this->geneal_model->addData('uw_loadBalance', $Redeemparam);
+	// 								$result = array('payment_date' => date('Y-m-d H:i'));
+	// 						  	 	echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die();
+	// 					  	 	else:
+	// 						  	 	echo outPut(1,lang('SUCCESS_CODE'),lang('BALANCE_TRANSERFER_EORROR'),$result);die();
+	// 							endif;
+
+	// 						else:
+	// 							echo outPut(0,lang('SUCCESS_CODE'),lang('ALREADY_REDEEM'),$result);
+	// 						endif;
+
+	// 				 	endif;
+	// 				else:
+	// 					echo outPut(0,lang('SUCCESS_CODE'),lang('ORDER_ID_EMPTY'),$result);
+	// 				endif;
+
+	// 			} catch (Exception $e) {
+    //     			echo outPut(0, lang('SUCCESS_CODE'), lang('ERROR_OCCURRED'), $e->getMessage());
+	// 			}
+
+	// 		}
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }
 	
 	/* * *********************************************************************
 	 * * Function name : winningOrders
@@ -1207,6 +1357,52 @@ class Btc extends CI_Controller {
         			 	die();
 					}
 			endif;
+		else:
+			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+		endif;
+	}
+
+	/* * *********************************************************************
+	 * * Function name : userVerify
+	 * * Developed By  : Dilip Halder
+	 * * Purpose  	   : This function used for userVerify.
+	 * * Date 		   : 21 May 2025
+	 * * **********************************************************************/
+	public function userVerify($value='')
+	{
+		$apiHeaderData 	 = getApiHeaderData();
+		$this->generatelogs->putLog('APP',logOutPut($_GET));
+		$result 		 = array();
+		if(requestAuthenticate(APIKEY,'POST')):
+			try {
+				
+				$userID     = $this->input->post('users_id');
+				$loginToken = $this->input->post('login_token');
+				if(empty($userID)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				else:
+
+					$tblName  = 'uw_users';
+					$whereCon['where'] = array( 'users_id' => (int)$userID );
+					$userData = $this->common_model->getData('single',$tblName,$whereCon);
+					// echo "<pre>";print_r($userData);die();
+
+					// Updated validation process for checking user details.
+					if(!empty($userData) && $userData['status'] == "A" && $userData['login_token'] == $loginToken):
+						// Updated login details..
+						$param['ios_token'] = $userData['login_token'];
+						$this->geneal_model->editData('uw_users',$param,'users_id',(int)$userID );
+						echo outPut(1,lang('SUCCESS_CODE'),lang('ACCOUNT_VERIFY'),$result); die();
+
+					elseif(!empty($userData) && $userData['status'] != "A"):
+					  throw new Exception(lang('ACCOUNT_INACIVE'), 1);
+					elseif(!empty($userData) && $userData['status'] == "A" && $userData['login_token'] != $loginToken):
+					  throw new Exception(lang('UNAUTHORIZED_ACCESS'), 1);
+					endif;
+				endif;
+			} catch (Exception $e) {
+				echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+			}
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;

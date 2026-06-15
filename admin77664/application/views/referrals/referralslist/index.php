@@ -55,6 +55,7 @@
                               <select name="searchField" id="searchField" class="custom-select custom-select-sm form-control form-control-sm">
                                 <option value="">Select Field</option>
                                 <option value="referral_given_by" <?php if($searchField == 'referral_given_by')echo 'selected="selected"'; ?>>Referral given by (Mobile)</option>
+                                <option value="referral_given_usertype" <?php if($searchField == 'referral_given_usertype')echo 'selected="selected"'; ?>>Referral given by (User Type)</option>
                                 <option value="referral_used_by" <?php if($searchField == 'referral_used_by')echo 'selected="selected"'; ?>>Referral used by (Mobile) </option>
                                 <option value="referral_code" <?php if($searchField == 'referral_code')echo 'selected="selected"'; ?>>Referral Code</option>
                               </select>
@@ -183,6 +184,7 @@
             <select name="searchField" id="searchField" class="custom-select custom-select-sm form-control form-control-sm">
               <option value="">Select Field</option>
               <option value="referral_given_by" <?php if($searchField == 'referral_given_by')echo 'selected="selected"'; ?>>Referral given by (Mobile)</option>
+              <option value="referral_given_usertype" <?php if($searchField == 'referral_given_usertype')echo 'selected="selected"'; ?>>Referral given by (User Type)</option>
               <option value="referral_used_by" <?php if($searchField == 'referral_used_by')echo 'selected="selected"'; ?>>Referral used by (Mobile) </option>
               <option value="referral_code" <?php if($searchField == 'referral_code')echo 'selected="selected"'; ?>>Referral Code</option>
             </select>

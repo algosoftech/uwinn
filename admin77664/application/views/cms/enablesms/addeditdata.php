@@ -38,56 +38,121 @@
               <div class="card-body">
                 <div class="basic-login-inner">
                   <form id="currentPageForm" name="currentPageForm" class="form-auth-small" method="post" action="" enctype="multipart/form-data">
-                    <input type="hidden" name="CurrentFieldForUnique" id="CurrentFieldForUnique" value="enablesms_id"/>
-                    <input type="hidden" name="CurrentIdForUnique" id="CurrentIdForUnique" value="<?=$EDITDATA['enablesms_id']?>"/>
-                    <input type="hidden" name="CurrentDataID" id="CurrentDataID" value="<?=$EDITDATA['enablesms_id']?>"/>
                     <input type="hidden" name="<?php echo $this->security->get_csrf_token_name();?>" value="<?php echo $this->security->get_csrf_hash();?>">
-                  
-                      
-                    <div class="row">
-                      
-                      <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('smscountry')): ?>error<?php endif; ?>">
-                        <label>Enable Sms Country</label>
-                        <select name="smscountry" id="smscountry" class="form-control" >
-                          <option value="disable">Disabled</option>
-                          <option value="enable" <?php if($EDITDATA['smscountry'] == 'enable'): echo 'selected'; endif; ?> >Sms Country</option>
-                        </select>
-                        <?php if(form_error('smscountry')): ?>
-                          <span for="smscountry" generated="true" class="help-inline"><?php echo form_error('smscountry'); ?></span>
-                        <?php endif; ?>
+                    <fieldset>
+                      <legend>SMS COUNTRY</legend>
+                      <!-- SMS COUNTRY Start here -->
+                      <div class="row">
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('smscountry')): ?>error<?php endif; ?>">
+                          <label>Enable Sms Country</label>
+                          <select name="smscountry" id="smscountry" class="form-control" >
+                            <option value="disable">Disabled</option>
+                            <option value="enable" <?php if(isset($EDITDATA['smscountry']) && $EDITDATA['smscountry'] == 'enable'): echo 'selected'; endif; ?> >Enable</option>
+                          </select>
+                          <?php if(form_error('smscountry')): ?>
+                            <span for="smscountry" generated="true" class="help-inline"><?php echo form_error('smscountry'); ?></span>
+                          <?php endif; ?>
+                        </div>
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('sms_country_available_country')): ?>error<?php endif; ?>">
+                          <label>Sms Country Available country list<span class="required">*</span></label>
+                          <input type="text" name="sms_country_available_country" id="sms_country_available_country" value="<?php if(set_value('sms_country_available_country')): echo set_value('sms_country_available_country'); else: echo stripslashes($EDITDATA['sms_country_available_country'] ?? '');endif; ?>" class="form-control required" placeholder="Available Country Code">
+                          <p style="font-family:italic; color:red;">[ Add country code by comma (,) ]</p>
+                          <?php if(form_error('sms_country_available_country')): ?>
+                            <span for="sms_country_available_country" generated="true" class="help-inline"><?php echo form_error('sms_country_available_country'); ?></span>
+                          <?php endif; ?>
+                        </div>
                       </div>
-
-                      <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('digitizebird')): ?>error<?php endif; ?>">
-                        <label>Enable Digitizebird Sms</label>
-                        <select name="digitizebird" id="digitizebird" class="form-control" >
-                          <option value="disable">Disabled</option>
-                          <option value="enable" <?php if($EDITDATA['digitizebird'] == 'enable'): echo 'selected'; endif; ?> >Digitizebird Sms</option>
-                        </select>
-                        <?php if(form_error('digitizebird')): ?>
-                          <span for="digitizebird" generated="true" class="help-inline"><?php echo form_error('digitizebird'); ?></span>
-                        <?php endif; ?>
+                      <!-- SMS COUNTRY End here -->
+                      <!-- Digitizebird Start here -->
+                      <div>
+                        <legend>DIGITIZEBIRD</legend>
                       </div>
-
-                      <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('sms_country_available_country')): ?>error<?php endif; ?>">
-                        <label>Sms Country Available country list<span class="required">*</span></label>
-                        <input type="text" name="sms_country_available_country" id="sms_country_available_country" value="<?php if(set_value('sms_country_available_country')): echo set_value('sms_country_available_country'); else: echo stripslashes($EDITDATA['sms_country_available_country']);endif; ?>" class="form-control required" placeholder="Available Country Code">
-                        <p style="font-family:italic; color:red;">[ Add country code by comma (,) ]</p>
-                        <?php if(form_error('sms_country_available_country')): ?>
-                          <span for="sms_country_available_country" generated="true" class="help-inline"><?php echo form_error('sms_country_available_country'); ?></span>
-                        <?php endif; ?>
+                      <div class="row">
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('digitizebird')): ?>error<?php endif; ?>">
+                          <label>Enable Digitizebird</label>
+                          <select name="digitizebird" id="digitizebird" class="form-control" >
+                            <option value="disable">Disabled</option>
+                            <option value="enable" <?php if(isset($EDITDATA['digitizebird']) && $EDITDATA['digitizebird'] == 'enable'): echo 'selected'; endif; ?> >Enable</option>
+                          </select>
+                        </div>
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('digitizebird_available_country')): ?>error<?php endif; ?>">
+                          <label>Digitizebird Available country list<span class="required">*</span></label>
+                          <input type="text" name="digitizebird_available_country" id="digitizebird_available_country" value="<?php if(set_value('digitizebird_available_country')): echo set_value('digitizebird_available_country'); else: echo stripslashes($EDITDATA['digitizebird_available_country'] ?? '');endif; ?>" class="form-control required" placeholder="Available Country Code">
+                          <p style="font-family:italic; color:red;">[ Add country code by comma (,) ]</p>
+                          <?php if(form_error('digitizebird_available_country')): ?>
+                            <span for="digitizebird_available_country" generated="true" class="help-inline"><?php echo form_error('digitizebird_available_country'); ?></span>
+                          <?php endif; ?>
+                        </div>
                       </div>
-
-                      <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('digitizebird_available_country')): ?>error<?php endif; ?>">
-                        <label>Digitizebird Available country list<span class="required">*</span></label>
-                        <input type="text" name="digitizebird_available_country" id="digitizebird_available_country" value="<?php if(set_value('digitizebird_available_country')): echo set_value('digitizebird_available_country'); else: echo stripslashes($EDITDATA['digitizebird_available_country']);endif; ?>" class="form-control required" placeholder="Available Country codes">
-                        <p style="font-family:italic; color:red;">[ Add country code by comma (,) ]</p>
-                        <?php if(form_error('digitizebird_available_country')): ?>
-                          <span for="digitizebird_available_country" generated="true" class="help-inline"><?php echo form_error('digitizebird_available_country'); ?></span>
-                        <?php endif; ?>
+                      <!-- Digitizebird End here -->
+                      <!-- NDM Start here -->
+                      <div>
+                        <legend>NDM</legend>
                       </div>
-                    
+                      <div class="row">
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('ndm')): ?>error<?php endif; ?>">
+                          <label>Enable NDM</label>
+                          <select name="ndm" id="ndm" class="form-control" >
+                            <option value="disable">Disabled</option>
+                            <option value="enable" <?php if(isset($EDITDATA['ndm']) && $EDITDATA['ndm'] == 'enable'): echo 'selected'; endif; ?> >Enable</option>
+                          </select>
+                        </div>
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('ndm_available_country')): ?>error<?php endif; ?>">
+                          <label>NDM Available country list<span class="required">*</span></label>
+                          <input type="text" name="ndm_available_country" id="ndm_available_country" value="<?php if(set_value('ndm_available_country')): echo set_value('ndm_available_country'); else: echo stripslashes($EDITDATA['ndm_available_country'] ?? '');endif; ?>" class="form-control required" placeholder="Available Country Code">
+                          <p style="font-family:italic; color:red;">[ Add country code by comma (,) ]</p>
+                          <?php if(form_error('ndm_available_country')): ?>
+                            <span for="ndm_available_country" generated="true" class="help-inline"><?php echo form_error('ndm_available_country'); ?></span>
+                          <?php endif; ?>
+                        </div>
+                      </div>
+                      <!-- NDM End here -->
 
-                    </div>
+                      <!-- WhatsApp & Email Start here -->
+                      <div class="row">
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('whatsapp')): ?>error<?php endif; ?>">
+                          <!-- WhatsApp & Email Start here -->
+                          <div>
+                            <legend>WHATSAPP</legend>
+                          </div>
+                          <label>Enable WhatsApp</label>
+                          <select name="whatsapp" id="whatsapp" class="form-control" >
+                            <option value="disable">Disabled</option>
+                            <option value="enable" <?php if(isset($EDITDATA['whatsapp']) && $EDITDATA['whatsapp'] == 'enable'): echo 'selected'; endif; ?> >Enable</option>
+                          </select>
+                        </div>
+
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('email')): ?>error<?php endif; ?>">
+                          <div>
+                            <legend>EMAIL</legend>
+                          </div>
+                          <label>Enable Email</label>
+                          <select name="email" id="email" class="form-control" >
+                            <option value="disable">Disabled</option>
+                            <option value="enable" <?php if(isset($EDITDATA['email']) && $EDITDATA['email'] == 'enable'): echo 'selected'; endif; ?> >Enable</option>
+                          </select>
+                        </div>
+                      </div>
+                      <!-- WhatsApp & Email End here -->
+
+                      <!-- Default SMS Start here -->
+                      <div>
+                        <legend>DEFAULT SMS Gateway</legend>
+                      </div>
+                      <div class="row">
+                        <div class="form-group-inner col-lg-6 col-md-6 col-sm-12 col-xs-12 <?php if(form_error('default_sms')): ?>error<?php endif; ?>">
+                          <label>Enable Default SMS Gateway</label>
+                          <select name="default_sms" id="default_sms" class="form-control" >
+                            <option value="smscountry" <?php if(isset($EDITDATA['default_sms']) && $EDITDATA['default_sms'] == 'smscountry'): echo 'selected'; endif; ?> >SMS Country</option>
+                            <option value="digitizebird" <?php if(isset($EDITDATA['default_sms']) && $EDITDATA['default_sms'] == 'digitizebird'): echo 'selected'; endif; ?> >Digitizebird</option>
+                            <option value="ndm" <?php if(isset($EDITDATA['default_sms']) && $EDITDATA['default_sms'] == 'ndm'): echo 'selected'; endif; ?> >NDM</option>
+                            <option value="whatsapp" <?php if(isset($EDITDATA['default_sms']) && $EDITDATA['default_sms'] == 'whatsapp'): echo 'selected'; endif; ?> >WhatsApp</option>
+                            <option value="email" <?php if(isset($EDITDATA['default_sms']) && $EDITDATA['default_sms'] == 'email'): echo 'selected'; endif; ?> >Email</option>
+                          </select>
+                        </div>
+                      </div>
+                      <!-- Default SMS End here -->
+                    </fieldset>
                    
                     <div class="row">
                       <div class="login-btn-inner col-lg-12 col-md-12 col-sm-12 col-xs-12">

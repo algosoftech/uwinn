@@ -25,20 +25,34 @@ class Notifications extends CI_Controller {
 	} 
 	public function index() {
 	    try {
-	        $result = [];
+			$result = [];
 
 	        if (requestAuthenticate(APIKEY, 'GET')) {
 	        	if(isset($_GET['itemsPerPage']) && !empty($_GET['itemsPerPage']) && isset($_GET['page']) && !empty($_GET['page'])){
 	        		if (isset($_GET['users_id']) && !empty($_GET['users_id'])) {
-	        			$page = ($_GET['page']) ? (int)$_GET['page'] : 1;
+	        			$page    = ($_GET['page']) ? (int)$_GET['page'] : 1;
 	        			$perpage = ($_GET['itemsPerPage']) ? (int)$_GET['itemsPerPage'] : 20;
-	        			$offset = ($page - 1) * $perpage;
-		                $wcon['where'] = ['users_id' => (int) $_GET['users_id']];
-						$shortField 	= array('creation_date' => -1);
-		                $totalRecords = $this->common_model->getData('count', 'uw_notifications_details', $wcon);
+	        			$offset  = ($page - 1) * $perpage;
+		                // $shortField = array('creation_date' => -1);
+						$shortField = array('_id' => -1);
+						$threshold  = strtotime('-60 days',  strtotime('Y-m-d H:i:s'));
+		                $wcon['where']['users_id']      = (int) $_GET['users_id'];
+		                // $wcon['where']['creation_date'] = array('$gte' => $threshold);
+						      
+						$totalRecords = $this->common_model->getData('count', 'uw_notifications_details', $wcon);
 		                $response = $this->common_model->getData('multiple', 'uw_notifications_details', $wcon,$shortField,$perpage,$offset);
 
 		                if (!empty($response)) {
+							// foreach ($response as &$item) {
+							// 	if (!empty($item['creation_date'])) {
+							// 		$item['creation_date'] = strtotime($item['creation_date']);
+							// 	}
+							// }
+							foreach ($response as &$item) {
+							    if (isset($item['creation_date']) && is_numeric($item['creation_date'])) {
+							        $item['creation_date'] = date('Y-m-d H:i:s', (int)$item['creation_date']);
+							    }
+							}
 		                    $unreadNotifications = array_filter($response, function ($item) {
 		                        return isset($item['is_read']) && $item['is_read'] === 'N';
 		                    });

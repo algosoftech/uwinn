@@ -61,7 +61,8 @@ class Allbtcusers extends CI_Controller {
 		endif;
 
 		$whereCon['where']['users_type']    = 'Users';
-		$shortField 						= 	array('users_id'=> -1);
+		// $shortField 						= 	array('users_id'=> -1);
+		$shortField 						= 	array('_id'=> -1);
 		
 		$baseUrl 							= 	getCurrentControllerPath('index');
 		$this->session->set_userdata('ALLUSERSDATA',currentFullUrl());
@@ -194,7 +195,7 @@ class Allbtcusers extends CI_Controller {
 
 					// Removed if case of user_type is Users..
 					if(!empty($data['EDITDATA'])):
-					  $param['pos_number']	  = "";
+					//   $param['pos_number']	  = "";
 					  $param['pos_device_id'] = "";
 					endif;
 
@@ -291,9 +292,10 @@ class Allbtcusers extends CI_Controller {
 	function changestatus($changeStatusId='',$statusType='')
 	{  
 		$this->admin_model->authCheck('edit_data');
-		$param['status']		=	$statusType;
-		$param['token']			=	'';
-		$param['login_token']	=	'';
+		$param['status']		= $statusType;
+		$param['token']			= '';
+		$param['login_token']	= '';
+		$param['updated_at']    = date('Y-m-d H:i:s');
 		//print_r($param);die();
 		$this->common_model->editData('uw_users',$param,'users_id',(int)$changeStatusId);
 		$this->session->set_flashdata('alert_success',lang('statussuccess'));
@@ -993,6 +995,7 @@ public function exportexcelApi() {
 		$CSVData[$index]['USERS SEQ ID']     = $user['users_seq_id'] ?? '';
 		$CSVData[$index]['FIRST NAME']       = ucwords($user['users_name'] ?? '');
 		$CSVData[$index]['LAST NAME']        = ucwords($user['last_name'] ?? '');
+		$CSVData[$index]['COUNTRY CODE']     = $user['country_code'] ?? '';
 		$CSVData[$index]['PHONE']            = $user['users_mobile'] ?? '';
 		$CSVData[$index]['EMAIL']            = $user['users_email'] ?? '';
 		$CSVData[$index]['TOTAL ARABIAN POINTS'] = $user['totalArabianPoints'] ?? 0;
@@ -1002,7 +1005,7 @@ public function exportexcelApi() {
 		$CSVData[$index]['BIND WITH USER ID']= $user['bind_person_id'] ?? '';
 		$CSVData[$index]['BIND WITH USER TYPE']= $user['bind_user_type'] ?? '';
 		$CSVData[$index]['Store Name']       = $user['store_name'] ?? '';
-		$CSVData[$index]['Area']             = $user['area'] ?? '';
+		$CSVData[$index]['ADDRESS']          = $user['address'] ?? '';
 		$CSVData[$index]['CREATION DATE']    = date('d-M-Y', strtotime($user['created_at'])) ?? '';
 		$CSVData[$index]['DEVICE TYPE']      = $user['device_type'] ?? '';
 		$CSVData[$index]['APP VERSION']      = $user['app_version'] ?? '';
@@ -1124,17 +1127,19 @@ public function exportexcelApi() {
 		$sheet->setCellValue('B1', 'USERS SEQ ID');
 		$sheet->setCellValue('C1', 'FIRST NAME');
 		$sheet->setCellValue('D1', 'LAST NAME');
-		$sheet->setCellValue('E1', 'PHONE');
-		$sheet->setCellValue('F1', 'EMAIL');
-		$sheet->setCellValue('G1', 'TOTAL ARABIAN POINTS');
-		$sheet->setCellValue('H1', 'AVAILABLE ARABIAN POINTS');
-		$sheet->setCellValue('I1', 'USER TYPE');
-		$sheet->setCellValue('J1', 'BIND WITH');
-		$sheet->setCellValue('K1', 'BIND WITH USER ID');
-		$sheet->setCellValue('L1', 'BIND WITH USER TYPE');
-		$sheet->setCellValue('M1', 'Store Name');
-		$sheet->setCellValue('N1', 'CREATION DATE');
-		$sheet->setCellValue('O1', 'STATUS');
+		$sheet->setCellValue('E1', 'COUNTRY CODE');
+		$sheet->setCellValue('F1', 'PHONE');
+		$sheet->setCellValue('G1', 'EMAIL');
+		$sheet->setCellValue('H1', 'TOTAL ARABIAN POINTS');
+		$sheet->setCellValue('I1', 'AVAILABLE ARABIAN POINTS');
+		$sheet->setCellValue('J1', 'USER TYPE');
+		$sheet->setCellValue('K1', 'BIND WITH');
+		$sheet->setCellValue('L1', 'BIND WITH USER ID');
+		$sheet->setCellValue('M1', 'BIND WITH USER TYPE');
+		$sheet->setCellValue('N1', 'Store Name');
+		$sheet->setCellValue('O1', 'AREA');
+		$sheet->setCellValue('P1', 'CREATION DATE');
+		$sheet->setCellValue('Q1', 'STATUS');
 		
 		$slno = 1;
 		$start = 2;
@@ -1143,20 +1148,22 @@ public function exportexcelApi() {
 			$sheet->setCellValue('B'.$start, $d['users_seq_id']);
 			$sheet->setCellValue('C'.$start, ucwords($d['users_name']));
 			$sheet->setCellValue('D'.$start, ucwords($d['last_name']));
-			$sheet->setCellValue('E'.$start, $d['users_mobile']);
-			$sheet->setCellValue('F'.$start, $d['users_email']);
-			$sheet->setCellValue('G'.$start, $d['totalArabianPoints']);
-			$sheet->setCellValue('H'.$start, $d['availableArabianPoints']);
-			$sheet->setCellValue('I'.$start, $d['users_type']);
-			$sheet->setCellValue('J'.$start, $d['bind_person_name']);
-			$sheet->setCellValue('K'.$start, $d['bind_person_id']);
-			$sheet->setCellValue('L'.$start, $d['bind_user_type']);
-			$sheet->setCellValue('M'.$start, $d['store_name']);
-			$sheet->setCellValue('N'.$start, date('d-M-Y ', strtotime($d['created_at'])));
+			$sheet->setCellValue('E'.$start, $d['country_code']);
+			$sheet->setCellValue('F'.$start, $d['users_mobile']);
+			$sheet->setCellValue('G'.$start, $d['users_email']);
+			$sheet->setCellValue('H'.$start, $d['totalArabianPoints']);
+			$sheet->setCellValue('I'.$start, $d['availableArabianPoints']);
+			$sheet->setCellValue('J'.$start, $d['users_type']);
+			$sheet->setCellValue('K'.$start, $d['bind_person_name']);
+			$sheet->setCellValue('L'.$start, $d['bind_person_id']);
+			$sheet->setCellValue('M'.$start, $d['bind_user_type']);
+			$sheet->setCellValue('N'.$start, $d['store_name']);
+			$sheet->setCellValue('O'.$start, $d['area']);
+			$sheet->setCellValue('P'.$start, date('d-M-Y ', strtotime($d['created_at'])));
 			if($d['status'] == 'A'){
-				$sheet->setCellValue('O'.$start,  'Active' );	
+				$sheet->setCellValue('Q'.$start,  'Active' );	
 			}else{
-				$sheet->setCellValue('O'.$start, 'Inactive');	
+				$sheet->setCellValue('Q'.$start, 'Inactive');	
 			}
 			
 			

@@ -305,6 +305,18 @@ class Upload_crop_img
 				//$this->_check_directory($data['thumb']['path']);
 			break;
 
+			case 'tambolaGamesImage':
+				$data['original']	= 	array("path"=>fileFCPATH."./assets/tambolaGamesImage/","allowed_types"=>"gif|jpg|png","max_size"=>"20000","max_width"=>"","max_height"=>"", "thumb"=>TRUE);//Original
+				$data['thumb']		= 	array("path"=>fileFCPATH."./assets/tambolaGamesImage/thumb/","allowed_types"=>"gif|jpg|png","source_path"=>fileFCPATH."./assets/tambolaGamesImage/","max_width"=>"50","max_height"=>"50");//Thumb
+				//$this->_check_directory($data['thumb']['path']);
+			break;
+
+			case 'gamesImage':
+				$data['original']	= 	array("path"=>fileFCPATH."./assets/gamesImage/","allowed_types"=>"gif|jpg|png","max_size"=>"20000","max_width"=>"","max_height"=>"", "thumb"=>TRUE);//Original
+				$data['thumb']		= 	array("path"=>fileFCPATH."./assets/gamesImage/thumb/","allowed_types"=>"gif|jpg|png","source_path"=>fileFCPATH."./assets/gamesImage/","max_width"=>"50","max_height"=>"50");//Thumb
+				//$this->_check_directory($data['thumb']['path']);
+			break;
+
 		endswitch;
 		return $data;
 	}

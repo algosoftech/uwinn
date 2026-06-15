@@ -667,6 +667,57 @@ public function getOnlyOneData($tbl_name, $whereCon){
 	return $result;
 } // END OF FUNCTION
 
+/***********************************************************************
+	** Function name 	: getCampaignCategory
+	** Developed By 	: Team
+	** Purpose  		: Return category options by Mongo _id
+	** Date 			: 02 MAR 2026
+	************************************************************************/
+	function getCampaignCategory($categoryOid = '')
+	{
+		$html = '<option value="">Select Category</option>';
+		$this->mongo_db->select('*');
+		$this->mongo_db->where(array('status' => 'A'));
+		$this->mongo_db->order_by(array('category_name' => 'ASC'));
+		$result = $this->mongo_db->get('uw_category');
+		if ($result):
+			foreach ($result as $info):
+				$currentOid = isset($info['_id']->{'$id'}) ? $info['_id']->{'$id'} : '';
+				$selected = ((string)$currentOid === (string)$categoryOid) ? 'selected="selected"' : '';
+				$name = isset($info['category_name']) ? $info['category_name'] : '';
+				$html .= '<option value="'.$currentOid.'" '.$selected.'>'.stripslashes($name).'</option>';
+			endforeach;
+		endif;
+		return $html;
+	}	// END OF FUNCTION
+
+	/***********************************************************************
+	** Function name 	: getCampaignSubCategory
+	** Developed By 	: Team
+	** Purpose  		: Return sub category options by Mongo _id
+	** Date 			: 02 MAR 2026
+	************************************************************************/
+	function getCampaignSubCategory($categoryOid = '', $subCategoryOid = '')
+	{
+		$html = '<option value="">Select Sub Category</option>';
+		$this->mongo_db->select('*');
+		$whereCon = array('status' => 'A', 'category_oid' => new MongoDB\BSON\ObjectId($categoryOid));
+		$this->mongo_db->where($whereCon);
+		$this->mongo_db->order_by(array('sub_category_name' => 'ASC'));
+		$result = $this->mongo_db->get('uw_sub_category');
+
+		if ($result):
+			foreach ($result as $info):
+				$currentOid = isset($info['_id']->{'$id'}) ? $info['_id']->{'$id'} : '';
+				$selected = ((string)$currentOid === (string)$subCategoryOid) ? 'selected="selected"' : '';
+				$name = isset($info['sub_category']) ? $info['sub_category'] : (isset($info['sub_category_name']) ? $info['sub_category_name'] : '');
+				$html .= '<option value="'.$currentOid.'" '.$selected.'>'.stripslashes($name).'</option>';
+			endforeach;
+		endif;
+
+		return $html;
+	}	// END OF FUNCTION
+
 
 
 

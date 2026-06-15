@@ -636,6 +636,7 @@ public function updateInventoryStock($cpid='',$pid='', $qty='')
 		if($whereCon):
 		  $whereCondition  =  $whereCon['where'];
 		endif;
+		
 		$groupBy = array(
             '_id' 		    => '$batch_id',
             'batch_id'      => array('$first'   => '$batch_id'),
@@ -703,7 +704,7 @@ public function updateInventoryStock($cpid='',$pid='', $qty='')
 			),
     	);
 
-    	$sortBy      = array('_id' => -1);
+    	$sortBy      = array('created_at' => -1);
 		$tblName     = "uw_uwin_winner";
 		$WinnerData  = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$page,$skip);
 		

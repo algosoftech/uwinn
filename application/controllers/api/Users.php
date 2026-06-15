@@ -263,6 +263,7 @@ class Users extends CI_Controller {
 				$usersLat 	 	= $this->input->post('users_lat');
 				$usersLong 		= $this->input->post('users_long');
 				$usersAddress 	= $this->input->post('users_address');
+				$posDeviceID 	= $this->input->post('pos_device_id');
 
 			    // checked required empty inputs.. 
 				if(empty($usersName)):
@@ -284,6 +285,16 @@ class Users extends CI_Controller {
 				elseif(empty($appVersion)):
 				    throw new Exception(lang('EMPTY_APP_VERSION'), 1);
 				else:
+
+					if(!empty($posDeviceID)):
+						$posWhere['where'] = array('pos_device_id' => $posDeviceID);
+						$posData = $this->common_model->getData('count','uw_users',$posWhere);
+						if(!empty($posData)):
+					    	throw new Exception(lang('POS_DEVICE_RESTRICTION'), 1);
+							die();
+						endif;
+					endif;
+
 
 				    // checked required empty inputs.. 
 					if((empty($countryCode) && empty($mobile)) && empty($email)):
@@ -309,7 +320,7 @@ class Users extends CI_Controller {
 							// Added email id validation...
 							$allowedDomains = array('gmail.com', 'yahoo.com', 'yahoo.co.in');
 							$emailDomain    = substr(strrchr($email, "@"), 1);
-							if (!in_array(strtolower($emailDomain), $allowedDomains)):
+							if (!in_array(strtolower($emailDomain), $allowedDomains) || substr_count($email, ".") > 2  ):
 					    		throw new Exception(lang('INVALID_EMAILID'), 1);
 							endif;
 
@@ -370,12 +381,14 @@ class Users extends CI_Controller {
 						$param['is_verified']  = 'Y';
 						$param['is_mobile_verified']  = $mobileVerified['is_verified']?$mobileVerified['is_verified']:'N';
 						$param['is_email_verified']  = $emailVerified['is_verified']?$emailVerified['is_verified']:'N';
-						$param['device_type']  = $deviceType;
-						if($deviceType == 'ios' || $deviceType == 'android' ):
+						$param['device_type']     = $deviceType;
+						$param['pos_device_id']   = $posDeviceID;
+
+						// if($deviceType == 'ios' || $deviceType == 'android' ):
 							$param['bind_person_id'] 	=  (int)"100000000000001";
 							$param['bind_user_type'] 	=  "Admin";
 							$param['bind_person_name'] 	=  "Admin";
-						endif;
+						// endif;
 
 						if($referredBy):
 							$referralData =  $this->referredByfunction($referredBy);
@@ -444,6 +457,7 @@ class Users extends CI_Controller {
 			$Fieldslist	 = array('_id','raffered_count','raffered_date','users_type','users_id');
 			$referredBY  = (is_numeric($referredBy)) ? (int)$referredBy : $referredBy;
 			$whereCon['where'] = array("referral_code" => $referredBY);
+			$whereCon['where'] = array("status" => "A");
 			$getReferralData   = $this->common_model->getParticularFieldByMultipleCondition($Fieldslist,$tblName,$whereCon);
 			// $getReferralData['raffered_date'] = "2025-07-07";
 			if($getReferralData['users_type'] == 'Users' && !empty($getReferralData['raffered_count']) && $getReferralData['raffered_date']  == date('Y-m-d') ):
@@ -827,71 +841,141 @@ class Users extends CI_Controller {
 	 * * Updated By : Dilip Halder
 	 * * Updated Date : 23-12-2022
 	 * * **********************************************************************/
-	public function forgotPassword()
-	{	
-		$apiHeaderData 		=	getApiHeaderData();
-		$this->generatelogs->putLog('APP',logOutPut($_POST));
-		$result 							= 	array();	
-		if(requestAuthenticate(APIKEY,'POST')):
+	// public function forgotPassword()
+	// {	
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 							= 	array();	
+	// 	if(requestAuthenticate(APIKEY,'POST')):
 			
-			if($this->input->post('users_email') == ''): 
-				echo outPut(0,lang('SUCCESS_CODE'),lang('EMAIL_EMPTY'),$result);
-			else:
-				if(is_numeric($this->input->post('users_email'))):
-					$forget_by 	=	'MOBILE';
-					if(strlen($this->input->post('users_email')) >= 10){
-						$where 			=	[ 'users_mobile' => (int)$this->input->post('users_email') ];
-					}else{
-						$where 			=	[ 'users_mobile' => (float)$this->input->post('users_email') ];
-					}
+	// 		if($this->input->post('users_email') == ''): 
+	// 			echo outPut(0,lang('SUCCESS_CODE'),lang('EMAIL_EMPTY'),$result);
+	// 		else:
+	// 			if(is_numeric($this->input->post('users_email'))):
+	// 				$forget_by 	=	'MOBILE';
+	// 				if(strlen($this->input->post('users_email')) >= 10){
+	// 					$where 			=	[ 'users_mobile' => (int)$this->input->post('users_email') ];
+	// 				}else{
+	// 					$where 			=	[ 'users_mobile' => (float)$this->input->post('users_email') ];
+	// 				}
+	// 			else:
+	// 				$where 			=	[ 'users_email' => $this->input->post('users_email') ];
+	// 				$forget_by 		=	'EMAIL';
+	// 			endif;
+				
+	// 			$tblName 		=	'uw_users';
+	// 			$userDetails 	=	$this->geneal_model->getOnlyOneData($tblName, $where);
+				
+	// 			if(!empty($userDetails)):
+	// 				if($userDetails['status'] == 'A'):
+	// 					$param['users_otp']	  = (int)rand(1000,9999); 
+	// 					$this->geneal_model->editData('uw_users',$param,'users_id',(int)$userDetails['users_id']);
+
+	// 					$tableName	 = "uw_users";
+	// 				    $Fields 	 = array('_id','users_id','users_email','country_code','users_mobile');
+	// 				    $finalres 	 = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'users_id',(int)$userDetails['users_id']);
+
+	// 					//$this->emailtemplate_model->sendForgotpasswordMailToUser($finalres);
+	// 					if($userDetails['users_email']):
+	// 						$this->emailsendgrid_model->accountVerifyOTP($userDetails['users_email'],$param['users_otp']);
+	// 					endif;
+						
+	// 					$country_code = $this->input->post('country_code');
+
+	// 					if(empty($country_code)):
+	// 						$country_code = $userDetails['country_code'];
+	// 					endif;
+						
+	// 					$mobile_no 	= $userDetails['users_mobile'];
+	// 					$this->sms_model->accountVerifyOTP($country_code , $mobile_no,$param['users_otp']);
+
+	// 					$result['userData'] 				=	$finalres;
+	// 					echo outPut(1,lang('SUCCESS_CODE'),lang('OTP_SENT').$this->input->post('users_email'),$result);
+	// 				else:
+	// 					echo outPut(0,lang('SUCCESS_CODE'),lang('ACCOUNT_BLOCKED'),$result);
+	// 				endif;
+	// 			else:
+	// 				if($forget_by == 'MOBILE'):
+	// 					echo outPut(0,lang('SUCCESS_CODE'),lang('RECHARGE_PHONE_ERROR'),$result);
+	// 				else:
+	// 					echo outPut(0,lang('SUCCESS_CODE'),lang('RECHARGE_EMAIL_ERROR'),$result);
+	// 				endif;
+	// 			endif;
+
+	// 		endif;
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }
+	public function forgotPassword()
+	{
+		try {
+
+			$apiHeaderData 		=	getApiHeaderData();
+			$this->generatelogs->putLog('APP',logOutPut($_POST));
+			$result 							= 	array();	
+			if(requestAuthenticate(APIKEY,'POST')):
+				
+				//input Fields..
+				$usersMobileEmail = $this->input->post('users_email');      // Before used only this input fields.
+				$countryCode      = $this->input->post('country_code');     // added new 
+				$usersMobile       = $this->input->post('mobile');           // added new 
+				$vericationType   = $this->input->post('verificationType'); // added new 
+				
+				if(empty($usersMobileEmail) && (empty($countryCode) && empty($usersMobile))):
+					throw new Exception(lang('EMPTY_NUMBER_EMAIL'), 1);
+				elseif(empty($usersMobileEmail) && (empty($countryCode) && !empty($usersMobile)) ):
+					throw new Exception(lang('EMPTY_COUNTRYCODE'), 1);
+				elseif(empty($usersMobileEmail) && (!empty($countryCode) && empty($usersMobile)) ):
+					throw new Exception(lang('EMPTY_USERMOBILE'), 1);
 				else:
-					$where 			=	[ 'users_email' => $this->input->post('users_email') ];
-					$forget_by 		=	'EMAIL';
-				endif;
-				
-				$tblName 		=	'uw_users';
-				$userDetails 	=	$this->geneal_model->getOnlyOneData($tblName, $where);
-				
-				if(!empty($userDetails)):
-					if($userDetails['status'] == 'A'):
-						$param['users_otp']	  = (int)rand(1000,9999); 
+
+				  if(!empty($usersMobileEmail)):
+				  	$where =  is_numeric($usersMobileEmail) ?  array('users_mobile' =>  (int)$usersMobileEmail) : array('users_email' => $usersMobileEmail) ;
+				  	$whereCon['where'] = $where;
+				  elseif(empty($usersMobileEmail) && (!empty($countryCode) && !empty($usersMobile))):
+			  		$whereCon['where']['country_code'] = $countryCode;
+			  		$whereCon['where']['users_mobile'] = (int)$usersMobile;
+				  endif;
+
+				    $tblName     = 'uw_users';
+				    $userDetails = $this->common_model->getData('single',$tblName,$whereCon);
+				    if( !empty($userDetails) && $userDetails['status'] == "A" ):
+
+				    	$otp = (int)rand(1000,9999); ;
+				    	$param['users_otp']	 = $otp;
 						$this->geneal_model->editData('uw_users',$param,'users_id',(int)$userDetails['users_id']);
 
-						$tableName	 = "uw_users";
+				    	if(!empty($countryCode) && !empty($usersMobile) && $vericationType == 'Whatsapp' ):
+				    		$this->sms_model->accountWhatsappVerifyOTP($countryCode,$usersMobile,$otp);
+				    	elseif((!empty($usersMobileEmail)) && $vericationType == "Email" ):
+						   $this->emailsendgrid_model->accountVerifyOTP($usersMobileEmail,$otp);
+				    	elseif(!empty($countryCode) && !empty($usersMobile) && $vericationType == 'SMS'):
+							$this->sms_model->accountVerifyOTP($countryCode,$usersMobile,$otp);
+						elseif(!empty($usersMobileEmail) && is_numeric($usersMobileEmail) ):
+							$this->sms_model->accountVerifyOTP($countryCode,$usersMobile,$otp);
+				    	endif;
+
+				    	$tableName	   = "uw_users";
 					    $Fields 	 = array('_id','users_id','users_email','country_code','users_mobile');
 					    $finalres 	 = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'users_id',(int)$userDetails['users_id']);
-
-						//$this->emailtemplate_model->sendForgotpasswordMailToUser($finalres);
-						if($userDetails['users_email']):
-							$this->emailsendgrid_model->accountVerifyOTP($userDetails['users_email'],$param['users_otp']);
-						endif;
-						
-						$country_code = $this->input->post('country_code');
-
-						if(empty($country_code)):
-							$country_code = $userDetails['country_code'];
-						endif;
-						
-						$mobile_no 	= $userDetails['users_mobile'];
-						$this->sms_model->accountVerifyOTP($country_code , $mobile_no,$param['users_otp']);
-
-						$result['userData'] 				=	$finalres;
+				    	$result['userData'] =	$finalres;
 						echo outPut(1,lang('SUCCESS_CODE'),lang('OTP_SENT').$this->input->post('users_email'),$result);
-					else:
-						echo outPut(0,lang('SUCCESS_CODE'),lang('ACCOUNT_BLOCKED'),$result);
-					endif;
-				else:
-					if($forget_by == 'MOBILE'):
-						echo outPut(0,lang('SUCCESS_CODE'),lang('RECHARGE_PHONE_ERROR'),$result);
-					else:
-						echo outPut(0,lang('SUCCESS_CODE'),lang('RECHARGE_EMAIL_ERROR'),$result);
-					endif;
-				endif;
 
+				    elseif( !empty($userDetails) &&  ( $userDetails['status'] == "I" || $userDetails['status'] == "D" || $userDetails['status'] == "B"   )  ):
+						throw new Exception(lang('ACCOUNT_BLOCKED'), 1);
+				    else:
+						throw new Exception(lang('INVALID_LOGIN'), 1);
+				    endif;
+
+				endif;
+			else:
+				echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 			endif;
-		else:
-			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
-		endif;
+			
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+		}
 	}
 
 	/* * *********************************************************************
@@ -902,60 +986,141 @@ class Users extends CI_Controller {
 	 * * Updated By : Dilip Halder
 	 * * Updated Date : 23-12-2022
 	 * * **********************************************************************/
-	public function resetPassword()
-	{	
-		$apiHeaderData 		=	getApiHeaderData();
-		$this->generatelogs->putLog('APP',logOutPut($_POST));
-		$result 							= 	array();	
-		if(requestAuthenticate(APIKEY,'POST')):
+	// public function resetPassword()
+	// {	
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 							= 	array();	
+	// 	if(requestAuthenticate(APIKEY,'POST')):
 			
-			if($this->input->post('users_email') == ''): 
-				echo outPut(0,lang('SUCCESS_CODE'),lang('EMAIL_EMPTY'),$result);
-			elseif($this->input->post('users_otp') == ''): 
-				echo outPut(0,lang('SUCCESS_CODE'),lang('OTP_EMPTY'),$result);
-			elseif($this->input->post('new_password') == ''): 
-				echo outPut(0,lang('SUCCESS_CODE'),lang('PASSWORD_EMPTY'),$result);
-			else:
-				if(is_numeric($this->input->post('users_email'))):
-					if(strlen($this->input->post('users_email')) >= 10):
-						$where 			=	[ 'users_mobile' => (int)$this->input->post('users_email') ];
-					else:
-						$where 			=	[ 'users_mobile' => (float)$this->input->post('users_email') ];
-					endif;
-				else:
-					$where 			=	[ 'users_email' => $this->input->post('users_email') ];
-				endif;
-				$tblName 		=	'uw_users';
-				$userDetails 	=	$this->geneal_model->getOnlyOneData($tblName, $where);
-				$userDetails['password'] = "";
-				//print_r($userDetails);die();
-				if(!empty($userDetails) && isset($userDetails['users_otp']) && $this->input->post('users_otp') == $userDetails['users_otp']):
-					if($userDetails['status'] == 'A'):
-						$param['users_otp']		= 	'';	
-						$param['password']		=	md5($this->input->post('new_password'));
-						$param['login_token']	= 	$this->geneal_model->generatetoken();
-						$this->geneal_model->editData('uw_users',$param,'users_id',(int)$userDetails['users_id']);
+	// 		if($this->input->post('users_email') == ''): 
+	// 			echo outPut(0,lang('SUCCESS_CODE'),lang('EMAIL_EMPTY'),$result);
+	// 		elseif($this->input->post('users_otp') == ''): 
+	// 			echo outPut(0,lang('SUCCESS_CODE'),lang('OTP_EMPTY'),$result);
+	// 		elseif($this->input->post('new_password') == ''): 
+	// 			echo outPut(0,lang('SUCCESS_CODE'),lang('PASSWORD_EMPTY'),$result);
+	// 		else:
+	// 			if(is_numeric($this->input->post('users_email'))):
+	// 				if(strlen($this->input->post('users_email')) >= 10):
+	// 					$where 			=	[ 'users_mobile' => (int)$this->input->post('users_email') ];
+	// 				else:
+	// 					$where 			=	[ 'users_mobile' => (float)$this->input->post('users_email') ];
+	// 				endif;
+	// 			else:
+	// 				$where 			=	[ 'users_email' => $this->input->post('users_email') ];
+	// 			endif;
+	// 			$tblName 		=	'uw_users';
+	// 			$userDetails 	=	$this->geneal_model->getOnlyOneData($tblName, $where);
+	// 			$userDetails['password'] = "";
+	// 			//print_r($userDetails);die();
+	// 			if(!empty($userDetails) && isset($userDetails['users_otp']) && $this->input->post('users_otp') == $userDetails['users_otp']):
+	// 				if($userDetails['status'] == 'A'):
+	// 					$param['users_otp']		= 	'';	
+	// 					$param['password']		=	md5($this->input->post('new_password'));
+	// 					$param['login_token']	= 	$this->geneal_model->generatetoken();
+	// 					$this->geneal_model->editData('uw_users',$param,'users_id',(int)$userDetails['users_id']);
 
-						$w['where'] = array('users_id'=>(int)$userDetails['users_id']);
-						$finalres = $this->geneal_model->getData2('single','uw_users',$w);
+	// 					$w['where'] = array('users_id'=>(int)$userDetails['users_id']);
+	// 					$finalres = $this->geneal_model->getData2('single','uw_users',$w);
+	// 					$finalres['password'] = "";
+	// 					$result['userData'] 	=	$finalres;
+	// 					if($finalres['users_email']):
+	// 						$this->emailsendgrid_model->sendSuccessResetPasswordMailToUser($finalres);
+	// 					endif;
+	// 					$mobile_no = $finalres['country_code'].$finalres['users_mobile'];
+	// 					$this->sms_model->sendSuccessResetPasswordSmsToUser($mobile_no);
+	// 					echo outPut(1,lang('SUCCESS_CODE'),lang('PASS_CHANGE_SUCCESS'),$result);
+	// 				else:
+	// 					echo outPut(0,lang('SUCCESS_CODE'),lang('ACCOUNT_BLOCKED'),$result);
+	// 				endif;
+	// 			else:
+	// 				echo outPut(0,lang('SUCCESS_CODE'),lang('INVALID_email_otp'),$result);
+	// 			endif;
+	// 		endif;
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }
+
+	/* * *********************************************************************
+	 * * Function name : resetPassword
+	 * * Developed By : Dilip Halder
+	 * * Purpose  : This function used for reset Password
+	 * * Date : 07 February 2024
+	 * * Updated By : Dilip Halder
+	 * * Updated Date : 23-12-2022
+	 * * **********************************************************************/
+	public function resetPassword()
+	{
+		try {
+
+			$apiHeaderData 		=	getApiHeaderData();
+			$this->generatelogs->putLog('APP',logOutPut($_POST));
+			$result 							= 	array();	
+			if(requestAuthenticate(APIKEY,'POST')):
+
+				//input Fields..
+				$usersMobileEmail = $this->input->post('users_email');      // Before used only this input fields.
+				$countryCode      = $this->input->post('country_code');     // added new 
+				$usersMobile      = $this->input->post('mobile');           // added new 
+				$usersOtp         = $this->input->post('users_otp');          
+				$newPassword      = $this->input->post('new_password');           
+				
+
+				
+				if(empty($usersMobileEmail) && (empty($countryCode) && empty($usersMobile))):
+					throw new Exception(lang('EMPTY_NUMBER_EMAIL'), 1);
+				elseif(empty($usersMobileEmail) && (empty($countryCode) && !empty($usersMobile)) ):
+					throw new Exception(lang('EMPTY_COUNTRYCODE'), 1);
+				elseif(empty($usersMobileEmail) && (!empty($countryCode) && empty($usersMobile)) ):
+					throw new Exception(lang('EMPTY_USERMOBILE'), 1);
+				else:
+
+				  if(!empty($usersMobileEmail)):
+				  	$where =  is_numeric($usersMobileEmail) ?  array('users_mobile' =>  (int)$usersMobileEmail) : array('users_email' => $usersMobileEmail) ;
+				  	$whereCon['where'] = $where;
+				  elseif(empty($usersMobileEmail) && (!empty($countryCode) && !empty($usersMobile))):
+			  		$whereCon['where']['country_code'] = $countryCode;
+			  		$whereCon['where']['users_mobile'] = (int)$usersMobile;
+				  endif;
+
+				    $tblName     = 'uw_users';
+				    $userDetails = $this->common_model->getData('single',$tblName,$whereCon);
+				    if(!empty($userDetails) && $userDetails['status'] == "A"  && $usersOtp == $userDetails['users_otp']):
+				    	$param['users_otp'] = "";
+				    	$param['password']  = md5($newPassword);
+						$this->common_model->editData('uw_users',$param,'users_id',(int)$userDetails['users_id']);
+ 
+
+				    	$tableName	   = "uw_users";
+					    $Fields 	 = array('_id','users_id','users_email','country_code','users_mobile');
+					    $finalres 	 = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'users_id',(int)$userDetails['users_id']);
 						$finalres['password'] = "";
-						$result['userData'] 	=	$finalres;
-						if($finalres['users_email']):
+				    	$result['userData']   =	$finalres;
+						
+				    	if($finalres['users_email']):
 							$this->emailsendgrid_model->sendSuccessResetPasswordMailToUser($finalres);
 						endif;
 						$mobile_no = $finalres['country_code'].$finalres['users_mobile'];
-						$this->sms_model->sendSuccessResetPasswordSmsToUser($mobile_no);
+						if($mobile_no):
+							$this->sms_model->sendSuccessResetPasswordSmsToUser($mobile_no);
+						endif;
 						echo outPut(1,lang('SUCCESS_CODE'),lang('PASS_CHANGE_SUCCESS'),$result);
-					else:
-						echo outPut(0,lang('SUCCESS_CODE'),lang('ACCOUNT_BLOCKED'),$result);
-					endif;
-				else:
-					echo outPut(0,lang('SUCCESS_CODE'),lang('INVALID_email_otp'),$result);
+					elseif(!empty($userDetails) && $userDetails['status'] == "A"  && $usersOtp != $userDetails['users_otp']):
+						throw new Exception(lang('INVALID_OTP'), 1);
+				    elseif( !empty($userDetails) &&  ( $userDetails['status'] == "I" || $userDetails['status'] == "D" || $userDetails['status'] == "B"   )  ):
+						throw new Exception(lang('ACCOUNT_BLOCKED'), 1);
+				    else:
+						throw new Exception(lang('INVALID_LOGIN'), 1);
+				    endif;
 				endif;
+			else:
+				throw new Exception(lang('FORBIDDEN_MSG'), 1);
 			endif;
-		else:
-			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
-		endif;
+				 
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+		}
 	}
 
 	/* * *********************************************************************
@@ -975,7 +1140,14 @@ class Users extends CI_Controller {
 				echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);
 			else:
 
-				$Fieldslist     = array('users_type','users_name','last_name','users_email','country_code','users_mobile','pickup_point_holder','area','commission_percentage','store_name','bind_person_id','bind_person_name','bind_user_type','pos_number','pos_device_id','device_id','users_device_id','totalArabianPoints','availableArabianPoints','referral_code','users_id','users_seq_id','creation_ip','created_at','created_by','is_verify','status','update_date','update_ip','updated_by','app_version','device_type','latitude','login_token','longitude','token','redeemed_points','updated_at','users_otp','app_name','last_login','show_raffle_campaign','is_mobile_verified','is_email_verified');
+				// $Fieldslist     = array('users_type','users_name','last_name','users_email','country_code','users_mobile','pickup_point_holder','area','commission_percentage','store_name','bind_person_id','bind_person_name','bind_user_type','pos_number','pos_device_id','device_id','users_device_id','totalArabianPoints','availableArabianPoints','referral_code','users_id','users_seq_id','creation_ip','created_at','created_by','is_verify','status','update_date','update_ip','updated_by','app_version','device_type','latitude','login_token','longitude','token','redeemed_points','updated_at','users_otp','app_name','last_login','show_raffle_campaign','is_mobile_verified','is_email_verified','enable_raffle_entries','otp_generated_at','summarypin_verified_at','enable_summary_otp','show_lotto_campaign');
+				$Fieldslist     = array(
+					'users_type','users_name','last_name','users_email','country_code','users_mobile','pickup_point_holder','area','commission_percentage','store_name',
+					'bind_person_id','bind_person_name','bind_user_type','pos_number','pos_device_id','device_id','users_device_id','totalArabianPoints','availableArabianPoints',
+					'referral_code','users_id','users_seq_id','creation_ip','created_at','created_by','is_verify','status','update_date','update_ip','updated_by','app_version','device_type',
+					'latitude','login_token','longitude','token','redeemed_points','updated_at','users_otp','app_name','last_login','show_raffle_campaign','is_mobile_verified','is_email_verified',
+					'enable_raffle_entries','otp_generated_at','summarypin_verified_at','enable_summary_otp','enable_tambola_games','enable_hourly_games','show_lotto_campaign'
+				);
 				$tblName 		= 'uw_users';
 				$userDetails 	= $this->common_model->getSingleDataByParticularField($Fieldslist,$tblName,'users_id', (int)$this->input->get('users_id'));
 				$count 			= 0;
@@ -1028,6 +1200,127 @@ class Users extends CI_Controller {
 	 * * Updated By : Dilip Halder
 	 * * Date : 23 February 2023
 	 * * **********************************************************************/
+	// public function updateProfile()
+	// {	
+	// 	try {
+	// 			$apiHeaderData = getApiHeaderData();
+	// 			$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 			$result 	   = array();	
+	// 			if(requestAuthenticate(APIKEY,'POST')):
+
+	// 				$userID     		= $this->input->get('users_id');
+	// 				$firstName   		= $this->input->post('users_name');
+	// 				$lastName    		= $this->input->post('last_name');
+	// 				$usersEmail 		= $this->input->post('users_email');
+	// 				$countryCode 		= $this->input->post('country_code');
+	// 				$usersMobile 	    = $this->input->post('users_mobile');
+	// 				$notification       = $this->input->post('notification');
+	// 				$smsNotification   = $this->input->post('sms_notification');
+	// 				$emailNotification = $this->input->post('email_notification');
+
+	// 				if(empty($userID)): 
+	// 					throw new Exception(lang('USER_ID_EMPTY'), 1);
+	// 				elseif($firstName == ''): 
+	// 					throw new Exception(lang('NAME_EMPTY'), 1);
+	// 				// elseif($lastName == ''): 
+	// 					// throw new Exception(lang('LASTNAME_EMPTY'), 1);
+	// 				elseif($usersEmail == ''): 
+	// 					throw new Exception(lang('EMAIL_EMPTY'), 1);
+	// 				elseif($countryCode == ''): 
+	// 					throw new Exception(lang('COUNTRY_CODE_EMPTY'), 1);
+	// 				elseif($usersMobile == ''): 
+	// 					throw new Exception(lang('PHONE_EMPTY'), 1);
+	// 				else:
+
+	// 					$tblName 	 = 'uw_users';
+	// 					$where 		 = array('users_id' => (int)$userID);
+	// 					$userDetails = $this->geneal_model->getOnlyOneData($tblName, $where);
+
+	// 					if(!empty($userDetails) && $userDetails['status']  == 'A' ):
+	// 						$mobileVerified = "N";
+	// 						$emailVerified  = "N";
+							
+	// 						if( !empty($usersEmail) &&  $usersEmail != $userDetails['users_email'] || $usersEmail == $userDetails['users_email'] ):
+
+	// 							$emailWhere1['users_id']    =  array('$ne' => (int)$userID);
+	// 							$emailWhere1['users_email'] = $usersEmail;
+	// 		   	 				$duplicateEmail = $this->common_model->checkDuplicate('uw_users',$emailWhere1);
+
+	// 		   	 				$emailWhere['users_email'] = $usersEmail;
+	// 		   	 				$emailWhere['is_verified'] = "Y";
+	// 		   	 				$emailVerified = $this->common_model->checkDuplicate('uw_users_verify',$emailWhere);
+
+	// 						endif;
+							
+	// 						if(!empty($usersMobile) &&  $usersMobile != $userDetails['users_mobile'] || $usersMobile == $userDetails['users_mobile'] ):
+	// 							$mobileWhere1['users_id']     = array('$ne' => (int)$userID);
+	// 							$mobileWhere1['country_code'] = $countryCode;
+	// 							$mobileWhere1['users_mobile'] = (int)$usersMobile;
+	// 		   	 				$duplicateMobile = $this->common_model->checkDuplicate('uw_users',$mobileWhere1);
+
+	// 		   	 				$mobileWhere['country_code'] = $countryCode;
+	// 		   	 				$mobileWhere['users_mobile'] = (int)$usersMobile;
+	// 		   	 				$mobileWhere['is_verified']  = "Y";
+	// 		   	 				$mobileVerified = $this->common_model->checkDuplicate('uw_users_verify',$mobileWhere);
+	// 		   	 				// Added validation for entered data..
+	// 						endif;
+
+	// 						if($mobileVerified == '0' && $emailVerified == '0'):
+	// 							throw new Exception(lang('MOBILE_EMAIL_NOT_VERIFIED'), 1);
+	// 						endif;
+
+	// 						if($duplicateEmail >= 1):
+	// 							throw new Exception(lang('EMAIL_ALREADY_EXIST'), 1);
+	// 					  	else:
+	// 						   $is_email_verified =  $emailVerified == 1 ? 'Y': 'N';
+	// 						   $param['users_email'] = $usersEmail;
+	// 						   $param['is_email_verified'] = $is_email_verified;
+	// 						endif;
+
+	// 						if($duplicateMobile >= 1):
+	// 							throw new Exception(lang('PHONE_ALREADY_EXIST'), 1);
+	// 						else:
+	// 						   $param['users_mobile']       = (int)$usersMobile;
+	// 						   $is_mobile_verified = $mobileVerified == 1 ? 'Y': 'N';
+	// 						   $param['is_mobile_verified'] = $is_mobile_verified;
+	// 						endif;
+
+	// 						    if($firstName)       : $param['users_name']       = $firstName;  endif;
+	// 						    if($lastName)        : $param['last_name']        = $lastName;  endif;
+	// 						    if($countryCode)     : $param['country_code']     = $countryCode;  endif;
+	// 						    if($notification)    : $param['notification']     = $notification; endif;
+	// 						    if($smsNotification) : $param['sms_notification'] = $smsNotification; endif;
+	// 						    if($emailNotification) : $param['email_notification'] = $emailNotification; endif;
+	// 						   $param['updated_at']  = date('Y-m-d H:i');
+	// 						   $param['updated_ip']  = currentIp();
+
+	// 						   $this->common_model->editData('uw_users',$param,'users_id',(int)$userID );
+	// 						   $Fieldslist         = array('users_id','referral_code','pos_number','users_name','last_name','users_type','users_email','country_code','users_mobile','totalArabianPoints','availableArabianPoints','is_verified','is_mobile_verified','is_email_verified','status','login_token','token');
+	// 						   $finalres           = $this->common_model->getSingleDataByParticularField($Fieldslist,'uw_users','users_id',(int)$userID);
+	// 						   $result['userData'] = $finalres;
+	// 						   echo outPut(1,lang('SUCCESS_CODE'),lang('PROFILE_UPDATED'),$result);
+	// 					elseif($userDetails['status']  == 'I' || $userDetails['status']  == 'D' ):
+	// 						throw new Exception(lang('USER_ID_INCORRECT'), 1);
+	// 					else:
+	// 						throw new Exception(lang('USER_ID_INCORRECT'), 1);
+	// 					endif;
+	// 				endif;
+	// 			else:
+	// 			   throw new Exception(lang('FORBIDDEN_MSG'), 1);
+	// 			endif;
+	// 	} catch (Exception $e) {
+	// 		echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+	// 	}
+	// }
+	
+	/* * *********************************************************************
+	 * * Function name : updateProfile
+	 * * Developed By : Dilip Halder
+	 * * Purpose  : This function used for update Profile
+	 * * Date : 07 February 2024
+	 * * Updated By : Dilip Halder
+	 * * Date : 23 February 2023
+	 * * **********************************************************************/
 	public function updateProfile()
 	{	
 		try {
@@ -1060,6 +1353,12 @@ class Users extends CI_Controller {
 						throw new Exception(lang('PHONE_EMPTY'), 1);
 					else:
 
+						$allowedDomains = array('gmail.com', 'yahoo.com', 'yahoo.co.in');
+						$emailDomain    = substr(strrchr($usersEmail, "@"), 1);
+						if (!in_array(strtolower($emailDomain), $allowedDomains)  || substr_count($usersEmail, ".") > 2 ):
+							throw new Exception(lang('INVALID_EMAILID'), 1);
+						endif;
+
 						$tblName 	 = 'uw_users';
 						$where 		 = array('users_id' => (int)$userID);
 						$userDetails = $this->geneal_model->getOnlyOneData($tblName, $where);
@@ -1067,8 +1366,10 @@ class Users extends CI_Controller {
 						if(!empty($userDetails) && $userDetails['status']  == 'A' ):
 							$mobileVerified = "N";
 							$emailVerified  = "N";
-							
-							if( !empty($usersEmail) &&  $usersEmail != $userDetails['users_email'] || $usersEmail == $userDetails['users_email'] ):
+							if(
+								!empty($usersEmail) &&  $usersEmail != $userDetails['users_email'] || 
+								$usersEmail == $userDetails['users_email'] && $userDetails['is_email_verified'] == 'N'
+							):
 
 								$emailWhere1['users_id']    =  array('$ne' => (int)$userID);
 								$emailWhere1['users_email'] = $usersEmail;
@@ -1080,7 +1381,9 @@ class Users extends CI_Controller {
 
 							endif;
 							
-							if(!empty($usersMobile) &&  $usersMobile != $userDetails['users_mobile'] || $usersMobile == $userDetails['users_mobile'] ):
+							if(!empty($usersMobile) &&  $usersMobile != $userDetails['users_mobile'] ||
+								$usersMobile == $userDetails['users_mobile'] && $userDetails['is_mobile_verified'] == 'N'
+							):
 								$mobileWhere1['users_id']     = array('$ne' => (int)$userID);
 								$mobileWhere1['country_code'] = $countryCode;
 								$mobileWhere1['users_mobile'] = (int)$usersMobile;
@@ -1099,7 +1402,7 @@ class Users extends CI_Controller {
 
 							if($duplicateEmail >= 1):
 								throw new Exception(lang('EMAIL_ALREADY_EXIST'), 1);
-						  	else:
+						  	elseif($usersEmail != $userDetails['users_email'] || $userDetails['is_email_verified'] == "N"):
 							   $is_email_verified =  $emailVerified == 1 ? 'Y': 'N';
 							   $param['users_email'] = $usersEmail;
 							   $param['is_email_verified'] = $is_email_verified;
@@ -1107,7 +1410,7 @@ class Users extends CI_Controller {
 
 							if($duplicateMobile >= 1):
 								throw new Exception(lang('PHONE_ALREADY_EXIST'), 1);
-							else:
+							elseif($usersMobile != $userDetails['users_mobile'] || $userDetails['is_mobile_verified'] == "N"):
 							   $param['users_mobile']       = (int)$usersMobile;
 							   $is_mobile_verified = $mobileVerified == 1 ? 'Y': 'N';
 							   $param['is_mobile_verified'] = $is_mobile_verified;
@@ -1136,6 +1439,64 @@ class Users extends CI_Controller {
 				else:
 				   throw new Exception(lang('FORBIDDEN_MSG'), 1);
 				endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+		}
+	}
+
+	/* * *********************************************************************
+	 * * Function name : updateNetworkUsage
+	 * * Developed By  : Dilip Halder
+	 * * Purpose       : This function used for update Profile
+	 * * Date          : 07 February 2024
+	 * * **********************************************************************/
+	public function updateNetworkUsage()
+	{	
+		try {
+			 $apiHeaderData = getApiHeaderData();
+			 $this->generatelogs->putLog('APP',logOutPut($_POST));
+			 $result 	   = array();	
+			 if(requestAuthenticate(APIKEY,'POST')):
+
+				$userID     		= $this->input->post('user_id');
+				$wifiUsage 			= $this->input->post('wifi_usage');
+				$mobileDataUsage 	= $this->input->post('mobile_data_usage');
+				$currentDataMode 	= $this->input->post('current_datamode');
+
+				if(empty($userID)): 
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($currentDataMode)): 
+					throw new Exception(lang('EMPTY_CURRENT_DATAMODE'), 1);
+				elseif( $currentDataMode == "wifi" && empty($wifiUsage)): 
+					throw new Exception(lang('EMPTY_WIFIUSAGE'), 1);
+				elseif( $currentDataMode == "mobile" && empty($mobileDataUsage)): 
+					throw new Exception(lang('EMPTY_MOBILEDATAUSAGE'), 1);
+				else:
+					$tblName 	 = 'uw_users';
+					$where 		 = array('users_id' => (int)$userID);
+					$userDetails = $this->geneal_model->getOnlyOneData($tblName, $where);
+					// echo "<pre>";print_r($userDetails);die();
+					if(!empty($userDetails) && $userDetails['status']  == 'A' ):
+					   // Updated In users profile..
+					    $param['current_datamode']  = $currentDataMode;
+					    $this->common_model->editData('uw_users',$param ,'users_id',(int)$userID);
+					    
+					    $param['users_id']          = (int)$userID;
+					    $param['wifi_usage']        = (float)$wifiUsage;
+					    $param['mobile_data_usage'] = (float)$mobileDataUsage;
+					    $param['created_at']        = date('Y-m-d H:i');
+					    $this->common_model->addData('uw_data_usage',$param );
+					    echo outPut(1,lang('SUCCESS_CODE'),lang('PROFILE_UPDATED'),$result);
+						
+					elseif($userDetails['status']  == 'I' || $userDetails['status']  == 'D' ):
+						throw new Exception(lang('USER_ID_INCORRECT'), 1);
+					else:
+						throw new Exception(lang('USER_ID_INCORRECT'), 1);
+					endif;
+				endif;
+			 else:
+			   throw new Exception(lang('FORBIDDEN_MSG'), 1);
+			 endif;
 		} catch (Exception $e) {
 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
 		}
@@ -2842,6 +3203,90 @@ class Users extends CI_Controller {
 	}
 
 	/* * *********************************************************************
+	 * * Function name : SendSummaryPinOTP
+	 * * Developed By  : Dilip Halder
+	 * * Purpose       : This function used to SendSummaryPinOTP.
+	 * * Date 		   : 29 November 2025
+	 * * **********************************************************************/
+	public function SendSummaryPinOTP()
+	{	
+		try {
+
+			$apiHeaderData 		= getApiHeaderData();
+			$this->generatelogs->putLog('APP',logOutPut($_POST));
+			$result 			= 	array();	
+			if(requestAuthenticate(APIKEY,'POST')):
+				$userId  				= $this->input->post('users_id');
+				if($userId == ''): 
+					throw new Exception(lang('USER_ID_EMPTY') , 1);
+				else:
+					$whereCon['where'] = array('users_id' => (int)$userId ,'status' => 'A');
+					$userDetails       = $this->common_model->getData('single', 'uw_users', $whereCon);
+					if(!empty($userDetails)):
+						$otp                 = (int)rand(100000,999999);
+						$param['users_otp']        = $otp;
+						$param['otp_generated_at'] = strtotime(date('Y-m-d'));
+						$param['updated_at'] = date('Y-m-d H:i');
+						$param['updated_ip'] = $this->input->ip_address();
+						$this->common_model->editData('uw_users',$param,'users_id',(int)$userId);
+						$this->sms_model->accountVerifyOTP($userDetails['country_code'],$userDetails['users_mobile'],$otp ,'summarypin');
+						echo outPut(1,lang('SUCCESS_CODE'),lang('OTP_SENT'),$result);die();
+					else:
+						throw new Exception(lang('USER_ID_INCORRECT') , 1);
+					endif;
+			    endif;
+			else:
+				echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+			endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+		}
+	}
+
+	/* * *********************************************************************
+	 * * Function name : VerifySummaryPin
+	 * * Developed By  : Dilip Halder
+	 * * Purpose       : This function used to VerifySummaryPin.
+	 * * Date 		   : 29 November 2025
+	 * * **********************************************************************/
+	public function VerifySummaryPin()
+	{	
+		try {
+
+			$apiHeaderData 		= getApiHeaderData();
+			$this->generatelogs->putLog('APP',logOutPut($_POST));
+			$result 			= 	array();	
+			if(requestAuthenticate(APIKEY,'POST')):
+				$userId = $this->input->post('users_id');
+				$OTP    = $this->input->post('otp');
+
+				if(empty($userId)):
+					throw new Exception(lang('USER_ID_EMPTY') , 1);
+				elseif(empty($OTP)):
+					throw new Exception(lang('OTP_EMPTY') , 1);
+				else:
+					$whereCon['where'] = array('users_id' => (int)$userId ,'users_otp' => (int)$OTP ,'status' => 'A');
+					$userDetails       = $this->common_model->getData('single', 'uw_users', $whereCon);
+					if(!empty($userDetails)):
+						// $param['users_otp']  = '';
+						$param['summarypin_verified_at'] = strtotime(date('Y-m-d'));
+						$param['updated_at'] = date('Y-m-d H:i');
+						$param['updated_ip'] = $this->input->ip_address();
+						$this->common_model->editData('uw_users',$param,'users_id',(int)$userId);
+						echo outPut(1,lang('SUCCESS_CODE'),lang('SUMMERY_PIN_VERIFIED'),$param);die();
+					else:
+						throw new Exception(lang('INVALID_OTP') , 1);
+					endif;
+				endif;
+			else:
+				echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+			endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+		}
+	}
+
+	/* * *********************************************************************
 	 * * Function name : sendotpOTPMobileEmail
 	 * * Developed By  : Dilip Halder
 	 * * Purpose       : This function used to send OTP
@@ -2998,6 +3443,62 @@ class Users extends CI_Controller {
 					echo outPut(0,lang('SUCCESS_CODE'),lang('ACCOUNT_DELETED'),$result);
 				else:
 		  			 echo outPut(0,lang('SUCCESS_CODE'),lang('INVALID_OTP'),$result);
+				endif;
+			endif;
+		else:
+			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+		endif;
+	}
+
+	/* * *********************************************************************
+	 * * Function name : updateSimNo
+	 * * Developed By  : Megha
+	 * * Purpose       : This function used to update SIM No.
+	 * * Date 		   : 08 June 2026
+	 * * **********************************************************************/
+	public function updateSimNo()
+	{	
+		$apiHeaderData 		= getApiHeaderData();
+		$this->generatelogs->putLog('APP',logOutPut($_POST));
+		$result 			= array();	
+		if(requestAuthenticate(APIKEY,'POST')):
+			$userId = $this->input->post('users_id');
+			$simNo  = trim((string) $this->input->post('sim_no'));
+
+			if($userId == ''): 
+				echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);
+			else:
+				$where       = array('users_id' => (int)$userId);
+				$tblName     = 'uw_users';
+				$userDetails = $this->geneal_model->getOnlyOneData($tblName, $where);
+
+				if(!empty($userDetails)):
+					if($userDetails['status'] == 'A'):
+						if($simNo != ''):
+							$clearParam = array(
+								'sim_no'     => '',
+								'updated_at' => date('Y-m-d H:i'),
+								'updated_ip' => currentIp(),
+							);
+							$this->common_model->editDataByMultipleCondition('uw_users', $clearParam, array(
+								'sim_no'   => $simNo,
+								'users_id' => array('$ne' => (int)$userId),
+							));
+						endif;
+
+						$param['sim_no']     = $simNo;
+						$param['updated_at'] = date('Y-m-d H:i');
+						$param['updated_ip'] = currentIp();
+						$this->common_model->editData('uw_users',$param,'users_id',(int)$userId);
+
+						$result['users_id'] = (int)$userId;
+						$result['sim_no']   = $simNo;
+						echo outPut(1,lang('SUCCESS_CODE'),lang('SIM_NO_UPDATED'),$result);
+					else:
+						echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_INCORRECT'),$result);
+					endif;
+				else:
+					echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_INCORRECT'),$result);
 				endif;
 			endif;
 		else:

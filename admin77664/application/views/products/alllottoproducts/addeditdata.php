@@ -404,9 +404,76 @@
                                     </div>
                                 </fieldset>
 
+                                   <fieldset>
+                                    <legend>Raffle Eligibility</legend>
+                                    <div class="row g-3 align-items-end">
+                                        <!-- Enable Super Ball -->
+                                        <div class="form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('enable_raffle_eligibility')): ?>error<?php endif; ?>">
+                                            <label>Enable Raffle Eligibility <span class="required">*</span></label>
+                                            <select name="enable_raffle_eligibility" id="enable_raffle_eligibility" class="enable_raffle_eligibility form-control required">
+                                                <?php if(stripslashes($EDITDATA['enable_raffle_eligibility']) == 'Y'): ?>
+                                                <option value="Y" hidden selected>Yes</option>
+                                                <?php else: ?>
+                                                <option value="N" hidden selected>No</option>
+                                                <?php endif; ?>
+                                                <option value="Y" >Yes</option>
+                                                <option value="N">No</option>
+                                            </select>
+                                            <?php if(form_error('enable_raffle_eligibility')): ?>
+                                             <span for="enable_raffle_eligibility" generated="true" class="help-inline">
+                                                <?php echo form_error('enable_raffle_eligibility'); ?>
+                                             </span>
+                                            <?php endif; ?>
+                                        </div> 
+
+                                        <div class="raffle-container <?php if($EDITDATA['enable_raffle_eligibility'] == 'N' || empty($EDITDATA['enable_raffle_eligibility'])) { echo "d-none"; } ?> col-lg-9 col-md-9 col-sm-6 col-xs-12">
+                                            <div class="row">
+                                                
+                                                <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 raffle_eligible_amount  form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('raffle_eligible_amount')): ?>error<?php endif; ?>">
+                                                    <label>Raffle Eligible Amount<span class="required">*</span></label>
+                                                    <input type="number" min="0"  max="100" name="raffle_eligible_amount" id="raffle_eligible_amount" class="raffle_eligible_amount form-control required" value="<?php if(set_value('raffle_eligible_amount')): echo set_value('raffle_eligible_amount'); elseif($EDITDATA['raffle_eligible_amount'] == 0): echo '0';  else: echo $EDITDATA['raffle_eligible_amount']; endif; ?>" >
+                                                    <div class="range-section"></div>
+                                                    <?php if(form_error('raffle_eligible_amount')): ?>
+                                                        <span for="raffle_eligible_amount" generated="true" class="help-inline"><?php echo form_error('raffle_eligible_amount'); ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('raffle_draw_eligible_date')): ?>error<?php endif; ?>">
+                                                    <label>Raffle Draw Eligible Date ( Start ) <span class="required">*</span></label>
+                                                    <input type="datetime-local" name="raffle_draw_eligible_date" id="raffle_draw_eligible_date" class="form-control required" value="<?php if(set_value('raffle_draw_eligible_date')):  echo set_value('raffle_draw_eligible_date'); else: echo stripslashes($EDITDATA['raffle_draw_eligible_date']); endif; ?>">
+                                                    <?php if(form_error('raffle_draw_eligible_date')): ?>
+                                                        <span for="raffle_draw_eligible_date" generated="true" class="help-inline">
+                                                            <?php echo form_error('raffle_draw_eligible_date'); ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('raffle_draw_announcement_date')): ?>error<?php endif; ?>">
+                                                    <label>Raffle Draw Announcement Date ( End ) <span class="required">*</span></label>
+                                                    <input type="datetime-local"
+                                                           name="raffle_draw_announcement_date"
+                                                           id="raffle_draw_announcement_date"
+                                                           class="form-control required"
+                                                           value="<?php 
+                                                                if(set_value('raffle_draw_announcement_date')):
+                                                                    echo set_value('raffle_draw_announcement_date');
+                                                                else:
+                                                                    echo stripslashes($EDITDATA['raffle_draw_announcement_date']);
+                                                                endif;
+                                                           ?>">
+                                                    <?php if(form_error('raffle_draw_announcement_date')): ?>
+                                                        <span for="raffle_draw_announcement_date" generated="true" class="help-inline">
+                                                            <?php echo form_error('raffle_draw_announcement_date'); ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div> 
+                                        </div>
+
+                                    </div>
+                                </fieldset>
+
                                 <div class="row">
                                     <div class="form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('show_on')): ?>error<?php endif; ?>">
-                                        <label>Show ON <sub class="text-danger"> ( Website, App , POS ) </sub></label>
+                                        <label>Show ON <sub class="text-danger"> ( Website, App , POS ,IOS ) </sub></label>
                                         <select name="show_on[]" id="show_on" class="form-control required" multiple required>
                                             
                                             <?php 
@@ -422,6 +489,7 @@
                                             <option value=""> Select </option>
                                             <option value="Website" <?= in_array('Website',$show_on )  ? 'selected':''; ?> > Website </option>
                                             <option value="App"     <?= in_array('App', $show_on)      ? 'selected':''; ?> > App </option>
+                                            <option value="IOS"     <?= in_array('IOS', $show_on)      ? 'selected':''; ?> > IOS </option>
                                             <option value="POS"     <?= in_array('POS', $show_on)      ? 'selected':''; ?> > POS </option>
                                             <option value="coming_soon" <?= in_array('coming_soon', $show_on)      ? 'selected':''; ?> > Coming Soon </option>
                                         </select>
@@ -624,4 +692,15 @@
 
    
   }
+
+   $(document).ready(function () {
+
+        $('#enable_raffle_eligibility').on('change', function() {
+            if ($(this).val() === 'Y') {
+                $(".raffle-container").removeClass('d-none');
+            } else {
+                $(".raffle-container").addClass('d-none');
+            }
+        });
+    });
 </script>

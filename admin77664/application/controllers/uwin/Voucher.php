@@ -1,25 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
-use PhpOffice\PhpSpreadsheet\Helper\Sample;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\RichText\RichText;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Font;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use PhpOffice\PhpSpreadsheet\Style\Protection;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
-use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
-use PhpOffice\PhpSpreadsheet\Worksheet\ColumnDimension;
-use PhpOffice\PhpSpreadsheet\Worksheet;
-
 class Voucher extends CI_Controller {
 
 	public function  __construct() 
@@ -149,7 +130,7 @@ class Voucher extends CI_Controller {
 		// print_r($data['ALLDATA']);
 		// die();
 
-		$this->layouts->set_title('UWinn Winner Uplaoding | UWINN');
+		$this->layouts->set_title('UWinn Winner Uploading | UWINN');
 		$this->layouts->admin_view('uwin/voucher/index',array(),$data);
 	}	// END OF FUNCTION
 
@@ -258,7 +239,7 @@ class Voucher extends CI_Controller {
 	    $tblName 							= 	'uw_uwin_winner';
 	    // $data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField);
 		$data['ALLDATA'] 					= $this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
-		$this->layouts->set_title('UWinn Winner Uplaoding | UWINN');
+		$this->layouts->set_title('UWinn Winner Uploading | UWINN');
 		$this->layouts->admin_view('uwin/voucher/view_index',array(),$data);
 	}	// END OF FUNCTION
 
@@ -273,10 +254,7 @@ class Voucher extends CI_Controller {
 		// checking editing permission..
 		$this->admin_model->authCheck('edit_data');
 	 	$param['status'] 	 = (int)$statusType;
-		//Updating status
-		// $tblName1 			 = 'uw_uwin_winner';
-		// $this->common_model->editData('uw_uwin_winner',$param,'voucher_id' , (int)$changeStatusId);
-		$whereCon = array('voucher_id' => (int)$changeStatusId);
+		$whereCon = array('_id' =>  new \MongoDB\BSON\ObjectId($changeStatusId));
 		$this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner',$param,$whereCon);
 		$this->session->set_flashdata('alert_success',lang('statussuccess'));
 		redirect(correctLink('ALLUWINVOUCHERDATA',getCurrentControllerPath('index')));
@@ -405,7 +383,7 @@ class Voucher extends CI_Controller {
 		    endwhile;
 		    fclose($open);
 			$result = [];
-			$param['batch_id'] 			= (int)$this->common_model->getNextSequence('batch_count');
+			$param['batch_id'] 			= (int)$this->common_model->getNextSequence('lotto_winners');
 			foreach ($DataArray as $itemkey => $itemArray):
 				if($itemkey == 0):
 						
@@ -491,7 +469,7 @@ class Voucher extends CI_Controller {
 		$rr = $this->common_model->addData('temp_uw_uwin_winner', $datain);
 		$data['ALLDATA']  =  $result;
 		$data['temp_id']  = new MongoDB\BSON\ObjectId($rr['_id']->{'$id'});
-		$this->layouts->set_title('UWinn Winner Uplaoding | UWINN');
+		$this->layouts->set_title('UWinn Winner Uploading | UWINN');
 		$this->layouts->admin_view('uwin/voucher/checkpreview',array(),$data);
 	}
 
@@ -559,7 +537,7 @@ class Voucher extends CI_Controller {
 			 // 	die();
 		
 		 $data['ALLDATA']  =  $result;
-		 $this->layouts->set_title('UWinn Winner Uplaoding | UWINN');
+		 $this->layouts->set_title('UWinn Winner Uploading | UWINN');
 		 $this->layouts->admin_view('uwin/voucher/checkInactivePreview',array(),$data);
 	 }	// END OF FUNCTION
 
@@ -793,9 +771,11 @@ class Voucher extends CI_Controller {
 	************************************************************************/
 	public function exportexcel(){
 		try {
+			$this->admin_model->authCheck('view_data');
+			
 			$matchStage = [];
-			$fromDateStr =  date('Y-m-d H:i:00', strtotime($_POST['fromDate']));//$_POST['fromDate'];
-			$toDateStr   =date('Y-m-d H:i:59', strtotime($_POST['toDate'])); //$_POST['toDate'];
+			$fromDateStr = date('Y-m-d H:i:00', strtotime($_POST['fromDate']));
+			$toDateStr = date('Y-m-d H:i:59', strtotime($_POST['toDate']));
 			
 			// If from/to date are provided, add match filter on winner.created_at
 			if ($fromDateStr && $toDateStr) {
@@ -899,84 +879,75 @@ class Voucher extends CI_Controller {
 				]
 			];
 		
-		// Filter by date
-		$pipeline[] = [
-			'$sort' => [
-				'amount' => -1
-			]
-		];
-		$winnerData = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, ['batchSize' => 4]);
-		usort($winnerData, function ($a, $b) {
-			// Ensure both are treated as numbers
-			return (float)$b['amount'] <=> (float)$a['amount'];
-		});
+			// Filter by date
+			$pipeline[] = [
+				'$sort' => [
+					'amount' => -1
+				]
+			];
+			
+			$winnerData = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, ['batchSize' => 4]);
+			usort($winnerData, function ($a, $b) {
+				// Ensure both are treated as numbers
+				return (float)$b['amount'] <=> (float)$a['amount'];
+			});
 
-		//  echo$fromDateStr.'---'.$toDateStr."<pre>";print_r($winnerData);die();
-		// dd($winnerData);
-		require_once FCPATH . 'vendor/psr/simple-cache/src/CacheInterface.php';
-		$spreadsheet = new Spreadsheet();
-		$sheet = $spreadsheet->getActiveSheet();
-		$sheet->setCellValue('A1', 'SL.NO');
-		$sheet->setCellValue('B1', 'ORDER ID');
-		$sheet->setCellValue('C1', 'RETAILER');
-		$sheet->setCellValue('D1', 'POS NUMBER');
-		$sheet->setCellValue('E1', 'DRAW DATE');
-		$sheet->setCellValue('F1', 'GAME NAME');
-		$sheet->setCellValue('G1', 'PRIZE MONEY');
-		$sheet->setCellValue('H1', 'PURCHASE DATE');
-		$sheet->setCellValue('I1', 'AREA');
-		$sheet->setCellValue('J1', 'BIND WITH');
-		$slno = 1;
-		$start = 2;
-		foreach ($winnerData as $key => $d) {
-			$sheet->setCellValue('A'.$start, $slno);
-			$sheet->setCellValue('B'.$start, $d['order_id']);
-			$sheet->setCellValue('C'.$start, ucwords( $d['retailer']));
-			$sheet->setCellValue('D'.$start, $d['pos_number']);
-			$sheet->setCellValue('E'.$start,$d['draw_date']);
-			$sheet->setCellValue('F'.$start, $d['product_title']);
-			$sheet->setCellValue('G'.$start, $d['amount']);
-			$sheet->setCellValue('H'.$start, $d['created_at']);
-			$sheet->setCellValue('I'.$start, $d['seller_name']);
-			$sheet->setCellValue('J'.$start, $d['bind_person_name']);
-			$start = $start+1;
-			$slno = $slno+1;
-		}
-		$styleThinBlackBorderOutline = [
-					'borders' => [
-						'allBorders' => [
-							'borderStyle' => Border::BORDER_THIN,
-							'color' => ['argb' => 'FF000000'],
-						],
-					],
+			// Generate CSV export
+			$filename = 'Big Winners ' . $_POST['fromDate'] . '__' . $_POST['toDate'] . '.csv';
+			
+			// Set headers for CSV download
+			ob_end_clean();
+			header('Content-Type: text/csv; charset=UTF-8');
+			header('Content-Disposition: attachment;filename="' . $filename . '"');
+			header('Cache-Control: max-age=0');
+			
+			// Add BOM for UTF-8 Excel compatibility
+			echo "\xEF\xBB\xBF";
+			
+			// Open output stream
+			$output = fopen('php://output', 'w');
+			
+			// Add CSV headers
+			$headers = [
+				'SL.NO',
+				'ORDER ID',
+				'RETAILER',
+				'POS NUMBER',
+				'DRAW DATE',
+				'GAME NAME',
+				'PRIZE MONEY',
+				'PURCHASE DATE',
+				'AREA',
+				'BIND WITH'
+			];
+			fputcsv($output, $headers);
+			
+			// Add data rows
+			$slno = 1;
+			foreach ($winnerData as $d) {
+				$row = [
+					$slno,
+					$d['order_id'] ?? 'N/A',
+					ucwords($d['retailer'] ?? 'N/A'),
+					$d['pos_number'] ?? 'N/A',
+					$d['draw_date'] ?? 'N/A',
+					$d['product_title'] ?? 'N/A',
+					$d['amount'] ?? '0',
+					$d['created_at'] ?? 'N/A',
+					$d['seller_name'] ?? 'N/A',
+					$d['bind_person_name'] ?? 'N/A'
 				];
-		$sheet->getStyle('A1:J1')->getFont()->setBold(true);		
-		$sheet->getStyle('A1:J'.count($winnerData))->applyFromArray($styleThinBlackBorderOutline);
-		//Alignment
-		//fONT SIZE
-		$sheet->getStyle('A1:J10')->getFont()->setSize(12);
-		$sheet->getStyle('A1:J2')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-		$sheet->getStyle('A2:J'.count($winnerData))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-		$sheet->getColumnDimension('A')->setWidth(5);
-		$sheet->getColumnDimension('B')->setWidth(15);
-		$sheet->getColumnDimension('C')->setWidth(30);
-		$sheet->getColumnDimension('D')->setWidth(30);
-		$sheet->getColumnDimension('E')->setWidth(15);
-		$sheet->getColumnDimension('F')->setWidth(15);
-		$sheet->getColumnDimension('G')->setWidth(15);
-		$sheet->getColumnDimension('H')->setWidth(30);
-		$sheet->getColumnDimension('I')->setWidth(30);
-		$sheet->getColumnDimension('J')->setWidth(30);
-		$curdate = date('d-m-Y H:i:s');
-		$writer = new Xlsx($spreadsheet);
-		$filename = 'Big Winners '.$_POST['fromDate'].'__'.$_POST['toDate'];
-		ob_end_clean();
-		header('Content-Type: application/vnd.ms-excel');
-		header('Content-Disposition: attachment;filename="'. $filename .'.xlsx"'); 
-		header('Cache-Control: max-age=0');
-		$writer->save('php://output');
+				fputcsv($output, $row);
+				$slno++;
+			}
+			
+			fclose($output);
+			exit;
+			
 		} catch (\Throwable $th) {
-			//throw $th;
+			log_message('error', 'Export failed: ' . $th->getMessage());
+			$this->session->set_flashdata('alert_error', 'Export failed: ' . $th->getMessage());
+			redirect(correctLink('ALLUWINVOUCHERDATA', getCurrentControllerPath('index')));
 		}
 	}
 }

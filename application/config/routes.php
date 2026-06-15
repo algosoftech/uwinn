@@ -84,6 +84,7 @@ $route['api/checkEmail'] 										= 	'api/users/checkEmail';
 $route['api/checkMobile'] 										= 	'api/users/checkMobile';
 $route['api/getgeneralinfo'] 									= 	'api/common/getGeneralInfo';
 $route['api/getMembershipDetails'] 								= 	'api/users/getMembershipDetails';
+$route['api/update-network-usage'] 								= 	'api/users/updateNetworkUsage';
 
 // API Lists
 $route['api/getreferralcode']									=   'api/uwinn/getReferralcode';
@@ -136,26 +137,36 @@ $route['api/v1/uwinn/getgeneralinfo'] 									= 	'v1/api/common/getGeneralInfo'
 $route['api/v1/uwinn/getMembershipDetails'] 							= 	'v1/api/users/getMembershipDetails';
 
 // API Lists
-$route['api/v1/uwinn/getLottoProductListPageData'] 				      	= 	'v1/api/uwinn/getProductListPageData';
-$route['api/v1/uwinn/paymentCapture'] 								    = 	'v1/api/uwinn/paymentCapture';
-$route['api/v1/uwinn/paymentCaptureTest'] 								= 	'v1/api/uwinn/paymentCapture_test';
-$route['api/v1/uwinn/orderHistory'] 								    = 	'v1/api/uwinn/orderHistory';
-$route['api/v1/uwinn/summaryReportSearch'] 								= 	'v1/api/uwinn/summaryReportSearch';
-$route['api/v1/uwinn/getWinner'] 										=   'api/v1uwinn/getWinner';
-$route['api/v1/uwinn/product-settings'] 								= 	'v1/api/uwinn/productSettings';
-$route['api/v1/uwinn/winner-testimonial'] 								= 	'v1/api/uwinn/winnerTestimonial';
-$route['api/v1/uwinn/check-winner'] 									= 	'v1/api/uwinn/checkWinner';
-$route['api/v1/uwinn/redeem-by-mode'] 									= 	'v1/api/uwinn/redeemByMode';
-$route['api/v1/uwinn/uwin-allowed-user']								= 	'v1/api/uwinn/uwinAllowedUser';
-$route['api/v1/uwinn/campaign-freezing'] 								= 	'v1/api/uwinn/campaignFreezing';
-$route['api/v1/uwinn/total-sales'] 										= 	'v1/api/uwinn/totalSalesReports';
-$route['api/v1/uwinn/reconcile-request'] 								= 	'v1/api/uwinn/reconcileRequest';
+$route['api/v1/uwinn/getLottoProductListPageData'] 				      	= 'v1/api/uwinn/getProductListPageData';
+$route['api/v1/uwinn/paymentCapture'] 								    = 'v1/api/uwinn/paymentCapture';
+$route['api/v1/uwinn/getLottoProductListPageDataTest'] 				    = 'v1/api/uwinn/getProductListPageData_test';
+$route['api/v1/uwinn/paymentCaptureTest'] 								= 'v1/api/uwinn/paymentCapture_test';
+$route['api/v1/uwinn/orderHistory'] 								    = 'v1/api/uwinn/orderHistory';
+$route['api/v1/uwinn/summaryReportSearch'] 								= 'v1/api/uwinn/summaryReportSearch';
+$route['api/v1/uwinn/getWinner'] 										= 'api/v1uwinn/getWinner';
+$route['api/v1/uwinn/product-settings'] 								= 'v1/api/uwinn/productSettings';
+$route['api/v1/uwinn/winner-testimonial'] 								= 'v1/api/uwinn/winnerTestimonial';
+$route['api/v1/uwinn/check-winner'] 									= 'v1/api/uwinn/checkWinner';
+$route['api/v1/uwinn/redeem-by-mode'] 									= 'v1/api/uwinn/redeemByMode';
+$route['api/v1/uwinn/uwin-allowed-user']								= 'v1/api/uwinn/uwinAllowedUser';
+$route['api/v1/uwinn/campaign-freezing'] 								= 'v1/api/uwinn/campaignFreezing';
+$route['api/v1/uwinn/total-sales'] 										= 'v1/api/uwinn/totalSalesReports';
+$route['api/v1/uwinn/reconcile-request'] 								= 'v1/api/uwinn/reconcileRequest';
+$route['api/v1/uwinn/raffle-campaign']	 	 							= 'v1/api/uwinn/raffleCampaignList';
+
+
+$route['api/v1/uwinn/recharge/create'] 			                        = 'v1/api/recharge/createRecharge';
+$route['api/v1/uwinn/recharge/reverse'] 			                    = 'v1/api/recharge/reverseRecharge';
+$route['api/v1/uwinn/recharge/coupon/create'] 			                = 'v1/api/recharge/generateRechargeCoupon'; // sumit 04-02-26
+$route['api/v1/uwinn/recharge/coupon/list'] 			                = 'v1/api/recharge/rechargeCouponList'; // sumit 05-02-26
+$route['api/v1/uwinn/recharge/coupon/cancel'] 			                = 'v1/api/recharge/cancelRechargeCoupon'; // Dilip 11-02-26
 
 $route['api/uwinn/update-summery-pin'] 									= 'api/users/updateSummeryPin';
 $route['api/uwinn/verify-summery-pin'] 									= 'api/users/verifySummeryPin';
 $route['api/getdrawData']												= 'api/thiredparty/drawDataList';
 
-
+$route['api/uwinn/send-summary-pin-otp']  = 'api/users/SendSummaryPinOTP';
+$route['api/uwinn/verify-summary-otp']    = 'api/users/VerifySummaryPin';
 /*********************************************** APP Routs Start ***************************************************/
 $route['api/raffle-campaign']	 	 = 'api/raffle/campaignList';
 $route['api/check-winner-type'] 	 = 'api/raffle/checkWinnerType';
@@ -180,7 +191,7 @@ $route['api/v1/app/order/order-cancellation'] 		= 	'app/v1/orders/orderCancellat
 $route['api/v1/app/order/transaction-history'] 		= 'app/v1/orders/transactionHistory';
 $route['api/v1/app/order/winning-history'] 			= 'app/v1/orders/winningHistory';
 $route['api/v1/app/order/winner-gallery'] 			= 'app/v1/orders/winnerGallery';
-
+$route['api/v1/user-verify'] 			            = 'app/v1/btc/userVerify';
 
 // wallet routes..
 $route['api/v1/app/users/get-wallet-balance'] 		 = 'app/v1/wallets/getBalance';
@@ -253,4 +264,34 @@ $route['api/btc/verify/mobile/code'] 	    = 'app/v1/btc/verifyMobileCode';
 $route['api/btc/verify/email/code'] 		= 'app/v1/btc/verifyEmailCode';
 $route['api/btc/verify/whatsapp']           = 'app/v1/btc/verifyWhatsapp';
 
-$route['test'] 									= 'home/test';
+$route['api/lotto/check-raffle-eligible']        = 'api/uwinn/checkRaffleEligible';
+$route['api/lotto/submit-eligible-raffleticket'] = 'api/uwinn/submitEligibleTicket';
+$route['api/lotto/autofetch-users-data']         = 'api/uwinn/autoFetchUsersData';
+$route['api/lotto/draw-result-range']            = 'api/uwinn/drawResultRange';
+$route['api/lotto/draw-result']                  = 'api/uwinn/drawResult';
+
+// $route['test'] 									= 'test/test';
+$route['api/btctest/move-to-wallet'] 			= 'app/v1/btctest/moveToWallet';
+// $route['api/test/orderCancellation'] 			= 'app/v1/btctest/orderCancellation';
+$route['api/pos/refresh/campaigns'] 		     = 'api/pos/refreshCampaigns';
+
+
+$route['api/hourlygame/list'] 				     = 'api/hourlygames/getGameList';
+$route['api/hourlygame/order/create'] 			 = 'api/hourlygames/orderCreate';
+$route['api/hourlygame/order/update']            = 'api/hourlygames/updateOrder';
+$route['api/hourlygame/order/cancel']            = 'api/hourlygames/cancellationOrder';
+
+$route['api/hourlygame/order/history'] 		     = 'api/hourlygames/OrderHistory';
+$route['api/hourlygame/order/check-winner'] 	 = 'api/hourlygames/checkWinner';
+$route['api/hourlygame/order/redeem'] 		     = 'api/hourlygames/OrderRedeem';
+$route['api/hourlygame/report/summary'] 		 = 'api/hourlygames/ReportSummary';
+$route['api/hourlygame/order/hourly-order-list'] = 'api/hourlygames/hourlyOrderList';
+$route['api/lotto/hourly-draw-result']           = 'api/hourlygames/hourlyDrawResult';
+$route['api/hourlygame/move-to-wallet']          = 'api/hourlygames/moveToWallet';
+
+$route['api/ding/operator/getaccount']     = 'api/ding/getaccount';
+$route['api/ding/plan/list'] 		       = 'api/ding/getPlanList'; 
+
+// common summary api 
+$route['api/updateSimNo'] 		   = 'api/users/updateSimNo';
+$route['api/combined-summary'] 	   = 'api/CommonReportSummary/getUnifiedSummary';

@@ -42,7 +42,8 @@ class uwinn extends CI_Controller {
 			
 			$ourCampaigns 	  =	array();
 			$P_tblName 	  	  = 'uw_products';
-			$P_fileds		  = array('product_image','title','description','straight_add_on_amount','rumble_add_on_amount','reverse_add_on_amount','lotto_type','lotto_range','draw_date','draw_time','products_id','campaign_auto_freezing_mode','campaign_freezing_end_time','campaign_freezing_start_time','reverse_settings_default_check','rumble_settings_default_check','straight_settings_default_check','product_name','enable_number_prefix','lotto_range_prefix','lotto_range_start','lotto_range_end','ticket_number_repeat','app_image','reverse_settings','rumble_settings','straight_settings','straight_game_name','rumble_game_name','reverse_game_name' ,'straight_settings_default_check','rumble_settings_default_check','reverse_settings_default_check','campaign_price','show_ticket_for_campaign','campaign_price','ticket_count_per_campaign','show_ticket_for_campaign','show_on','enable_raffle_ticket','reffle_prefix','reffle_length','enable_super_ball','super_ball_type','superbal_range_start','superbal_range_end');
+			// $P_fileds		  = array('product_image','title','description','straight_add_on_amount','rumble_add_on_amount','reverse_add_on_amount','lotto_type','lotto_range','draw_date','draw_time','products_id','campaign_auto_freezing_mode','campaign_freezing_end_time','campaign_freezing_start_time','reverse_settings_default_check','rumble_settings_default_check','straight_settings_default_check','product_name','enable_number_prefix','lotto_range_prefix','lotto_range_start','lotto_range_end','ticket_number_repeat','app_image','reverse_settings','rumble_settings','straight_settings','straight_game_name','rumble_game_name','reverse_game_name' ,'straight_settings_default_check','rumble_settings_default_check','reverse_settings_default_check','campaign_price','show_ticket_for_campaign','campaign_price','ticket_count_per_campaign','show_ticket_for_campaign','show_on','enable_raffle_ticket','reffle_prefix','reffle_length','enable_super_ball','super_ball_type','superbal_range_start','superbal_range_end');
+			$P_fileds		  = array();
 
 			$P_where['where']['status']  = "A";
 			
@@ -952,6 +953,12 @@ class uwinn extends CI_Controller {
 				$posDeviceID 		 = $this->input->post('pos_device_id');
 				$superBallMode 		 = $this->input->post('super_ball_mode');
 				$sbTickect 			 = $this->input->post('sb_tickect');
+				$otpSent 			 = $this->input->post('otp_sent');
+				$buyerCountryCode 	 = $this->input->post('buyer_country_code');
+				$buyerMobile 		 = $this->input->post('buyer_mobile');
+				$buyerEmail 		 = $this->input->post('buyer_email');
+				$txnID 			     = $this->input->post('txn_id');
+
 
 				if(empty($userId)): 
 					throw new Exception(lang('USER_ID_EMPTY'), 1);
@@ -1002,7 +1009,7 @@ class uwinn extends CI_Controller {
 						$currentDatentime  = date('Y-m-d H:i');
 						// $currentDatentime  = date('Y-m-d H:i',strtotime('2025-06-21 09:18'));
 
-						if(!empty($productData)  && $productData['products_id'] == $productID  && $productData['status'] == 'A' && strtotime($drawDateNTime) >= strtotime($currentDatentime) && strtotime($drawDate) == strtotime($productData['draw_date']) ):
+						if(!empty($productData)  && $productData['products_id'] == $productID  && $productData['status'] == 'A' && strtotime($drawDateNTime) > strtotime($currentDatentime) && strtotime($drawDate) == strtotime($productData['draw_date']) ):
 
 							$tbl_name  		= 'uw_users';
 							$whereCon  		= array('users_id'  =>(int)$userId,'status'=> 'A');
@@ -1027,16 +1034,28 @@ class uwinn extends CI_Controller {
 									$raffleTickets = $this->common_model->generateRaffle($productQuantity,$reffle_prefix ,$reffle_length);
 								endif;
 
-								if($superBallMode = "Y"):
-
-
+								//Buffering time order duplication check.. START
+								if(!empty($txnID)):
+									$shortFielddd   = array('_id' => -1);
+									$ddd['where']['user_oid']   = new MongoDB\BSON\ObjectId($user_oid);
+									$ddd['where']['product_id'] = (int)$productID;
+									$ddd['where']['txn_id']     = $txnID;
+									$duplicateOrderData = $this->common_model->getData('single','uw_lotto_orders',$ddd,$shortFielddd);
+									if(!empty($duplicateOrderData)):
+										unset($duplicateOrderData["draw_date"]);
+										echo outPut(1, lang('SUCCESS_CODE'), lang('ALREADY_ORDER_PLACED'), $duplicateOrderData);
+										die();
+									endif;
 								endif;
+								//Buffering time order duplication check.. END
 
 								/* ----- Raffle Mode Addon code  ---------*/
-
+								$orderIdss = floor((microtime(true) * 1000)).rand(100,999);
 								$ORparam["sequence_id"]		    		=	(int)$this->geneal_model->getNextSequence('uw_lotto_orders');
+								$ORparam["txn_id"]			    		=	$txnID;
 						        $ORparam["user_oid"] 					=	new MongoDB\BSON\ObjectId($user_oid);
-						        $ORparam["order_id"]		        	=	$this->geneal_model->getNextUWINOrderId();
+						        $ORparam["order_id"]		        	=	"UWINN".$orderIdss;//$this->geneal_model->getNextUWINOrderId();
+						        // $ORparam["order_id"]		        	=	$this->geneal_model->getNextUWINOrderId();
 						        $ORparam["draw_id"]		    			=	(int)$productData['draw_id']; 
 		        				$ORparam["draw_date"] 					=	$productData['draw_date']; 
 						        $ORparam["order_code"]		    		=	base64_encode(rand(1000,9999)); 
@@ -1073,10 +1092,13 @@ class uwinn extends CI_Controller {
 						     	$ORparam["order_users_country_code"] 	=	$countryCode;
 						     	$ORparam["order_users_mobile"] 			=	$usersMobile;
 						     	$ORparam["order_users_email"] 			=	$usersEmail;
-
+								$ORparam["buyer_country_code"] 			= $buyerCountryCode;
+							    $ORparam["buyer_mobile"] 			    = (int)$buyerMobile;
+							    $ORparam["buyer_email"] 			    = $buyerEmail;
+							    $ORparam["otp_sent"] 				    =   $otpSent;
 						        $ORparam["commission_percentage"] 		=	$commission_percentage; 
 						     	$ORparam["SMS"] 						=	$SMS;
-						        $ORparam["is_printed"] 					=	'N'; 
+						        $ORparam["is_printed"] 					=	'Y'; 
 						     	
 						     	if(!empty($raffleTickets)):
 									$ORparam['raffle_mode']			    = $raffleMode;
@@ -1089,9 +1111,102 @@ class uwinn extends CI_Controller {
 
 							    $ORparam["creation_ip"] 				=	$this->input->post('ip_address');
 							    $ORparam["created_at"] 					=	date('Y-m-d H:i');
+							    $ORparam["currentDatetime"] 			=	date('Y-m-d H:i:s');
 							    // Saving order details for Ticket
 							    $orderInsertID  = $this->mongodb_client->insertDocument('uw_lotto_orders', $ORparam, $session);	
 							    $o_id           = (string)$orderInsertID['_id'];
+
+
+								// SMS AND EMAIL CODE
+								$message = "";
+								if(!empty($ticket) && !empty($selectionValues)):
+									$ticketLIST      = json_decode($ticket, true);
+									$selectionValues = json_decode($selectionValues, true);
+									$sbTickectList   = json_decode($sbTickect, true);
+
+									$output        = [];
+									$CouponDetails = '';
+									$map = ['S', 'R', 'C'];
+									foreach ($ticketLIST as $key => $tickets) {
+	
+										// Ticket numbers
+										$line = implode(',', $tickets);
+										// Append super ball for this ticket if present
+										if (!empty($sbTickectList) && isset($sbTickectList[$key])) {
+											$line .= ' + ' . $sbTickectList[$key];
+										}
+										$line .= ' (';
+	
+										// Selection letters
+										$selected = [];
+										foreach ($selectionValues[$key] as $sKey => $sVal) {
+											if ($sVal > 0) {
+												$selected[] = $map[$sKey];
+											}
+										}
+	
+										$line .= implode(',', $selected) . ')';
+										$output[] = $line;
+									}
+	
+									$CouponDetails = implode('. ', $output);
+									$drawDate = date('d.m.Y h:iA', strtotime($drawDateNTime));
+									$message = 'Order ID '.$ORparam["order_id"].' of '.$ORparam["product_title"].' with coupons '.$CouponDetails.' Ddate '.$drawDate.' You can download the invoice here https://tktinvoice.com/uwin-download-invoice/'.$ORparam["order_id"];
+									
+								endif;
+								// if(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message)):
+							    // 	$this->sms_model->raffleWinnersSms($buyerCountryCode,$buyerMobile,$message);
+							    // endif;
+								// if(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message)):
+								// 	if($otpSent == "SMS" || empty($otpSent) ):
+								// 		$this->sms_model->raffleWinnersSms($buyerCountryCode,$buyerMobile,$message);
+								// 	elseif($otpSent == "WhatsApp"):
+								// 		$senderDetails['country_code']  = $buyerCountryCode;
+								// 		$senderDetails['users_mobile']  = $buyerMobile;
+								// 		$senderDetails['message']       = $message;
+								// 		$senderDetails['ORDERID']       = $ORparam["order_id"];
+								// 		$senderDetails['CAMPAIGNAME']   = $ORparam["product_title"];
+								// 		$senderDetails['CouponDetails'] = $CouponDetails;
+								// 		$senderDetails['DDATE']         = $drawDate;
+								// 		$senderDetails['LINK']          = 'https://tktinvoice.com/uwin-download-invoice/'.$ORparam["order_id"];
+								// 		$this->sms_model->sendWhatsAppMessage($senderDetails);
+								// 	endif;
+							    // endif;
+
+								if(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message)):
+									if($otpSent == "SMS" || empty($otpSent) ):
+
+										$enableSmsFields = ['default_sms'];
+										$enableTblName   = 'uw_enablesms';
+										$enableSMSData   = $this->common_model->getSingleDataByParticularField($enableSmsFields,$enableTblName, 'status', 'A');
+										$defaultSMSGateway = $enableSMSData['default_sms'];
+										
+										$senderDetails['gateway']       = $defaultSMSGateway;
+										$senderDetails['users_mobile']  = $buyerMobile;
+										$senderDetails['country_code']  = $buyerCountryCode;
+										$senderDetails['message']       = $message;
+										$result = $this->sms_model->sendSMS($senderDetails);
+										// $this->sms_model->raffleWinnersSms($buyerCountryCode,$buyerMobile,$message);
+
+									elseif($otpSent == "WhatsApp"):
+										$senderDetails['country_code']  = $buyerCountryCode;
+										$senderDetails['users_mobile']  = $buyerMobile;
+										$senderDetails['message']       = $message;
+										$senderDetails['ORDERID']       = $ORparam["order_id"];
+										$senderDetails['CAMPAIGNAME']   = $ORparam["product_title"];
+										$senderDetails['CouponDetails'] = $CouponDetails;
+										$senderDetails['DDATE']         = $drawDate;
+										$senderDetails['LINK']          = 'https://tktinvoice.com/uwin-download-invoice/'.$ORparam["order_id"];
+										$this->sms_model->sendWhatsAppMessage($senderDetails);
+									endif;
+							    endif;
+
+								if(!empty($buyerEmail) && !empty($message)):
+									$subject = "Order Confirmation";
+									$this->emailsendgrid_model->sendEmail($buyerEmail,$subject,$message);
+								endif;
+
+
 							    // echo $ProductData['_id']->{'$id'};
 
 							    // Deduct the purchesed points and get available arabian points of user.
@@ -1637,7 +1752,7 @@ class uwinn extends CI_Controller {
 				endif;
 
 				$ProductTitle = $this->input->get('product_title');
-
+				$totalProductDetails = array_values(array_unique($totalProductDetails, SORT_REGULAR));
 				if(empty($ProductTitle)):
 					$result['totalSales'] 	  		    = (string)$totalSales;
 					$result['commissionAmount'] 	    = (string)$commissionAmount;
@@ -1857,79 +1972,209 @@ class uwinn extends CI_Controller {
 	 * * Updated By    : Dilip Halder
 	 * * Updated Date  : 02 February 2024
 	 * * **********************************************************************/
-	 public function checkWinner()
-	 {
-		$apiHeaderData 		=	getApiHeaderData();
-		$this->generatelogs->putLog('APP',logOutPut($_POST));
-		$result 			= 	array();
+	public function checkWinner()
+	{
+	$apiHeaderData 		=	getApiHeaderData();
+	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	$result 			= 	array();
 
-		if(requestAuthenticate(APIKEY,'POST')):
+	if(requestAuthenticate(APIKEY,'POST')):
+		
+			$userID 	= $this->input->get('users_id');
+			$tickectID  = $this->input->post('tickect_id');
+
+			if(empty($userID)):
+				echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
+			elseif(empty($tickectID)):
+				echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_TICKET'),$result);die();
+			else :
+
+				/* Start function main section*/
+				try {
+						/* Checked User Validation */
+						$requestFrom 	  = "app";
+						$validationResult = $this->common_model->userValidate($userID,$requestFrom);
+
+						// Checking Entered order. 
+						$whereCon1['where'] = array('order_id' => $tickectID );
+						$orderDetails 	    = $this->common_model->getOrderDetail($whereCon1);
+						// echo "<pre>"; print_r($orderDetails); die();
+
+						if(empty($orderDetails)):
+							$this->hourlyGameWinners();
+						endif;
+
+						if(!empty($orderDetails) && $orderDetails['status'] == "A" ):
+							
+							// checking current draw date and time..
+							$currentDate  = strtotime(date('Y-m-d H:i'));
+							$drawDateTime = strtotime($orderDetails['draw_dateTime']);
+							
+							if($currentDate >= $drawDateTime):
+
+								// Checking winning tickets..
+								$tableName   = "uw_uwin_winner";
+								$whereCon['where']['order_id']   = $tickectID;
+								$whereCon['where']['status']     = (int)1;
+								$whereCon['where']['created_at'] = array('$gte' => $orderDetails['created_at']);
+								$checkWinner  = $this->common_model->getData('multiple',$tableName,$whereCon);
+								
+								if(!empty($checkWinner)):
+									$result = $this->WinningPrize($checkWinner,$userID);
+									if($result[0]['redeeming_amount_limit'] < $result[0]['amount']  && $userID != "100000000000110" ):
+										$result[0]['winning_message'] = lang('BIG_WINNER_TEXT');
+									endif;
+									// echo "<pre>"; print_r($result); die();
+									echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);	
+								elseif($orderDetails['draw_id'] == $orderDetails['current_draw_id']):
+									throw new Exception(lang('DRAW_ONGOIN'));
+								else:
+									throw new Exception(lang('NOT_WINNER'));
+								endif;
+							else:
+								$Drawdate =  date('d/m/y',strtotime($orderDetails['draw_dateTime']));
+								$Drawtime =  date('h:i A',strtotime($orderDetails['draw_dateTime']));
+								$error 	  = "The draw is scheduled for $Drawdate at $Drawtime. Please check the results after the draw.";
+								throw new Exception($error);
+							endif;
+
+						elseif($orderDetails['status'] == "CL"):
+							throw new Exception(lang('CANCELLED_ORDER'));
+						else:
+							throw new Exception(lang('ORDET_ID_INVALID')); //Error added for invalid order id.
+						endif;
+
+				} catch (Exception $e) {
+					$result = [];
+					echo outPut(1,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+				}
+			endif;
+	else:
+		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	endif;
+	}
+
+	private function hourlyGameWinners($orderDetails='')
+	{
+		$result    = array();
+		$userID    = $this->input->post('users_id') ?: $this->input->get('users_id');
+		$tickectID = $this->input->post('tickect_id');
+
+		try {
+			if(empty($userID)) throw new Exception(lang('USER_ID_EMPTY'));
+			if(empty($tickectID)) throw new Exception(lang('EMPTY_TICKET'));
+
+			$this->common_model->userValidate($userID, "app");
+
+			$whereCon['where']['order_id'] = $tickectID;
+			$resultData = $this->common_model->getHourlyGameOrderData('single', "uw_hourly_orders", $whereCon,'', '', '');
+			$orderData = $resultData[0];
+
+			if($orderData['draw_time'] > strtotime(date('Y-m-d H:i:s'))):
+				$Drawdate =  date('d/m/y',$orderData['draw_time']);
+				$Drawtime =  date('h:i A',$orderData['draw_time']);
+				$error 	  = "The draw is scheduled for $Drawdate at $Drawtime. Please check the results after the draw.";
+				throw new Exception($error);
+			endif;
+
+			if(empty($orderData)) throw new Exception(lang('ORDET_ID_INVALID'));
+			if(isset($orderData['status']) && $orderData['status'] == 'CL') throw new Exception(lang('CANCELLED_ORDER'));
+			if((!isset($orderData['is_winner']) || $orderData['is_winner'] != 'Y'  || $orderData['winning_status'] == 'Inactive'|| $orderData['winning_status'] == 'inactive'||  $orderData['winning_status'] == 'Deleted')) throw new Exception(lang('NOT_WINNER'));
+
+			$winningDetails = array();
+			if(!empty($orderData['winning_details'])):
+				$winningDetails = is_array($orderData['winning_details'])
+					? $orderData['winning_details']
+					: (json_decode($orderData['winning_details'], true) ?: array());
+			endif;
+
+			// if(empty($winningDetails)):
+			// 	$winningDetails[] = array(
+			// 		'coupon_code'      => $orderData['coupon_code'] ?? 'N/A',
+			// 		'matching_coupons' => $orderData['matching_coupons'] ?? 'N/A',
+			// 		'winner_type'      => $orderData['winner_type'] ?? 'N/A',
+			// 		'winning_amount'   => $orderData['winning_amount'] ?? 0,
+			// 		'status'           => $orderData['status'] ?? 'N/A',
+			// 	);
+			// endif;
 			
-				$userID 	= $this->input->get('users_id');
-				$tickectID  = $this->input->post('tickect_id');
-
-				if(empty($userID)):
-					echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
-				elseif(empty($tickectID)):
-					echo outPut(0,lang('SUCCESS_CODE'),lang('EMPTY_TICKET'),$result);die();
-				else :
-
-					/* Start function main section*/
-					try {
-							/* Checked User Validation */
-							$requestFrom 	  = "app";
-							$validationResult = $this->common_model->userValidate($userID,$requestFrom);
-
-							// Checking Entered order. 
-							$whereCon1['where'] = array('order_id' => $tickectID );
-						 	$orderDetails 	    = $this->common_model->getOrderDetail($whereCon1);
-			 				// echo "<pre>"; print_r($orderDetails); die();
-
-						 	if(!empty($orderDetails) && $orderDetails['status'] == "A" ):
-							 	
-						 		// checking current draw date and time..
-							 	$currentDate  = strtotime(date('Y-m-d H:i'));
-					 			$drawDateTime = strtotime($orderDetails['draw_dateTime']);
-					 			
-					 			if($currentDate >= $drawDateTime):
-
-					 				// Checking winning tickets..
-									$tableName 			= "uw_uwin_winner";
-									$whereCon['where']  = array('order_id' => $tickectID ,'status' => (int)1);
-								 	$checkWinner 	    = $this->common_model->getData('multiple',$tableName,$whereCon);
-								 	if(!empty($checkWinner)):
-								 		$result = $this->WinningPrize($checkWinner);
-						 				// echo "<pre>"; print_r($result); die();
-			 							echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);	
-			 						elseif($orderDetails['draw_id'] == $orderDetails['current_draw_id']):
-				 						throw new Exception(lang('DRAW_ONGOIN'));
-								 	else:
-				 						throw new Exception(lang('NOT_WINNER'));
-								 	endif;
-					 			else:
-				 				 	$Drawdate =  date('d/m/y',strtotime($orderDetails['draw_dateTime']));
-		 	    					$Drawtime =  date('h:i A',strtotime($orderDetails['draw_dateTime']));
-					 				$error 	  = "The draw is scheduled for $Drawdate at $Drawtime. Please check the results after the draw.";
-			 						throw new Exception($error);
-					 			endif;
-
-					 		elseif($orderDetails['status'] == "CL"):
-				 		 		throw new Exception(lang('CANCELLED_ORDER'));
-						 	else:
-				 		 		throw new Exception(lang('ORDET_ID_INVALID')); //Error added for invalid order id.
-				 			endif;
-
-					} catch (Exception $e) {
-						$result = [];
-						echo outPut(1,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
-					}
+			$matchingCode = array(); $matchingAmount = array(); $winnerType = array();$couponCode =array();
+			foreach($winningDetails as $item):
+				$item = is_object($item) ? (array)$item : $item;
+				if($item['status'] == 'A'  && $item['winning_amount'] > '0' && ( $orderData['batch_id'] == $item['batch_id'] ) ):
+					$matchingCode[] = (string)($item['matching_coupons'] ?? ($item['matching_coupon'] ?? 'N/A'));
+					$couponCode[]   = (string)($item['coupon_code'] ?? ($item['coupon_code'] ?? 'N/A'));
+					$matchingAmount[] = (string)($item['winning_amount'] ?? '0');
+					$winnerType[] = (string)($item['winner_type'] ?? 'N/A');
 				endif;
-		else:
-			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
-		endif;
-	 }
+			endforeach;
 
-	private function WinningPrize($WinnerList='')
+			$userDetails = $this->common_model->getSingleDataByParticularField(
+				array('_id','users_id','area','redeeming_amount_limit'),
+				'uw_users',
+				'users_id',
+				(int)$userID
+			);
+
+			$redeemByMode = $orderData['redeem_by_mode'] ?? '';
+			$redeemStatus = $orderData['winning_status'];
+			$redeemMessage = $redeemStatus == 'paid'
+				? ($redeemByMode == 'wallet' ? "Already moved to the user's wallet." : "Already paid.")
+				: 'Not redeemed yet.';
+
+			$amount = (string)($orderData['winning_amount'] ?? 0);
+			$redeemLimit = (string)($userDetails['redeeming_amount_limit'] ?? '499');
+			$winningMessage = ((float)$amount > (float)$redeemLimit) ? lang('BIG_WINNER_TEXT') : '';
+
+			$createdAt = '';
+			if(!empty($orderData['created_at'])):
+				$createdAt = date('Y-m-d h:i A', is_numeric($orderData['created_at']) ? (int)$orderData['created_at'] : strtotime($orderData['created_at']));
+			endif;
+
+			$modifiedAt = '';
+			if(!empty($orderData['update_date']) && is_numeric($orderData['update_date'])):
+				$modifiedAt = date('Y-m-d h:i A', (int)$orderData['update_date']);
+			elseif(!empty($orderData['winner_uploaded_at']) && is_numeric($orderData['winner_uploaded_at'])):
+				$modifiedAt = date('Y-m-d h:i A', (int)$orderData['winner_uploaded_at']);
+			elseif(!empty($orderData['modified_at'])):
+				$modifiedAt = date('Y-m-d h:i A', strtotime($orderData['modified_at']));
+			endif;
+
+
+			$code = implode(' / ', $couponCode);
+
+			$result[] = array(
+				'voucher_id'             => $orderData['voucher_id'] ?? 0,
+				'pos_number'             => !empty($orderData['seller_pos_number']) ? $orderData['seller_pos_number'] : 'N/A',
+				'order_id'               => $orderData['order_id'] ?? $tickectID,
+				'seller_first_name'      => $orderData['seller_users_name'] ?? ($orderData['seller_users_name'] ?? 'N/A'),
+				'seller_last_name'       => $orderData['seller_users_last_name'] ?? ($orderData['seller_users_last_name'] ?? 'N/A'),
+				'code'                   => $code,
+				'matching_code'          => $matchingCode,
+				'matching_amount'        => $matchingAmount,
+				'amount'                 => $amount,
+				'winner_type'            => $winnerType,
+				'status'                 => (isset($orderData['status']) && is_numeric($orderData['status'])) ? (int)$orderData['status'] : 1,
+				'area'                   => $orderData['seller_store_area'] ?? ($orderData['seller_store_area'] ?? 'N/A'),
+				'redeeming_amount_limit' => $redeemLimit,
+				'products_id'            => (int)($orderData['product_id'] ?? 0),
+				'created_at'             => $createdAt,
+				'modified_at'            => $modifiedAt,
+				'redeem_status_message'  => $redeemMessage,
+				'redeem_by_mode'         => $redeemByMode,
+				'redeem_status'          => $redeemStatus,
+				'seller_id'              => isset($orderData['seller_id']) ? (int)$orderData['seller_id'] : (int)$userID,
+				'winning_message'        => $winningMessage
+			);
+
+			echo outPut(1, lang('SUCCESS_CODE'), lang('SUCCESS_ACTION'), $result);
+		} catch(Exception $e) {
+			echo outPut(1, lang('SUCCESS_CODE'), $e->getMessage(), $result);
+		}
+		die();
+	}
+
+	private function WinningPrize($WinnerList='',$userID="")
 	{
 		$totalPrizeAmount    = 0;
 		$totalPaidAmount     = 0;
@@ -1945,6 +2190,13 @@ class uwinn extends CI_Controller {
 	 	 $totalPrizeAmount   	= $totalPrizeAmount+ $items['amount'];
 	 	else:
 	 	 $totalPaidAmount   	= $totalPaidAmount+ $items['amount'];
+		
+		 if($items['redeem_by_mode'] == 'wallet'):
+			$redeem_status_message = "Already moved to the user's wallet.";
+		 else:
+			$redeem_status_message = "Already paid.";
+		 endif;
+
 	 	endif;	
 
 	 	 $totalCode[]   		= $items['coupons']?$items['coupons']:$items['code'];
@@ -1957,16 +2209,21 @@ class uwinn extends CI_Controller {
 	 	$totalCode = implode(' / ', $totalCode);
 
 	 	$tableName1	   = "uw_lotto_orders";
-	    $Fields 	   = array('_id','user_id','created_at');
+	    $Fields 	   = array('_id','user_id','created_at','pos_number');
  	    $orderDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'order_id',$items['order_id']);
  	   	$order_date    = $orderDetails['created_at'];
 
- 	   	if($orderDetails['user_id']):
- 	    	$tableName1	 = "uw_users";
-		    $Fields 	 = array('_id','user_id' ,'area');
+ 	    if(!empty($userID)):
+			$tableName1	 = "uw_users";
+		    $Fields 	 = array('_id','user_id' ,'area','redeeming_amount_limit');
 	 	    $userDetails = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$orderDetails['user_id']);
+		// else:
+ 	    	$tableName1	 = "uw_users";
+		    $Fields 	 = array('_id','user_id' ,'area','redeeming_amount_limit');
+	 	    $sellerInfo = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$userID );
  	    endif;
-
+		  
+ 	     
 
 	 	$winerList['voucher_id'] 		= $items['voucher_id'];
 	 	$winerList['pos_number']   		= $orderDetails['pos_number']?$orderDetails['pos_number']:'N/A';
@@ -1980,11 +2237,13 @@ class uwinn extends CI_Controller {
 	 	$winerList['winner_type'] 		= $totalWinnerType;
 	 	$winerList['status'] 			= $items['status'];
 	 	$winerList['area'] 				= $userDetails['area'];
+		$winerList['redeeming_amount_limit'] = $sellerInfo['redeeming_amount_limit']?$sellerInfo['redeeming_amount_limit']:'499';
 	 	$winerList['products_id'] 		= $items['products_id'];
 	 	// $winerList['created_at'] 		= $orderDetails['created_at'];
 	 	// $winerList['created_by'] 		= $items['created_by'];
 		$winerList["created_at"]        =   date('Y-m-d h:i A',strtotime($order_date)) ;
-		$winerList["modified_at"]       =   date('Y-m-d h:i A',strtotime($items['modified_at'])) ;
+		$winerList["modified_at"]       =   date('Y-m-d h:i A',strtotime($items['modified_at']));
+		$winerList['redeem_status_message'] = $redeem_status_message;
 	 	if($items['modified_by']):
 	 		$winerList['modified_by'] 		= $items['modified_by'];
 	 	endif;
@@ -2010,15 +2269,208 @@ class uwinn extends CI_Controller {
 	 * * Updated By    : Dilip Halder
 	 * * Updated Date  : 24 February 2024
 	 * * **********************************************************************/
-	 public function redeemByMode()
-	 {
+	//  public function redeemByMode()
+	//  {
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 			= 	array();
+
+	// 	if(requestAuthenticate(APIKEY,'POST')):
+	// 		$userID 	  =  $this->input->post('users_id');
+	// 		$tickectID 	  =  $this->input->post('tickect_id');
+	// 		// $voucherId 	  =  $this->input->post('voucher_id');
+	// 		$redeemStatus =  $this->input->post('redeem_status');
+	// 		$redeemByMode =  $this->input->post('redeem_by_mode');
+	// 		$posDeviceId  =  $this->input->post('pos_device_id');
+	// 		$ipAddress    =  $this->input->post('ip_address');
+
+	// 		try {
+
+	// 			if(empty($userID)):
+	// 				throw new Exception(lang('USER_ID_EMPTY'));
+	// 			elseif(empty($tickectID)):
+	// 				throw new Exception(lang('EMPTY_TICKET'));
+	// 			// elseif(empty($voucherId)):
+	// 			// 	throw new Exception(lang('EMPTY_VOUCHER'));
+	// 			elseif(empty($redeemStatus)):
+	// 				throw new Exception(lang('EMPTY_REDEEMSTATUS'));
+	// 			elseif(empty($redeemStatus)):
+	// 				throw new Exception(lang('EMPTY_RedeemByMode'));
+	// 			else:
+
+	// 				/* Checked User Validation */
+	// 				$requestFrom 	  = "app";
+	// 				$validationResult = $this->common_model->userValidate($userID,$requestFrom);
+
+	// 				$whereCon1['where'] = array('order_id' => $tickectID );
+	// 				$orderDetails 	    = $this->common_model->getOrderDetail($whereCon1);
+	// 				// echo "<pre>";print_r($orderDetails);die();
+	// 				if(!empty($orderDetails) && $orderDetails['status'] == "A" ):
+						
+	// 					// Checking winning tickets..
+	// 					$tableName  = "uw_uwin_winner";
+	// 					$whereCon['where']['order_id']   = $tickectID;
+	// 					$whereCon['where']['status']     = (int)1;
+	// 					$whereCon['where']['created_at'] = array('$gte' => $orderDetails['created_at']);
+	// 					$WinnerList  = $this->common_model->getData('multiple',$tableName,$whereCon);
+
+	// 					if(!empty($WinnerList)):
+							
+	// 						$totalPrizeAmount     = 0;
+	// 						$totalPaidPrizeAmount = 0;
+	// 						foreach ($WinnerList as $key => $items) :
+	// 							if($items['redeem_status'] != 'paid' && $items['status'] == 1 ):
+	// 							$totalPrizeAmount     = $totalPrizeAmount+ $items['amount'];
+	// 							elseif($totalPaidPrizeAmount == 'paid' && $items['status'] == 1):
+	// 							$totalPaidPrizeAmount = $totalPaidPrizeAmount+ $items['amount'];
+	// 							endif;
+	// 						endforeach;
+
+	// 						$tableName1	    = "uw_users";
+	// 						$Fields 	    = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit');
+	// 						$sellerDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$userID);
+	// 						$redeeming_amount_limit = $sellerDetails['redeeming_amount_limit']?$sellerDetails['redeeming_amount_limit'] : 999; 
+							
+	// 						if($totalPrizeAmount > $redeeming_amount_limit &&  $userID != 100000000000110):
+	// 							throw new Exception(lang('BIG_WINNER_TEXT'));
+	// 						elseif(!empty($totalPrizeAmount) && $totalPrizeAmount >=1 ):
+	// 							//fetching placed order details..
+	// 							if(!empty($orderDetails)):
+	// 								// Added redeeming Param..
+	// 								$updateParams['pos_device_id'] 	= $posDeviceId;
+	// 								$updateParams["user_type"]      = $orderDetails['user_type'];
+	// 								$updateParams['redeem_status'] 	= $redeemStatus;
+	// 								$updateParams['redeem_by_mode'] = $redeemByMode;
+	// 								$updateParams["modified_at"]    = date('Y-m-d H:i');
+	// 								$updateParams['created_ip'] 	= $ip_address;
+	// 								$updateParams['seller_id'] 		= (int)$userID;
+	// 								$WInnner_whereCon = array('order_id' => $tickectID, 'status' => (int)'1','redeem_status' => array('$ne' => 'paid') );
+	// 								$record = $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $updateParams,$WInnner_whereCon);
+									
+	// 								/* Load Balance Table -- after Sign Up*/
+	// 								$Redeemparam["load_balance_id"]          =   (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+	// 								$Redeemparam["user_oid"]        	     =   new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
+	// 								$Redeemparam["order_oid"]       		 =   new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+	// 								$Redeemparam["order_id"]       		     =   $tickectID;
+	// 								$Redeemparam["user_type"]       		 =   $orderDetails['user_type'];
+	// 								$Redeemparam["product_id"]       		 =   (int)$orderDetails['product_id'];
+	// 								$Redeemparam["user_id_deb"]              =   (int)$userID;
+	// 								$Redeemparam["user_id_cred"]             =   (int)0;
+	// 								$Redeemparam["upoints"]       		     =   (float)$totalPrizeAmount;
+	// 								$Redeemparam["record_type"]              =   'Debit';
+	// 								$Redeemparam["narration"]  			     =   'Redeem Prize';
+	// 								$Redeemparam["remarks"]  			     =   "Redeemed Prize ".$totalPrizeAmount." AED in cash";
+	// 								$Redeemparam["availableArabianPoints"] 	 =   (float)$sellerDetails['availableArabianPoints'];
+	// 								$Redeemparam["end_balance"] 		 	 =   (float)$sellerDetails['availableArabianPoints'];
+	// 								$Redeemparam["creation_ip"]         	 =   currentIp();
+	// 								$Redeemparam["created_at"]          	 =   date('Y-m-d H:i');
+	// 								$Redeemparam["created_by"]         	  	 =   (int)$userID;
+	// 								$Redeemparam["status"]               	 =   "A";
+									
+	// 								$reddemData = $this->common_model->addData('uw_loadBalance', $Redeemparam);
+	// 								$this->geneal_model->addRedeem_Cash_Amount_TO_Seller($userID,(float)$totalPrizeAmount);
+									
+	// 								//Adding loadbalkance records for users..
+	// 								if($orderDetails['user_type'] == 'Users'):
+
+	// 									// User Details
+	// 									$tableName1	  = "uw_users";
+	// 									$Fields 	  = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit');
+	// 									$userDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$orderDetails['user_id']);
+
+	// 									/* Load Balance Table -- after Sign Up*/
+	// 									$Redeemparam11["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+	// 									$Redeemparam11["user_oid"]        	       = new MongoDB\BSON\ObjectId((string)$orderDetails['user_oid']);
+	// 									$Redeemparam11['request_id'] 			   = new MongoDB\BSON\ObjectId($reddemData['_id']->{'$id'});
+	// 									$Redeemparam11["order_id"]       		   = $tickectID;
+	// 									$Redeemparam11["user_id_deb"]              = (int)0;
+	// 									$Redeemparam11["user_id_cred"]             = (int)$orderDetails['user_id'];
+	// 									$Redeemparam11["upoints"]       		   = (float)$totalPrizeAmount;
+	// 									$Redeemparam11["record_type"]              = 'Credit';
+	// 									$Redeemparam11["narration"]  			   = 'Winning Ticket Redeemed';
+	// 									$Redeemparam11["remarks"]  			       = "Completed ( " .$tickectID." )";
+	// 									$Redeemparam11["availableArabianPoints"]   = (float)$userDetails['availableArabianPoints'];
+	// 									$Redeemparam11["end_balance"] 		 	   = (float)$userDetails['availableArabianPoints'];
+	// 									$Redeemparam11["creation_ip"]         	   = currentIp();
+	// 									$Redeemparam11["created_at"]          	   = date('Y-m-d H:i');
+	// 									$Redeemparam11["created_by"]         	   = (int)$orderDetails['user_id'];
+	// 									$Redeemparam11["status"]               	   = "A";
+
+	// 									$this->geneal_model->addData('uw_loadBalance', $Redeemparam11);
+
+	// 									$commission_percentage = 5;
+	// 									$commission_amount     = $totalPrizeAmount*$commission_percentage/100;
+	// 									/* Load Balance Table -- after Cash voucher Redeeming */
+	// 									$RedeemCashparam["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+	// 									$RedeemCashparam["request_id"]               = $VoucherData['voucher_id'];
+	// 									$RedeemCashparam['request_oid'] 			 = new MongoDB\BSON\ObjectId($reddemData['_id']->{'$id'});
+	// 									$RedeemCashparam["user_oid"]                 = new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
+	// 									$RedeemCashparam["order_oid"]                = new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+	// 									$RedeemCashparam["order_id"]                 = $orderDetails['order_id'];
+	// 									$RedeemCashparam["user_type"]                = $orderDetails['user_type'];
+	// 									$RedeemCashparam["product_id"]               = $orderDetails['product_id'];
+	// 									$RedeemCashparam["user_id_deb"]              = (int)0;
+	// 									$RedeemCashparam["user_id_cred"]             = (int)$sellerDetails['users_id'];
+	// 									$RedeemCashparam["upoints"]                  = (float)$commission_amount;
+	// 									$RedeemCashparam["record_type"]              = "Debit";
+	// 									$RedeemCashparam["narration"]                = "Redeem Prize Commission";
+	// 									$RedeemCashparam["remarks"]                  = "Redeemed Prize ".$totalPrizeAmount." AED in cash for " .$tickectID;
+	// 									$RedeemCashparam["availableArabianPoints"]   = (float)$sellerDetails['availableArabianPoints'];
+	// 									$RedeemCashparam["end_balance"]              = (float)$sellerDetails['availableArabianPoints'] + $commission_amount;
+	// 									$RedeemCashparam["creation_ip"]              = currentIp();
+	// 									$RedeemCashparam["created_at"]               = date('Y-m-d H:i');
+	// 									$RedeemCashparam["created_by"]               = (int)$users_id;
+	// 									$RedeemCashparam["status"]                   = "A";
+	// 									$this->geneal_model->addData('uw_loadBalance', $RedeemCashparam);
+
+	// 									//Creaditing amount to selelr account..
+	// 									$availableArabianPoints = (float)$sellerDetails['availableArabianPoints'];
+	// 									$totalArabianPoints     = (float)$sellerDetails['totalArabianPoints'] + (float)$commission_amount;
+
+	// 									$uparam['availableArabianPoints']    =   $availableArabianPoints + $commission_amount;
+	// 									$uparam['totalArabianPoints']        =   $totalArabianPoints;
+	// 									$uparam['update_date']               =   date('Y-m-d h:m');
+	// 									$isUpdate = $this->common_model->editData('uw_users',$uparam, 'users_id',(int)$sellerDetails['users_id']);
+
+	// 									$result = array('payment_date' => date('Y-m-d H:i'));
+	// 								endif;
+
+	// 								$result = array('payment_date' => date('Y-m-d H:i'));
+	// 								echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die();
+	// 							else:
+	// 								throw new Exception(lang('ORDET_ID_INVALID'));
+	// 							endif;
+								
+	// 						elseif(!empty($totalPaidPrizeAmount) && $totalPaidPrizeAmount >=1 ):
+	// 							throw new Exception(lang('ALREADY_REDEEM'));
+	// 						endif;
+	// 					else:
+	// 						throw new Exception(lang('NOT_WINNER'));
+	// 					endif;
+						
+	// 				elseif($orderDetails['status'] == "CL"):
+	// 					throw new Exception(lang('CANCELLED_ORDER'));
+	// 				else:
+	// 					throw new Exception(lang('ORDET_ID_INVALID')); //Error added for invalid order id.
+	// 				endif;
+				
+	// 			endif;
+	// 		} catch (Exception $e) {
+	// 			echo outPut(0, lang('SUCCESS_CODE'), $e->getMessage());
+	// 		}
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	//  }
+    public function redeemByMode()
+	{
 		$apiHeaderData 		=	getApiHeaderData();
 		$this->generatelogs->putLog('APP',logOutPut($_POST));
 		$result 			= 	array();
 
 		if(requestAuthenticate(APIKEY,'POST')):
 			$userID 	  =  $this->input->post('users_id');
-			$tickectId 	  =  $this->input->post('tickect_id');
+			$tickectID 	  =  $this->input->post('tickect_id');
 			// $voucherId 	  =  $this->input->post('voucher_id');
 			$redeemStatus =  $this->input->post('redeem_status');
 			$redeemByMode =  $this->input->post('redeem_by_mode');
@@ -2029,7 +2481,7 @@ class uwinn extends CI_Controller {
 
 				if(empty($userID)):
 					throw new Exception(lang('USER_ID_EMPTY'));
-				elseif(empty($tickectId)):
+				elseif(empty($tickectID)):
 					throw new Exception(lang('EMPTY_TICKET'));
 				// elseif(empty($voucherId)):
 				// 	throw new Exception(lang('EMPTY_VOUCHER'));
@@ -2043,56 +2495,71 @@ class uwinn extends CI_Controller {
 					$requestFrom 	  = "app";
 					$validationResult = $this->common_model->userValidate($userID,$requestFrom);
 
-					// Checking coupon in collection.
-					$tableName 			= "uw_uwin_winner";
-					$whereCon['where']  = array('order_id' => $tickectId);
-				 	$WinnerList 	    = $this->common_model->getData('multiple',$tableName,$whereCon);
-				 	if(!empty($WinnerList)):
+					$whereCon1['where'] = array('order_id' => $tickectID );
+					$orderDetails 	    = $this->common_model->getOrderDetail($whereCon1);
+					// echo "<pre>";print_r($orderDetails);die();
+
+					if(empty($orderDetails)):
+						$this->hourlyGameWinnersRedeemByMode();
+					endif;
+					
+					if(!empty($orderDetails) && $orderDetails['status'] == "A" ):
 						
-				 		$totalPrizeAmount     = 0;
-				 		$totalPaidPrizeAmount = 0;
-						foreach ($WinnerList as $key => $items) :
-							if($items['redeem_status'] != 'paid' && $items['status'] == 1 ):
-							 $totalPrizeAmount     = $totalPrizeAmount+ $items['amount'];
-							elseif($totalPaidPrizeAmount == 'paid' && $items['status'] == 1):
-							 $totalPaidPrizeAmount = $totalPaidPrizeAmount+ $items['amount'];
-							endif;
-						endforeach;
+						// Checking winning tickets..
+						$tableName  = "uw_uwin_winner";
+						$whereCon['where']['order_id']   = $tickectID;
+						$whereCon['where']['status']     = (int)1;
+						$whereCon['where']['created_at'] = array('$gte' => $orderDetails['created_at']);
+						$WinnerList  = $this->common_model->getData('multiple',$tableName,$whereCon);
 
-						$tableName1	  = "uw_users";
-					    $Fields 	  = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit');
-				 	    $sellerDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$userID);
+						if(!empty($WinnerList)):
+							
+							$totalPrizeAmount     = 0;
+							$totalPaidPrizeAmount = 0;
+							foreach ($WinnerList as $key => $items) :
+								if($items['redeem_status'] != 'paid' && $items['status'] == 1 ):
+								$totalPrizeAmount     = $totalPrizeAmount+ $items['amount'];
+								elseif($totalPaidPrizeAmount == 'paid' && $items['status'] == 1):
+								$totalPaidPrizeAmount = $totalPaidPrizeAmount+ $items['amount'];
+								endif;
+							endforeach;
 
-				 	    $redeeming_amount_limit   =  $sellerDetails['redeeming_amount_limit']?$sellerDetails['redeeming_amount_limit'] : 999; 
-				 	    if($totalPrizeAmount > $redeeming_amount_limit &&  $userID != 100000000000110):
-							throw new Exception(lang('BIG_WINNER_TEXT'));
-						elseif(!empty($totalPrizeAmount) && $totalPrizeAmount >=1 ):
-
-							//fetching placed order details..
-						 	$tblName      = "uw_lotto_orders";
-						    $Fields 	  = array('_id','order_id','product_id','user_type','user_id','user_oid');
-					 	    $orderDetails = $this->common_model->getSingleDataByParticularField($Fields,$tblName,'order_id',$tickectId);
-
-					 	    if(!empty($orderDetails)):
-
-					 	    	// Added redeeming Param..
-					 	    	$updateParams['pos_device_id'] 	= $posDeviceId;
-								$updateParams["user_type"]      = $orderDetails['user_type'];
-							 	$updateParams['redeem_status'] 	= $redeemStatus;
-								$updateParams['redeem_by_mode'] = $redeemByMode;
-								$updateParams["modified_at"]    = date('Y-m-d H:i');
-								$updateParams['created_ip'] 	= $ip_address;
-								$updateParams['seller_id'] 		= (int)$userID;
-								$WInnner_whereCon = array('order_id' => $tickectId, 'status' => (int)'1','redeem_status' => array('$ne' => 'paid') );
-								$record = $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $updateParams,$WInnner_whereCon);
-
-								if($record >=1):
-
+							$tableName1	    = "uw_users";
+							$Fields 	    = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit');
+							$sellerDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$userID);
+							$defaultRedeemingAmountLimit = 499;
+							$redeeming_amount_limit = $sellerDetails['redeeming_amount_limit']?$sellerDetails['redeeming_amount_limit'] : $defaultRedeemingAmountLimit; 
+							
+							if($totalPrizeAmount > $redeeming_amount_limit &&  $userID != 100000000000110):
+								throw new Exception(lang('BIG_WINNER_TEXT'));
+							elseif(!empty($totalPrizeAmount) && $totalPrizeAmount >=1 ):
+								//fetching placed order details..
+								if(!empty($orderDetails)):
+									// Added redeeming Param..
+									$this->session->sess_regenerate();
+									$session = $this->mongodb_client->client->startSession();
+									$session->startTransaction();
+									$updateParams['pos_device_id'] 	= $posDeviceId;
+									$updateParams["user_type"]      = $orderDetails['user_type'];
+									$updateParams['redeem_status'] 	= $redeemStatus;
+									$updateParams['redeem_by_mode'] = $redeemByMode;
+									$updateParams["modified_at"]    = date('Y-m-d H:i');
+									$updateParams['created_ip'] 	= $ip_address;
+									$updateParams['seller_id'] 		= (int)$userID;
+									$WInnner_whereCon = array('order_id' => $tickectID, 'status' => (int)'1','redeem_status' => array('$ne' => 'paid') );
+									// $record = $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $updateParams,$WInnner_whereCon);
+									$record = $this->mongodb_client->updateDocument(
+										'uw_uwin_winner',         // Collection name
+										$WInnner_whereCon,        // Filter / condition for which document to update
+										['$set' => $updateParams],// Proper MongoDB update syntax
+										$session                  // MongoDB session (optional)
+									);
+										
 									/* Load Balance Table -- after Sign Up*/
 									$Redeemparam["load_balance_id"]          =   (int)$this->geneal_model->getNextSequence('uw_loadBalance');
 									$Redeemparam["user_oid"]        	     =   new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
-									$Redeemparam["order_oid"]       		 =   new MongoDB\BSON\ObjectId($orderDetails['_id']['$id']);
-									$Redeemparam["order_id"]       		     =   $tickectId;
+									$Redeemparam["order_oid"]       		 =   new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+									$Redeemparam["order_id"]       		     =   $tickectID;
 									$Redeemparam["user_type"]       		 =   $orderDetails['user_type'];
 									$Redeemparam["product_id"]       		 =   (int)$orderDetails['product_id'];
 									$Redeemparam["user_id_deb"]              =   (int)$userID;
@@ -2107,88 +2574,112 @@ class uwinn extends CI_Controller {
 									$Redeemparam["created_at"]          	 =   date('Y-m-d H:i');
 									$Redeemparam["created_by"]         	  	 =   (int)$userID;
 									$Redeemparam["status"]               	 =   "A";
-									$reddemData = $this->geneal_model->addData('uw_loadBalance', $Redeemparam);
-								    $this->geneal_model->addRedeem_Cash_Amount_TO_Seller($userID,(float)$totalPrizeAmount);
+									
+									// $reddemData = $this->geneal_model->addData('uw_loadBalance', $Redeemparam);
+									$reddemData  = $this->mongodb_client->insertDocument('uw_loadBalance', $Redeemparam, $session);
+									if (is_object($reddemData['_id']) && property_exists($reddemData['_id'], '$id')) {
+										$reddem_id = new MongoDB\BSON\ObjectId($reddemData['_id']->{'$id'});
+									} else {
+										$reddem_id = new MongoDB\BSON\ObjectId($reddemData['_id']);
+									}
+									
+									$this->geneal_model->addRedeem_Cash_Amount_TO_Seller($userID,(float)$totalPrizeAmount);
 									
 									//Adding loadbalkance records for users..
 									if($orderDetails['user_type'] == 'Users'):
 
 										// User Details
 										$tableName1	  = "uw_users";
-									    $Fields 	  = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit');
-								 	    $userDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$orderDetails['user_id']);
+										$Fields 	  = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit');
+										$userDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$orderDetails['user_id']);
 
 										/* Load Balance Table -- after Sign Up*/
 										$Redeemparam11["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
-										$Redeemparam11["user_oid"]        	       = new MongoDB\BSON\ObjectId($orderDetails['user_oid']['$oid']);
-										$Redeemparam11['request_id'] 			   = new MongoDB\BSON\ObjectId($reddemData['_id']->{'$id'});
-										$Redeemparam11["order_id"]       		   = $tickectId;
+										$Redeemparam11["user_oid"]        	       = new MongoDB\BSON\ObjectId((string)$orderDetails['user_oid']);
+										$Redeemparam11['request_id'] 			   = $reddem_id;
+										$Redeemparam11["order_id"]       		   = $tickectID;
 										$Redeemparam11["user_id_deb"]              = (int)0;
 										$Redeemparam11["user_id_cred"]             = (int)$orderDetails['user_id'];
 										$Redeemparam11["upoints"]       		   = (float)$totalPrizeAmount;
 										$Redeemparam11["record_type"]              = 'Credit';
 										$Redeemparam11["narration"]  			   = 'Winning Ticket Redeemed';
-										$Redeemparam11["remarks"]  			       = "Completed ( " .$tickectId." )";
+										$Redeemparam11["remarks"]  			       = "Completed ( " .$tickectID." )";
 										$Redeemparam11["availableArabianPoints"]   = (float)$userDetails['availableArabianPoints'];
 										$Redeemparam11["end_balance"] 		 	   = (float)$userDetails['availableArabianPoints'];
 										$Redeemparam11["creation_ip"]         	   = currentIp();
 										$Redeemparam11["created_at"]          	   = date('Y-m-d H:i');
 										$Redeemparam11["created_by"]         	   = (int)$orderDetails['user_id'];
 										$Redeemparam11["status"]               	   = "A";
-									    $this->geneal_model->addData('uw_loadBalance', $Redeemparam11);
+										$red2 = $this->mongodb_client->insertDocument('uw_loadBalance', $Redeemparam11, $session);
+										// $this->geneal_model->addData('uw_loadBalance', $Redeemparam11);
 
 										$commission_percentage = 5;
-			                            $commission_amount     = $totalPrizeAmount*$commission_percentage/100;
-			                            /* Load Balance Table -- after Cash voucher Redeeming */
-			                            $RedeemCashparam["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
-			                            $RedeemCashparam["request_id"]               = $VoucherData['voucher_id'];
-			                            $RedeemCashparam['request_oid'] 			 = new MongoDB\BSON\ObjectId($reddemData['_id']->{'$id'});
-			                            $RedeemCashparam["user_oid"]                 = new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
-			                            $RedeemCashparam["order_oid"]                = new MongoDB\BSON\ObjectId($orderDetails['_id']['$id']);
-			                            $RedeemCashparam["order_id"]                 = $orderDetails['order_id'];
-			                            $RedeemCashparam["user_type"]                = $orderDetails['user_type'];
-			                            $RedeemCashparam["product_id"]               = $orderDetails['product_id'];
-			                            $RedeemCashparam["user_id_deb"]              = (int)0;
-			                            $RedeemCashparam["user_id_cred"]             = (int)$sellerDetails['users_id'];
-			                            $RedeemCashparam["upoints"]                  = (float)$commission_amount;
-			                            $RedeemCashparam["record_type"]              = "Debit";
-			                            $RedeemCashparam["narration"]                = "Redeem Prize Commission";
-			                            $RedeemCashparam["remarks"]                  = "Redeemed Prize ".$totalPrizeAmount." AED in cash for " .$tickectId;
-			                            $RedeemCashparam["availableArabianPoints"]   = (float)$sellerDetails['availableArabianPoints'];
-			                            $RedeemCashparam["end_balance"]              = (float)$sellerDetails['availableArabianPoints'] + $commission_amount;
-			                            $RedeemCashparam["creation_ip"]              = currentIp();
-			                            $RedeemCashparam["created_at"]               = date('Y-m-d H:i');
-			                            $RedeemCashparam["created_by"]               = (int)$users_id;
-			                            $RedeemCashparam["status"]                   = "A";
-			                            $this->geneal_model->addData('uw_loadBalance', $RedeemCashparam);
+										$commission_amount     = $totalPrizeAmount*$commission_percentage/100;
+										/* Load Balance Table -- after Cash voucher Redeeming */
+										$RedeemCashparam["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+										$RedeemCashparam["request_id"]               = $VoucherData['voucher_id'];
+										$RedeemCashparam['request_oid'] 			 = $reddem_id;
+										$RedeemCashparam["user_oid"]                 = new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
+										$RedeemCashparam["order_oid"]                = new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+										$RedeemCashparam["order_id"]                 = $orderDetails['order_id'];
+										$RedeemCashparam["user_type"]                = $orderDetails['user_type'];
+										$RedeemCashparam["product_id"]               = $orderDetails['product_id'];
+										$RedeemCashparam["user_id_deb"]              = (int)0;
+										$RedeemCashparam["user_id_cred"]             = (int)$sellerDetails['users_id'];
+										$RedeemCashparam["upoints"]                  = (float)$commission_amount;
+										$RedeemCashparam["record_type"]              = "Debit";
+										$RedeemCashparam["narration"]                = "Redeem Prize Commission";
+										$RedeemCashparam["remarks"]                  = "Redeemed Prize ".$totalPrizeAmount." AED in cash for " .$tickectID;
+										$RedeemCashparam["availableArabianPoints"]   = (float)$sellerDetails['availableArabianPoints'];
+										$RedeemCashparam["end_balance"]              = (float)$sellerDetails['availableArabianPoints'] + $commission_amount;
+										$RedeemCashparam["creation_ip"]              = currentIp();
+										$RedeemCashparam["created_at"]               = date('Y-m-d H:i');
+										$RedeemCashparam["created_by"]               = (int)$users_id;
+										$RedeemCashparam["status"]                   = "A";
+										// $this->geneal_model->addData('uw_loadBalance', $RedeemCashparam);
+										$this->mongodb_client->insertDocument('uw_loadBalance', $RedeemCashparam, $session);
+										//Creaditing amount to selelr account..
+										$availableArabianPoints = (float)$sellerDetails['availableArabianPoints'];
+										$totalArabianPoints     = (float)$sellerDetails['totalArabianPoints'] + (float)$commission_amount;
 
-			                            //Creaditing amount to selelr account..
-			                            $availableArabianPoints = (float)$sellerDetails['availableArabianPoints'];
-			                            $totalArabianPoints     = (float)$sellerDetails['totalArabianPoints'] + (float)$commission_amount;
-
-			                            $uparam['availableArabianPoints']    =   $availableArabianPoints + $commission_amount;
-			                            $uparam['totalArabianPoints']        =   $totalArabianPoints;
-			                            $uparam['update_date']               =   date('Y-m-d h:m');
-			                            $isUpdate = $this->common_model->editData('uw_users',$uparam, 'users_id',(int)$sellerDetails['users_id']);
-
+										$uparam['availableArabianPoints']    =   $availableArabianPoints + $commission_amount;
+										$uparam['totalArabianPoints']        =   $totalArabianPoints;
+										$uparam['update_date']               =   date('Y-m-d h:m');
+										$isUpdate = $this->common_model->editData('uw_users',$uparam, 'users_id',(int)$sellerDetails['users_id']);
+										
 										$result = array('payment_date' => date('Y-m-d H:i'));
 									endif;
-
-									$result = array('payment_date' => date('Y-m-d H:i'));
-			  	 					echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die();
+									if($record && $reddemData ){
+											if($totalPrizeAmount >$defaultRedeemingAmountLimit  && $userID != 100000000000110):
+												$uLimitParam['redeeming_amount_limit']    = $defaultRedeemingAmountLimit;
+												$uLimitParam['update_date']               =   date('Y-m-d h:m');
+												$this->common_model->editData('uw_users',$uLimitParam, 'users_id',(int)$userID);
+											endif;
+										$session->commitTransaction();
+										$result = array('payment_date' => date('Y-m-d H:i'));
+										echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die(); 
+									}else{
+										$session->abortTransaction();
+										echo outPut(0,lang('BAD_REQUEST_CODE'),'Error: Unable to reddem',[]);
+										die();
+							    	}
+									
 								else:
 									throw new Exception(lang('ORDET_ID_INVALID'));
 								endif;
-					 	    else:
-								throw new Exception(lang('ORDET_ID_INVALID'));
-					 	    endif;
-							
-						elseif(!empty($totalPaidPrizeAmount) && $totalPaidPrizeAmount >=1 ):
-							throw new Exception(lang('ALREADY_REDEEM'));
+								
+							elseif(!empty($totalPaidPrizeAmount) && $totalPaidPrizeAmount >=1 ):
+								throw new Exception(lang('ALREADY_REDEEM'));
+							endif;
+						else:
+							throw new Exception(lang('NOT_WINNER'));
 						endif;
-				 	else:
-				 		throw new Exception(lang('NOT_WINNER'));
-				 	endif;
+						
+					elseif($orderDetails['status'] == "CL"):
+						throw new Exception(lang('CANCELLED_ORDER'));
+					else:
+						throw new Exception(lang('ORDET_ID_INVALID')); //Error added for invalid order id.
+					endif;
 				
 				endif;
 			} catch (Exception $e) {
@@ -2197,8 +2688,112 @@ class uwinn extends CI_Controller {
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
-	 }
+	}
 
+	private function hourlyGameWinnersRedeemByMode()
+	{
+		$result = array();
+		$userID = $this->input->post('users_id');
+		$tickectID = $this->input->post('tickect_id');
+		$redeemStatus = $this->input->post('redeem_status');
+		$redeemByMode = $this->input->post('redeem_by_mode');
+		$posDeviceId = $this->input->post('pos_device_id');
+		$ipAddress = $this->input->post('ip_address');
+
+		try {
+			if(empty($userID)):
+				throw new Exception(lang('USER_ID_EMPTY'));
+			elseif(empty($tickectID)):
+				throw new Exception(lang('EMPTY_TICKET'));
+			elseif(empty($redeemStatus)):
+				throw new Exception(lang('EMPTY_REDEEMSTATUS'));
+			elseif(empty($redeemByMode)):
+				throw new Exception(lang('EMPTY_RedeemByMode'));
+			endif;
+
+			$requestFrom = "app";
+			$this->common_model->userValidate($userID, $requestFrom);
+
+			$orderWhere['where']['order_id'] = $tickectID;
+			$orderData = $this->common_model->getData('single', 'uw_hourly_orders', $orderWhere);
+			if(empty($orderData)):
+				throw new Exception(lang('ORDET_ID_INVALID'));
+			elseif(isset($orderData['status']) && $orderData['status'] == 'CL'):
+				throw new Exception(lang('CANCELLED_ORDER'));
+			elseif(!isset($orderData['is_winner']) || $orderData['is_winner'] != 'Y'):
+				throw new Exception(lang('NOT_WINNER'));
+			endif;
+
+			$winningAmount = (float)($orderData['winning_amount'] ?? 0);
+			if($winningAmount <= 0):
+				throw new Exception(lang('NOT_WINNER'));
+			endif;
+
+			if((isset($orderData['winning_status']) && $orderData['winning_status'] == 'paid') || (isset($orderData['redeem_status']) && $orderData['redeem_status'] == 'paid')):
+				throw new Exception(lang('ALREADY_REDEEM'));
+			endif;
+
+			$Fields = array('_id','users_id','availableArabianPoints','redeeming_amount_limit');
+			$sellerDetails = $this->common_model->getSingleDataByParticularField($Fields,'uw_users','users_id',(int)$userID);
+			if(empty($sellerDetails)):
+				throw new Exception(lang('USER_NOT_FOUND'));
+			endif;
+
+			$redeemingAmountLimit = !empty($sellerDetails['redeeming_amount_limit']) ? (float)$sellerDetails['redeeming_amount_limit'] : 999;
+			if($winningAmount > $redeemingAmountLimit && $userID != 100000000000110):
+				throw new Exception(lang('BIG_WINNER_TEXT'));
+			endif;
+
+			$updateParams['winning_status']   = 'paid';
+			$updateParams['status']           = 'Redeemed';
+			$updateParams['redeem_by_mode']   = $redeemByMode;
+			$updateParams['redeemed_at']      =  strtotime(date('Y-m-d H:i'));
+			$updateParams['settler_users_id'] = (int)$userID;
+			$updateParams['settler_users_oid']= new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
+			$updateParams['update_ip']        = !empty($ipAddress) ? $ipAddress : currentIp();
+			$this->common_model->editData('uw_hourly_orders', $updateParams, 'order_id', $tickectID);
+
+			$orderOid = null;
+			if(isset($orderData['_id']) && is_object($orderData['_id']) && isset($orderData['_id']->{'$id'})):
+				$orderOid = new MongoDB\BSON\ObjectId($orderData['_id']->{'$id'});
+			elseif(isset($orderData['_id']) && is_array($orderData['_id']) && isset($orderData['_id']['$id'])):
+				$orderOid = new MongoDB\BSON\ObjectId($orderData['_id']['$id']);
+			elseif(isset($orderData['_id']) && is_string($orderData['_id']) && strlen($orderData['_id']) == 24):
+				$orderOid = new MongoDB\BSON\ObjectId($orderData['_id']);
+			endif;
+
+			$Redeemparam["load_balance_id"] = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+			$Redeemparam["users_id"] = (int)$userID;
+			$Redeemparam["user_oid"] = new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
+			if($orderOid):
+				$Redeemparam["order_oid"] = $orderOid;
+			endif;
+			if(!empty($orderData['products_oid']) && isset($orderData['products_oid']->{'$id'})):
+				$Redeemparam["product_oid"] = new MongoDB\BSON\ObjectId($orderData['products_oid']->{'$id'});
+			endif;
+			$Redeemparam["order_id"] = $tickectID;
+			$Redeemparam["product_id"] = isset($orderData['products_id']) ? (int)$orderData['products_id'] : 0;
+			$Redeemparam["user_id_deb"] = (int)$userID;
+			$Redeemparam["user_id_cred"] = (int)0;
+			$Redeemparam["upoints"] = $winningAmount;
+			$Redeemparam["record_type"] = 'Debit';
+			$Redeemparam["narration"] = 'Hourly Game Prize Redeemed';
+			$Redeemparam["remarks"] = "Redeemed Prize ".$winningAmount." AED in ".$redeemByMode." for ".$tickectID;
+			$Redeemparam["availableArabianPoints"] = (float)$sellerDetails['availableArabianPoints'];
+			$Redeemparam["end_balance"] = (float)$sellerDetails['availableArabianPoints'];
+			$Redeemparam["creation_ip"] = currentIp();
+			$Redeemparam["created_at"] = date('Y-m-d H:i');
+			$Redeemparam["created_by"] = (int)$userID;
+			$Redeemparam["status"] = "A";
+			$this->geneal_model->addData('uw_loadBalance', $Redeemparam);
+
+			$result = array('payment_date' => date('Y-m-d H:i'));
+			echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die();
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);die();
+		}
+	}
+	
 	/* * *********************************************************************
 	 * * Function name : uwinAllowedUser
 	 * * Developed By  : Dilip Halder
@@ -2743,6 +3338,8 @@ class uwinn extends CI_Controller {
 			$itemsPerPage  = $this->input->get('itemsPerPage');
 			$winnerType    = $this->input->get('winner_type');
 			$report_type   = $this->input->get('report_type');
+			$startDate     = $this->input->get('from');
+			$endDate       = $this->input->get('to');
  
 			if(empty($usersId)):
 				echo outPut(0,lang('SUCCESS_CODE'),lang('USER_ID_EMPTY'),$result);die();
@@ -2750,16 +3347,29 @@ class uwinn extends CI_Controller {
 
 				if($winnerType == 'RaffleWinner'):
 					$redeemedWinnerLIst = $this->geneal_model->getRaffleWinnerList();
-				elseif(winnerType == 'uwinnWinner'):
+				elseif($winnerType == 'uwinnWinner'):
 					$redeemedWinnerLIst = $this->geneal_model->getWinnerList();
+				elseif($winnerType == 'HourlyGameWinner'):
+					$startDate = date('Y-m-d H:i:01', strtotime($startDate));
+					$endDate = date('Y-m-d H:i:59', strtotime($endDate));
+					
+					if(!empty($startDate) && !empty($endDate)):
+						$whereCon['where']['redeemed_at'] = array(
+							'$gte' => strtotime($startDate),
+							'$lte' => strtotime($endDate)
+						);
+					endif;
+					
+					$whereCon['where']['status']           = "Redeemed";
+					$whereCon['where']['settler_users_id'] = (int)$usersId;
+					$WinnerLIst = $this->common_model->getHourlyGameOrderData('multiple','uw_hourly_orders',$whereCon);
+					$redeemedWinnerLIst['HourlyGameWinner'] = $WinnerLIst ;
 				else:
 					$redeemedWinnerLIst = $this->geneal_model->getWinnerList();
 				endif;
-
 			endif;
-			 	$results = array();
 				$results = $redeemedWinnerLIst;
-		 		echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$results);	
+		 		echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),(object) $results);
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
@@ -2839,6 +3449,364 @@ class uwinn extends CI_Controller {
 		else:
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
+	}
+	
+	/* * *********************************************************************
+	 * * Function name : checkRaffleEligible
+	 * * Developed By  : Dilip Halder
+	 * * Purpose  	   : This function used to checkRaffleEligible
+	 * * Date 		   : 14 october 2025
+	 * * **********************************************************************/
+	public function checkRaffleEligible()
+	{
+		$apiHeaderData 		=	getApiHeaderData();
+		$this->generatelogs->putLog('APP',logOutPut($_GET));
+		$result 			= 	array();
+		try {
+			if(requestAuthenticate(APIKEY,'POST')):
+				$usersId = $this->input->post('users_id');
+				$orderId = $this->input->post('order_id');
+				if(empty($usersId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($orderId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				else:
+					$requestFrom 	  = "app";
+					$validationResult = $this->common_model->userValidate($usersId,$requestFrom);
+
+					$tableName	             = "uw_raffle_eligible_orders";
+					$whereCon['where']       = array('status' => "A" , 'order_id' => $orderId);
+			 	    $eligibleCampaignDetails = $this->common_model->getData('count',$tableName,$whereCon);
+			 	    // echo "<pre>";print_r($eligibleCampaignDetails);die();
+
+					if($eligibleCampaignDetails > 0 ):
+						throw new Exception(lang('ALREADY_UPLOADED'), 1);
+					else:
+						$tableName	  = "uw_lotto_orders";
+						$Fields 	  = array('order_id','is_printed','user_id','status','product_id','total_price','draw_date','draw_time','created_at');
+						$orderDetails = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'order_id',$orderId);
+						// echo "<pre>";print_r($orderDetails);die();
+
+						if(empty($orderDetails)):
+							throw new Exception(lang('ORDET_ID_INVALID'), 1);
+						elseif(empty($orderDetails['product_id'])):
+							throw new Exception(lang('PRODUCT_EXPIRE'), 1);
+						elseif($orderDetails['status'] == "CL"):
+							throw new Exception(lang('CANCELLED_ORDER'), 1);
+						else:
+
+							$tableName	    = "uw_products";
+							$Fields 	    = array('enable_raffle_eligibility','raffle_eligible_amount','raffle_draw_eligible_date','raffle_draw_announcement_date');
+							$productDetails = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'products_id',$orderDetails['product_id']);
+							// echo "<pre>";print_r($orderDetails);die();
+
+							$orderDateTime     = strtotime($orderDetails['created_at']);
+							$raffleStartDate   = strtotime($productDetails['raffle_draw_eligible_date']);
+							$raffleEndDrawDate = strtotime($productDetails['raffle_draw_announcement_date']);
+							// echo "<pre>";print_r($raffleEndDrawDate);die();
+
+							if(empty($productDetails)):
+								throw new Exception(lang('INVALID_PRODUCT_ID'), 1);
+						
+							elseif( empty($productDetails['enable_raffle_eligibility']) || $productDetails['enable_raffle_eligibility'] == "N" || $orderDetails['total_price'] <  $productDetails['raffle_eligible_amount'] ):
+								$raffleError   = str_replace('###ORDERID###', ucwords($orderId), lang('NOT_RAFFLE_ELIGIBLE'));
+								throw new Exception($raffleError, 1);
+							
+							elseif($orderDateTime < $raffleStartDate):
+								throw new Exception(lang('INVALID_PRODUCT_ID'), 1);
+							elseif(   
+								($orderDateTime >= $raffleStartDate && $orderDateTime <= $raffleEndDrawDate ) &&    
+								($productDetails['enable_raffle_eligibility'] == "Y" && $orderDetails['total_price'] >=  $productDetails['raffle_eligible_amount']) 
+								):
+
+								$eligibleTickctsCount = floor($orderDetails['total_price']/$productDetails['raffle_eligible_amount']);
+								$raffleSuccessMessage   = str_replace('###ORDERID###', ucwords($orderId), lang('RAFFLE_ELIGIBLE'));
+								$raffleSuccessMessage   = str_replace('###RAFFLECOUNT###', $eligibleTickctsCount, $raffleSuccessMessage);
+								if($eligibleTickctsCount == 1):
+									$raffleSuccessMessage   = str_replace('entry', 'entry', $raffleSuccessMessage);
+								else:
+									$raffleSuccessMessage   = str_replace('entry', 'entries', $raffleSuccessMessage);
+								endif;
+								echo outPut(1,lang('SUCCESS_CODE'),$raffleSuccessMessage,$orderDetails);die();
+							endif;
+
+						endif;
+					endif;
+				endif;
+			else:
+				throw new Exception(lang('FORBIDDEN_MSG'),1);
+			endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+		}
 	}	
+
+	/* * *********************************************************************
+	 * * Function name : submitEligibleTicket
+	 * * Developed By  : Dilip Halder
+	 * * Purpose  	   : This function used to submitEligibleTicket
+	 * * Date 		   : 14 october 2025
+	 * * **********************************************************************/
+	public function submitEligibleTicket()
+	{
+		$apiHeaderData 		=	getApiHeaderData();
+		$this->generatelogs->putLog('APP',logOutPut($_GET));
+		$result 			= 	array();
+		try {
+			if(requestAuthenticate(APIKEY,'POST')):
+				
+				$usersId  = $this->input->post('users_id');
+				$orderId  = $this->input->post('order_id');
+				$countryCode  = $this->input->post('country_code');
+				$mobileNumber = $this->input->post('mobile_number');
+				$firstName    = $this->input->post('first_name');
+				$lastName     = $this->input->post('last_name');
+				$posNumber    = $this->input->post('pos_number');
+
+				if(empty($usersId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($orderId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($countryCode)):	
+					throw new Exception(lang('EMPTY_COUNTRYCODE'), 1);
+				elseif(empty($mobileNumber)):	
+					throw new Exception(lang('EMPTY_USERMOBILE'), 1);
+				elseif(empty($posNumber)):	
+					throw new Exception(lang('POS_NUMBER_REQUIRED'), 1);
+				else:
+					$requestFrom 	  = "app";
+					$validationResult = $this->common_model->userValidate($usersId,$requestFrom);
+
+					$tableName	             = "uw_raffle_eligible_orders";
+					$whereCon['where']       = array('status' => "A" , 'order_id' => $orderId);
+			 	    $eligibleCampaignDetails = $this->common_model->getData('count',$tableName,$whereCon);
+			 	    // echo "<pre>";print_r($eligibleCampaignDetails);die();
+
+					if($eligibleCampaignDetails > 0 ):
+						throw new Exception(lang('ALREADY_UPLOADED'), 1);
+					else:
+
+						$tableName	  = "uw_lotto_orders";
+					    $Fields 	  = array('order_id','is_printed','user_id','status','product_id','total_price','draw_date','draw_time','created_at');
+				 	    $orderDetails = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'order_id',$orderId);
+				 	    // echo "<pre>";print_r($orderDetails);die();
+
+				 	    if(empty($orderDetails)):
+							throw new Exception(lang('ORDET_ID_INVALID'), 1);
+						elseif(empty($orderDetails['product_id'])):
+							throw new Exception(lang('PRODUCT_EXPIRE'), 1);
+				 	    else:
+
+				 	    	$tableName	    = "uw_products";
+						    $Fields 	    = array('enable_raffle_eligibility','raffle_eligible_amount','raffle_draw_eligible_date','raffle_draw_announcement_date');
+					 	    $productDetails = $this->common_model->getSingleDataByParticularField($Fields,$tableName,'products_id',$orderDetails['product_id']);
+				 	   		// echo "<pre>";print_r($orderDetails);die();
+
+				 	    	$orderDateTime     = strtotime($orderDetails['created_at']);
+				 	    	$raffleStartDate   = strtotime($productDetails['raffle_draw_eligible_date']);
+				 	    	$raffleEndDrawDate = strtotime($productDetails['raffle_draw_announcement_date']);
+				 	   		// echo "<pre>";print_r($raffleEndDrawDate);die();
+
+					 	    if(empty($productDetails)):
+								throw new Exception(lang('INVALID_PRODUCT_ID'), 1);
+					 	   
+					 	    elseif( empty($productDetails['enable_raffle_eligibility']) || $productDetails['enable_raffle_eligibility'] == "N" || $orderDetails['total_price'] <  $productDetails['raffle_eligible_amount'] ):
+					 	    	$raffleError   = str_replace('###ORDERID###', ucwords($orderId), lang('NOT_RAFFLE_ELIGIBLE'));
+								throw new Exception($raffleError, 1);
+							
+							elseif($orderDateTime < $raffleStartDate):
+								throw new Exception(lang('INVALID_PRODUCT_ID'), 1);
+							elseif(   
+								 ($orderDateTime >= $raffleStartDate && $orderDateTime <= $raffleEndDrawDate ) &&    
+								 ($productDetails['enable_raffle_eligibility'] == "Y" && $orderDetails['total_price'] >=  $productDetails['raffle_eligible_amount']) 
+							    ):
+
+								$eligibleTickctsCount = floor($orderDetails['total_price']/$productDetails['raffle_eligible_amount']);
+								for ($i=0; $i <$eligibleTickctsCount ; $i++) { 
+									$param[$i]['order_id']      = $orderId;
+									$param[$i]['country_code']  = $countryCode;
+									$param[$i]['mobile_number'] = (int)$mobileNumber;
+									$param[$i]['first_name']    = $firstName;
+									$param[$i]['last_name']     = $lastName;
+									$param[$i]['pos_number']    = $posNumber;
+									$param[$i]['status']        = "A";
+									$param[$i]['created_at']    = date('Y-m-d H:i');
+									$param[$i]['created_by']    = (int)$usersId;
+								}
+
+								$tableName = 'uw_raffle_eligible_orders';
+								$result    = $this->common_model->addManyData($tableName,$param);
+								
+								// add raffle user details..
+								$param1['country_code']  = $countryCode;	
+								$param1['mobile_number'] = (int)$mobileNumber;
+								$param1['first_name']    = $firstName;
+								$param1['last_name']     = $lastName;
+								$param1['created_at']    = date('Y-m-d H:i');
+								$param1['created_by']    = (int)$usersId;
+								$this->common_model->addData('uw_raffle_users',$param1);
+								// end add raffle user details..
+								
+								$drawDate  = date("d/m/Y",strtotime($productDetails['raffle_draw_announcement_date']));
+								$message   = "Your Order ID: ".$orderId." has been successfully added to the ".$drawDate." campaign.";
+								$this->sms_model->raffleWinnersSms($countryCode, $mobileNumber,$message);
+		 						echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),'');die();
+					 	    endif;
+				 	    endif;
+					endif;
+				endif;
+			else:
+				throw new Exception(lang('FORBIDDEN_MSG'),1);
+			endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+		}
+	}
+
+	/* * *********************************************************************
+	 * * Function name : autoFetchUsersData
+	 * * Developed By  : Dilip Halder
+	 * * Purpose  	   : This function used to autoFetchUsersData
+	 * * Date 		   : 17 october 2025
+	 * * **********************************************************************/
+	public function autoFetchUsersData()
+	{
+		$apiHeaderData 		=	getApiHeaderData();
+		$this->generatelogs->putLog('APP',logOutPut($_POST));
+		$result 			= 	array();
+		try {
+			if(requestAuthenticate(APIKEY,'POST')):
+				$usersId      = $this->input->post('users_id');
+				$countryCode  = $this->input->post('country_code');
+				$mobileNumber = $this->input->post('mobile_number');
+
+				if(empty($countryCode)):
+					throw new Exception(lang('EMPTY_COUNTRYCODE'), 1);
+				elseif(empty($mobileNumber)):
+					throw new Exception(lang('EMPTY_USERMOBILE'), 1);
+				elseif(empty($usersId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				else:
+					$requestFrom 	  = "app";
+					$validationResult = $this->common_model->userValidate($usersId,$requestFrom);
+					
+					$whereCon['where']['country_code']  = $countryCode;
+					$whereCon['where']['mobile_number'] = (int)$mobileNumber;
+					$raffleUserDetails					= $this->common_model->getData('single','uw_raffle_users',$whereCon);
+					if(empty($raffleUserDetails)):
+						throw new Exception(lang('USER_NOT_FOUND'), 1);
+					else:		
+						$result = $raffleUserDetails;
+						echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);
+					endif;
+				endif;
+				 
+			else:
+				throw new Exception(lang('FORBIDDEN_MSG'),1);
+			endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+		}
+	}
+	
+	/* * *********************************************************************
+	 * * Function name : drawResult
+	 * * Developed By  : Dilip Halder
+	 * * Purpose  	   : This function used to drawResult
+	 * * Date 		   : 07 November 2025
+	 * * **********************************************************************/
+	public function drawResultRange()
+	{
+		$apiHeaderData = getApiHeaderData();
+		$this->generatelogs->putLog('APP',logOutPut($_POST));
+		$result 	   = array();
+		try {
+			if(requestAuthenticate(APIKEY,'POST')):
+				$usersId  = $this->input->post('users_id');
+				$DrawDate = $this->input->post('draw_date');
+
+				if(empty($usersId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				else:
+					$tblName    = 'uw_users';
+					$fieldList  = array('users_id','status','users_type');
+					$whereCon['where']['users_id'] = (int)$usersId;
+					$userData   = $this->common_model->getParticularFieldByMultipleCondition($fieldList ,$tblName,$whereCon);
+					
+					if(empty($userData)   || $userData['status'] != "A" || $userData['users_type'] != "Retailer" ):
+						throw new Exception(lang('INVALID_USER'), 1);
+					elseif(!empty($userData) && $userData['status'] == "A" && $userData['users_type'] == "Retailer" ):
+						$tblName    = 'uw_draw_result_settings';
+						$whereCon1['where']['status'] = "A";
+						$fieldList  = array('range_value');
+						$resultData = $this->common_model->getParticularFieldByMultipleCondition($fieldList ,$tblName,$whereCon1);
+						if(empty($resultData)):
+							throw new Exception(lang('USER_NOT_FOUND'), 1);
+						else:
+							$result = $resultData;
+							echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);
+						endif;
+					endif;
+					 
+				endif;
+			else:
+				throw new Exception(lang('FORBIDDEN_MSG'),1);
+			endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+		}
+	}
+
+	/* * *********************************************************************
+	 * * Function name : drawResult
+	 * * Developed By  : Dilip Halder
+	 * * Purpose  	   : This function used to drawResult
+	 * * Date 		   : 07 November 2025
+	 * * **********************************************************************/
+	public function drawResult()
+	{
+		$apiHeaderData = getApiHeaderData();
+		$this->generatelogs->putLog('APP',logOutPut($_POST));
+		$result 	   = array();
+		try {
+			if(requestAuthenticate(APIKEY,'POST')):
+				$usersId  = $this->input->post('users_id');
+				$DrawDate = $this->input->post('draw_date');
+
+				if(empty($usersId)):
+					throw new Exception(lang('USER_ID_EMPTY'), 1);
+				elseif(empty($DrawDate)):
+					throw new Exception(lang('EMPTY_DRAW_DATE'), 1);
+				else:
+					$tblName    = 'uw_users';
+					$fieldList  = array('users_id','status','users_type');
+					$whereCon['where']['users_id'] = (int)$usersId;
+					$userData   = $this->common_model->getParticularFieldByMultipleCondition($fieldList ,$tblName,$whereCon);
+					
+					if(empty($userData)   || $userData['status'] != "A" || $userData['users_type'] != "Retailer" ):
+						throw new Exception(lang('INVALID_USER'), 1);
+					elseif(!empty($userData) && $userData['status'] == "A" && $userData['users_type'] == "Retailer" ):
+						$tblName    = 'uw_draw_result';
+						$drawDateCon['where']['result_date'] = strtotime($DrawDate);
+						$drawDateCon['where']['status'] = "A";
+						$resultData = $this->common_model->getData('multiple',$tblName,$drawDateCon);						
+						if(empty($resultData)):
+							throw new Exception(lang('DATA_NOT_FOUND'), 1);
+						else:
+							$result = $resultData;
+							echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_ACTION'),$result);
+						endif;
+					endif;
+					 
+				endif;
+
+				 
+			else:
+				throw new Exception(lang('FORBIDDEN_MSG'),1);
+			endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+		}
+	}
 
 }

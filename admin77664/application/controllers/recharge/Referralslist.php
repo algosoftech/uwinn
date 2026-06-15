@@ -54,15 +54,15 @@ class Referralslist extends CI_Controller {
 			$data['searchValue'] = $searchValue;
 
 			if($searchField == 'referral_given_by'):
-				
-				$sField 			 = "users_mobile";
-				$sValue				 = (int)$searchValue;
-
+				$sField 		= "users_mobile";
+				$sValue			= (int)$searchValue;
 				$userDetails    = $this->common_model->getSingleDataByParticularField('_id','uw_users',$sField,$sValue);
 				$users_oid		= $userDetails['_id']['$id'];
 				// echo "<pre>";print_r($users_oid);die();
 				$whereCon['where']['user_oid']	 = new MongoDB\BSON\ObjectId($users_oid);
 
+			elseif($searchField == 'referral_given_usertype'):
+				$whereCon['where']['referralUser.users_type']   = $searchValue;
 			elseif($searchField == 'referral_used_by'):
 				
 				$sField 			 = "users_mobile";
@@ -108,7 +108,7 @@ class Referralslist extends CI_Controller {
 			$data['toDate'] 				= $toDate;
 		endif;
 		
-		$whereCon['where']['narration'] = "Referrel Commission";
+		$whereCon['where']['narration']                 = "Referrel Commission";
 
 		$shortField 			 = array('_id'=> -1);
 		$baseUrl 				 = getCurrentControllerPath('index');
@@ -116,7 +116,9 @@ class Referralslist extends CI_Controller {
 		$qStringdata			 = explode('?',currentFullUrl());
 		$suffix					 = $qStringdata[1]?'?'.$qStringdata[1]:'';
 		$con 					 = '';
-		$totalRows 				 = $this->common_model->getReferrelDetails('count',$whereCon,$shortField);
+		$totalRows 				 = $this->common_model->getReferrelDetails('',$whereCon,$shortField);
+		$totalRows               = count($totalRows);
+
 
 		if($this->input->get('showLength') == 'All'):
 			$perPage	 		 = $totalRows;
@@ -157,7 +159,6 @@ class Referralslist extends CI_Controller {
 		endif;
 		
 		$data['ALLDATA']		 = $this->common_model->getReferrelDetails('',$whereCon,$shortField,$perPage,$page);
-		// echo "<pre>";print_r($data['ALLDATA']);die();
 
 		$this->layouts->set_title('Referrals | List | UWINN');
 		$this->layouts->admin_view('referrals/referralslist/index',array(),$data);
@@ -196,7 +197,8 @@ class Referralslist extends CI_Controller {
 				$users_oid		= $userDetails['_id']['$id'];
 				// echo "<pre>";print_r($users_oid);die();
 				$whereCon['where']['user_oid']	 = new MongoDB\BSON\ObjectId($users_oid);
-
+			elseif($searchField == 'referral_given_usertype'):
+				$whereCon['where']['referralUser.users_type']   = $searchValue;
 			elseif($searchField == 'referral_used_by'):
 				
 				$sField 			 = "users_mobile";
@@ -245,14 +247,11 @@ class Referralslist extends CI_Controller {
 		$whereCon['where']['narration'] = "Referrel Commission";
 
 		// -----------------------------------------------------------------------------//
-		$resultType   = "count";
+		// $resultType   = "count";
 		$totalRows    = $this->common_model->getReferrelDetails($resultType,$whereCon,$shortField);
 		$itemsPerPage = 5000;
-		// echo "<pre>"; print_r($totalRows); die();
-
-		// ---------------------------------------------
-
-		$longArray = $totalRows;
+		$totalRows    = count($totalRows);
+		$longArray    = $totalRows;
 		
 		$pageno       = $this->input->get('page');
 		// Current page number (received from URL query parameter, e.g., ?page=2)
@@ -318,7 +317,8 @@ class Referralslist extends CI_Controller {
 				$users_oid		= $userDetails['_id']['$id'];
 				// echo "<pre>";print_r($users_oid);die();
 				$whereCon['where']['user_oid']	 = new MongoDB\BSON\ObjectId($users_oid);
-
+			elseif($searchField == 'referral_given_usertype'):
+				$whereCon['where']['referralUser.users_type']   = $searchValue;
 			elseif($searchField == 'referral_used_by'):
 				
 				$sField 			 = "users_mobile";
@@ -367,7 +367,7 @@ class Referralslist extends CI_Controller {
 		$whereCon['where']['narration'] = "Referrel Commission";
 
 		// $page = $this->input->post('pageno');
-		$page = $this->input->post('pageno');
+		$page = $this->input->post('pageno')?$this->input->post('pageno'):1;
 		// $page = 1;
  		$itemsPerPage = 5000;
  		$startIndex  = ($page - 1)*$itemsPerPage;
@@ -381,6 +381,7 @@ class Referralslist extends CI_Controller {
 	     	$CSVData[$index]['Referral code given by User (Name)']    = !empty($itemsArray['referralUser']->users_name)    ? $itemsArray['referralUser']->users_name .' '.$itemsArray['referralUser']->last_name : 'N/A';
 	     	$CSVData[$index]['Referral code given by User (Mobile)']  = !empty($itemsArray['referralUser']->users_mobile)  ? $itemsArray['referralUser']->users_mobile : 'N/A';
 	     	$CSVData[$index]['Referral code given by User (Type)']    = !empty($itemsArray['referralUser']->users_type)    ? $itemsArray['referralUser']->users_type : 'N/A';
+	     	$CSVData[$index]['Referral code given by User (BindWith)']= !empty($itemsArray['referralUser']->bind_person_name)? $itemsArray['referralUser']->bind_person_name : 'N/A';
 		    $CSVData[$index]['Referral code']            	          = !empty($itemsArray['referralUser']->pos_number)    ? $itemsArray['referralUser']->pos_number : 'N/A';
 		    $CSVData[$index]['Referral used by User (Name)']       	  = !empty($itemsArray['referredUser']->users_name)    ? $itemsArray['referredUser']->users_name .' '.$itemsArray['referredUser']->last_name : 'N/A';
 		    $CSVData[$index]['Referral used by User (Mobile)']        = !empty($itemsArray['referredUser']->users_mobile)  ? $itemsArray['referredUser']->users_mobile : 'N/A';

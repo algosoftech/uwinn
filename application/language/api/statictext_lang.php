@@ -248,7 +248,7 @@ $lang['ALREADY_SENT_TO_ADMIN']							= 'Already sent to Admin';
 $lang['ORDER_ERROR']									=   "This order can't be proceed.";
 
 $lang['ALREADY_SENT']									= 'Already sent';
-$lang['NOT_WINNER']										= 'Oop!! You missed to win this time. Better luck next time.';
+$lang['NOT_WINNER']										= 'You missed to win this time. Better luck next time.';
 $lang['Invalid_Character']								= 'Please enter valid character';
 $lang['BIG_WINNER_TEXT']								= 'Congratulations! You have won a big prize in this order. Please proceed to the U-Winn head office to claim your winning prize. Thank you!';
 $lang['NOT_AVAILABLE']									= 'Campaign is not available';
@@ -366,3 +366,27 @@ $lang['USER_NOT_CREATED'] 								= 'User could not be created. Please try again
 $lang['SIGNUP_SUCCESFULLY'] 							= 'sign up success.';
 $lang['MOBILE_ALREADY_VERIFIED'] 						= 'Mobile number is already verified.';
 $lang['EMAIL_ALREADY_VERIFIED'] 						= 'Email is already verified.';
+$lang['POS_DEVICE_RESTRICTION'] 						= 'Your device is already registed with different account. Please contact admin.';
+$lang['UNAUTHORIZED_ACCESS'] 						    = 'Unauthorized access.';
+$lang['CANCELLATION_STOP_DRAW_UNDERWAY'] 				= "Draw is underway. Can't process order cancellation at this time.";
+$lang['CANNOT_CANCEL_ORDER']							= "Cannot cancel order at this time.";
+
+$lang['EMPTY_WIFIUSAGE'] 						        = "Wifi usages is required.";
+$lang['EMPTY_MOBILEDATAUSAGE'] 							= "Mobile data usages is required.";
+$lang['RAFFLE_ELIGIBLE'] 				                = "Order Id ###ORDERID### is eligible for ###RAFFLECOUNT### raffle entry.";
+$lang['NOT_RAFFLE_ELIGIBLE'] 				            = "Order Id ###ORDERID### is not eligible for raffle entry.";
+$lang['OLD_TICKECTS'] 						            = "Old Invalid tickets";
+$lang['ALREADY_UPLOADED'] 						        = "The Order ID is already added.";
+$lang['ORDER_ALREADY_CANCELLED'] 						= "Already cancelled.";
+
+
+$lang['NO_WINNING_AMOUNT_FOUND'] 					    = "No winning amount found.";
+$lang['REDEEMED_SUCCESSFULLY'] 					        = "Redeemed successfully.";
+$lang['COUPON_NOT_SELECTED'] 						    = "Coupon is not selected.";
+$lang['RECHARGE_ALREADY_REVERSED'] 					    = "Recharge already reversed.";
+$lang['LOW_REVERSE_RECHARGE_AVAILABLE_BALANCE']		    = "Insufficient balance to reverse a ###AMOUNT### recharge.";
+$lang['RECHARGE_CANT_BE_REVERSED']						= "Recharge can't be reversed as customer not found.";
+$lang['EMPTY_PRODUCT_NAME']								= 'Product name is empty';
+$lang['HOURLY_GAME_DISABLED']						    = 'Campaign are diabled. Please contact customer support.';
+$lang['HOURLY_GAME_DRAW_ALERT']							= 'Draw scheduled for today will take place at ###DRAWTIME###. Please check back after the draw for results';
+$lang['ALREADY_ORDER_PLACED']							= 'Order already placed.';

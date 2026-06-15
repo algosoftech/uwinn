@@ -73,6 +73,7 @@ $(function(){
                                 <option value="pos_users" <?php if($searchField == 'pos_users')echo 'selected="selected"'; ?>> Bind With POS (Y/N)</option>
                                 <option value="bind_user_type" <?php if($searchField == 'bind_user_type')echo 'selected="selected"'; ?>>Bind With Type</option>
                                 <option value="device_type" <?php if($searchField == 'device_type')echo 'selected="selected"'; ?>>Device Type </option>
+                                <option value="sim_no" <?php if($searchField == 'sim_no')echo 'selected="selected"'; ?>>Sim No. </option>
                                 <option value="app_version" <?php if($searchField == 'app_version')echo 'selected="selected"'; ?>>App Version</option>
                                 <option value="quick_user" <?php if($searchField == 'quick_user')echo 'selected="selected"'; ?>>Quick purchase (Y/N)  </option>
                                 <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS No.  </option>
@@ -103,6 +104,7 @@ $(function(){
                     <th width="25%">Area</th>
                     <th width="25%">Store Name</th>
                     <th width="25%">Bind With</th>
+                    <th width="25%">Sim No.</th>
                     <th width="25%">Device Type/version</th>
                     <th width="25%">Created Date & Time</th>
                     <!-- <th width="25%">Updated Date & Time</th> -->
@@ -146,6 +148,12 @@ $(function(){
                          -
                         </td>
                       <?php endif; ?>
+                      <td>
+                        <?php
+                        $displaySimNo = !empty($ALLDATAINFO['sim_no']) ? substr(preg_replace('/\D/', '', (string)$ALLDATAINFO['sim_no']), 0, 19) : '';
+                        echo $displaySimNo !== '' ? $displaySimNo : '-';
+                        ?>
+                      </td>
                       <td>
                         <?php
                         if($ALLDATAINFO['device_type']):
@@ -265,6 +273,7 @@ $(function(){
                   <option value="balance_less_than" <?php if($searchField == 'balance_less_than')echo 'selected="selected"'; ?>>Balance less than</option>
                   <option value="balance_greater_than" <?php if($searchField == 'balance_less_than')echo 'selected="selected"'; ?>>Balance greater than</option>
                   <option value="device_type" <?php if($searchField == 'device_type')echo 'selected="selected"'; ?>>Device Type </option>
+                  <option value="sim_no" <?php if($searchField == 'sim_no')echo 'selected="selected"'; ?>>Sim No. </option>
                   <option value="app_version" <?php if($searchField == 'app_version')echo 'selected="selected"'; ?>>App Version</option>
                   <option value="pos_number" <?php if($searchField == 'pos_number')echo 'selected="selected"'; ?>>POS No.  </option>
                 </select>

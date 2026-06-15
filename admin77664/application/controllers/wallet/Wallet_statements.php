@@ -42,9 +42,9 @@ class Wallet_statements extends CI_Controller {
 	public function index()
 	{
 		$this->admin_model->authCheck('view_data');
-		$data['error'] 						= 	'';
-		$data['activeMenu'] 			= 	'wallet';
-		$data['activeSubMenu'] 		= 	'wallet_statements';
+		$data['error'] 			= '';
+		$data['activeMenu'] 	= 'wallet';
+		$data['activeSubMenu'] 	= 'wallet_statements';
 
 		$searchField = $this->input->get('searchField');
 		$searchValue = $this->input->get('searchValue');
@@ -53,26 +53,26 @@ class Wallet_statements extends CI_Controller {
 		 	$fromDate = $this->input->get('fromDate');
 			$hours = date('H:i',strtotime($fromDate));
 			if($hours == '00:00'):
-				$start_date      = date( "Y-m-d 00:01" ,strtotime($fromDate));
+				$start_date   = date( "Y-m-d 00:01" ,strtotime($fromDate));
 			else:
-				$start_date      = date( "Y-m-d H:i" ,strtotime($fromDate));
+				$start_date   = date( "Y-m-d H:i" ,strtotime($fromDate));
 			endif;
-			$data['fromDate']  =   $start_date;  //2023-03-16 15:13
+			$data['fromDate'] =   $start_date;  //2023-03-16 15:13
 		endif;
 
 		if($this->input->get('toDate')):
 			$toDate = $this->input->get('toDate');
 			$hours = date('H:i',strtotime($toDate));
 			if($hours == '00:00'):
-				$end_date = date( "Y-m-d 23:59" ,strtotime($toDate));
+				$end_date          = date( "Y-m-d 23:59" ,strtotime($toDate));
 			else:
-				$end_date = date( "Y-m-d H:i" ,strtotime($toDate));
+				$end_date          = date( "Y-m-d H:i" ,strtotime($toDate));
 			endif;
-			$data['toDate'] =   $end_date;  //2023-03-16 15:13
+			$data['toDate']        = $end_date;  //2023-03-16 15:13
 		endif;
 
-		$data['searchField'] 			=   $searchField;  
-		$data['searchValue'] 			=   $searchValue; 
+		$data['searchField'] 	   = $searchField;  
+		$data['searchValue'] 	   = $searchValue; 
 		
 		if($searchField && $searchValue):
 			if($searchField == 'users_mobile'):
@@ -88,7 +88,7 @@ class Wallet_statements extends CI_Controller {
 			$userdetails  = $this->common_model->getData('single',$tblName, $whereCon, $shortField);
 			// echo "<pre>"; print_r($userdetails); die();
 			$user_OId     = $userdetails['_id']->{'$id'};
-			
+			$walletwhereCon['where']  = array('user_oid' => new MongoDB\BSON\ObjectId($user_OId));
 			// Statements query start...
 			if($start_date):
 				$walletwhereCon['where_gte'] = 	array(array('0' => 'created_at', '1' => trim($start_date)));
@@ -99,18 +99,20 @@ class Wallet_statements extends CI_Controller {
 		endif;
 
 		$this->session->set_userdata('ALLWALLETSTATEMENTDATA',currentFullUrl());
-		$baseUrl 							  = 	getCurrentControllerPath('index');
-		$qStringdata						=	explode('?',currentFullUrl());
-		$suffix								  = 	$qStringdata[1]?'?'.$qStringdata[1]:'';
-		$con 								    = 	'';
-
-		$tblName 	  	   			    = 'uw_loadBalance';
-		$shortField        				= array('load_balance_id'=> -1 );
-		$walletwhereCon['where']  = array('user_oid' => new MongoDB\BSON\ObjectId($user_OId));
-		$totalRows  			  		= $this->common_model->getData('count',$tblName, $walletwhereCon, $shortField);
+		$baseUrl 				      = getCurrentControllerPath('index');
+		$qStringdata				  =	explode('?',currentFullUrl());
+		$suffix						  = $qStringdata[1]?'?'.$qStringdata[1]:'';
+		$con 						  = '';
+		$tblName 	  	   			  = 'uw_loadBalance';
+		$shortField        			  = array('_id'=> -1 );
+		if(!empty($walletwhereCon)):
+			$totalRows = $this->common_model->getData('count',$tblName, $walletwhereCon, $shortField);
+		else:
+			$totalRows = 0;
+		endif;
 		/* pagination start  */ 
 		if($this->input->get('showLength') == 'All'):
-			$perPage	 					= 	$totalRows;
+			$perPage	 			= 	$totalRows;
 			$data['perpage'] 		= 	$this->input->get('showLength');  
 		elseif($this->input->get('showLength')):
 			$perPage	 					= 	$this->input->get('showLength'); 
@@ -121,42 +123,38 @@ class Wallet_statements extends CI_Controller {
 		endif;
 
 		if($this->uri->segment(getUrlSegment())):
-       		$page = $this->uri->segment(getUrlSegment());
+       		$page     = $this->uri->segment(getUrlSegment());
      	else:
-       	 	$page = 0;
+       	 	$page     = 0;
      	endif;
 
-  		$data['forAction'] 		= 	$baseUrl; 
+  		$data['forAction'] 		 = 	$baseUrl; 
 		if($totalRows):
-			$first							=	(int)($page)+1;
-			$data['first']			=	$first;
+			$first				 =	(int)($page)+1;
+			$data['first']		 =	$first;
 			
 			if($data['perpage'] == 'All'):
-				$pageData 				=	$totalRows;
+				$pageData 		 =	$totalRows;
 			else:
-				$pageData 				=	$data['perpage'];
+				$pageData 		 =	$data['perpage'];
 			endif;
 			
-			$last								 = ((int)($page)+$pageData)>$totalRows?$totalRows:((int)($page)+$pageData);
+			$last				 = ((int)($page)+$pageData)>$totalRows?$totalRows:((int)($page)+$pageData);
 			$data['noOfContent'] = 'Showing '.$first.'-'.$last.' of '.$totalRows.' items';
 		else:
-			$data['first']			 = 1;
+			$data['first']		 = 1;
 			$data['noOfContent'] = '';
 		endif;
 
-		$uriSegment 					= 	getUrlSegment();
+		$uriSegment 			= 	getUrlSegment();
 		$data['PAGINATION']		=	adminPagination($baseUrl,$suffix,$totalRows,$perPage,$uriSegment);
 
-
-		$shortField 		  = array('load_balance_id' => -1);
-		$walletstatements	  = $this->common_model->getData('multiple',$tblName,$walletwhereCon,$shortField,$perPage,$page);
+		// $shortField 		    = array('load_balance_id' => -1);
+		$shortField  = array('_id' =>  -1);
 		/* pagination end */ 
-
-
-		// echo "<pre>";
-		// print_r($data);
-		// die();
-
+		if(!empty($walletwhereCon)):
+			$walletstatements	= $this->common_model->getData('multiple',$tblName,$walletwhereCon,$shortField,$perPage,$page);
+		endif;
 		$data['ALLDATA']      = $walletstatements;
 		$data['users_type']   = $userdetails['users_type'];
 		// echo "<pre>";print_r($data);die();
@@ -210,8 +208,12 @@ class Wallet_statements extends CI_Controller {
 
 		// -----------------------------------------------------------------------------//
 		$resultType   = "count";
-		$shortField   = array('load_balance_id' => -1);
-		$totalRows 	  = $this->common_model->getData('count','uw_loadBalance',$whereCondition,$shortField);
+		$shortField   = array('_id' => -1);
+		if(!empty($whereCondition)):
+			$totalRows = $this->common_model->getData('count','uw_loadBalance',$whereCondition,$shortField);
+		else:
+			$totalRows = 0;
+		endif;
 		// echo "<pre>";print_r($totalRows);die();
 		$itemsPerPage = 5000;
 		// ---------------------------------------------
@@ -297,8 +299,8 @@ class Wallet_statements extends CI_Controller {
 			// $page = 1;
 	 		$itemsPerPage = 5000;
 	 		$startIndex   = ($page - 1)*$itemsPerPage;
-	 		$shortField   = array('load_balance_id' => -1);
-			$WalletData   = $this->common_model->getData('multiple','uw_loadBalance',$whereCondition,$shortField);
+	 		$shortField   = array('_id' => -1);
+			$WalletData   = $this->common_model->getData('multiple','uw_loadBalance',$whereCondition,$shortField,$itemsPerPage,$startIndex);
 		endif; 
  		// echo "<pre>";print_r($WalletData);die();
 

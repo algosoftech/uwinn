@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.uwinn.app",
+      "sha256_cert_fingerprints": [
+        "27:C5:47:7E:E8:97:60:85:2A:D8:28:FD:0B:89:EC:C6:95:B4:58:12:65:0F:26:0E:5F:68:70:C3:CD:B8:9F:53"
+      ]
+    }
+  }
+]
