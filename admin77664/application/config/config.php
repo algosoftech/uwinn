@@ -25,8 +25,8 @@ date_default_timezone_set('Asia/Dubai');
 */
 /////////////   Localhost 		/////////////////
 if($_SERVER['SERVER_NAME']=='localhost'):												
-	$config['base_url']		= 	"http://".$_SERVER['HTTP_HOST']."/uwinn/admin77664/";
-	$config['root_path']	=	$_SERVER['DOCUMENT_ROOT']."/uwinn/admin77664/"; 
+	$config['base_url']		= 	"http://".$_SERVER['HTTP_HOST']."/u-win/admin77664/";
+	$config['root_path']	=	$_SERVER['DOCUMENT_ROOT']."/u-win/admin77664/"; 
 
 /////////////  	SERVER	/////////////////
 else: 
@@ -113,7 +113,7 @@ $config['charset'] = 'UTF-8';
 | setting this variable to TRUE (boolean).  See the user guide for details.
 |
 */
-$config['enable_hooks'] = TRUE;
+$config['enable_hooks'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------
@@ -394,11 +394,7 @@ $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ci_session';
 $config['sess_expiration'] = 7200;
 // $config['sess_save_path'] = sys_get_temp_dir();//NULL;
-if ($_SERVER['SERVER_NAME'] == 'localhost'):
-	$config['sess_save_path'] = sys_get_temp_dir();
-else:
-	$config['sess_save_path'] = '/var/www/html/session_data';
-endif;
+$config['sess_save_path'] ='/var/www/html/session_data';//NULL;
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = FALSE;

@@ -308,6 +308,36 @@
                                     </fieldset>
                                   </div>
                                 </div>  
+
+                                <div class="form-group-inner col-lg-12 col-md-12 col-sm-12 col-xs-12 <?php if(form_error('chance_configuration')): ?>error<?php endif; ?> chance_configuration">
+                                  <fieldset>
+                                        <legend>Mobile App Section</legend>
+                                        <div class="row">
+                                          <div class="form-group-inner col-lg-4 col-md-4 col-sm-12 col-xs-12 <?php if(form_error('text_field_1')): ?>error<?php endif; ?>">
+                                            <label>Text Field 1<span class="required">*</span></label>
+                                            <input type="text" name="text_field_1" id="text_field_1" class="form-control required" value="<?php if(set_value('text_field_1')): echo set_value('text_field_1'); else: echo stripslashes($EDITDATA['text_field_1']);endif; ?>" placeholder="Text Field 1">
+                                            <?php if(form_error('text_field_1')): ?>
+                                                <span for="text_field_1" generated="true" class="help-inline"><?php echo form_error('text_field_1'); ?></span>
+                                            <?php endif; ?>
+                                          </div>
+                                          <div class="form-group-inner col-lg-4 col-md-4 col-sm-12 col-xs-12 <?php if(form_error('text_field_2')): ?>error<?php endif; ?>">
+                                            <label>Text Field 2<span class="required">*</span></label>
+                                            <input type="text" name="text_field_2" id="text_field_2" class="form-control required" value="<?php if(set_value('text_field_2')): echo set_value('text_field_2'); else: echo stripslashes($EDITDATA['text_field_2']);endif; ?>" placeholder="Text Field 2">
+                                            <?php if(form_error('text_field_2')): ?>
+                                                <span for="text_field_2" generated="true" class="help-inline"><?php echo form_error('text_field_2'); ?></span>
+                                            <?php endif; ?>
+                                          </div>
+                                          <div class="form-group-inner col-lg-4 col-md-4 col-sm-12 col-xs-12 <?php if(form_error('text_field_3')): ?>error<?php endif; ?>">
+                                            <label>Text Field 3<span class="required">*</span></label>
+                                            <input type="text" name="text_field_3" id="text_field_3" class="form-control required" value="<?php if(set_value('text_field_3')): echo set_value('text_field_3'); else: echo stripslashes($EDITDATA['text_field_3']);endif; ?>" placeholder="Text Field 3">
+                                            <?php if(form_error('text_field_3')): ?>
+                                                <span for="text_field_3" generated="true" class="help-inline"><?php echo form_error('text_field_3'); ?></span>
+                                            <?php endif; ?>
+                                          </div>
+                                        </div>
+                                    </fieldset>
+                                  </div>
+                                </div>  
                                 
                                 <div class="row">
                                     <div class="login-btn-inner col-lg-12 col-md-12 col-sm-12 col-xs-12">

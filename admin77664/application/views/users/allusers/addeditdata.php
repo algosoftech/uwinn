@@ -158,16 +158,9 @@ $(function(){
                                         <span for="name" generated="true" class="help-inline"><?php echo form_error('pos_device_id'); ?></span>
                                         <?php endif; ?>
                                     </div>
-                                    <?php
-                                    $simNoValue = set_value('sim_no');
-                                    if($simNoValue === ''):
-                                        $simNoValue = !empty($EDITDATA['sim_no']) ? stripslashes($EDITDATA['sim_no']) : '';
-                                    endif;
-                                    $simNoValue = substr(preg_replace('/\D/', '', (string)$simNoValue), 0, 19);
-                                    ?>
                                     <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('sim_no')): ?>error<?php endif; ?>" id="sim_no_block">
                                         <label>SIM No <span class="required">*</span></label>
-                                        <input type="text" name="sim_no" id="sim_no" class="form-control" maxlength="19" inputmode="numeric" pattern="[0-9]{19}" value="<?php echo htmlspecialchars($simNoValue, ENT_QUOTES, 'UTF-8'); ?>" placeholder="SIM No (exactly 19 digits)">
+                                        <input type="text" name="sim_no" id="sim_no" class="form-control" value="<?php if(set_value('sim_no')): echo set_value('sim_no'); else: echo stripslashes($EDITDATA['sim_no']);endif; ?>" placeholder="SIM No (exactly 19 digits)">
                                         <?php if(form_error('sim_no')): ?>
                                         <span for="sim_no" generated="true" class="help-inline"><?php echo form_error('sim_no'); ?></span>
                                         <?php endif; ?>
@@ -606,31 +599,6 @@ else{ $("#store").hide(); }
                $('#bind_with_section').removeClass('d-none');
                $("#bind_user_type option:contains('Manager')").prop("disabled", false);
             }
-        });
-
-        function normalizeSimNo(value) {
-            return String(value || '').replace(/\D/g, '').substring(0, 19);
-        }
-
-        function applySimNoLimit() {
-            $('#sim_no').val(normalizeSimNo($('#sim_no').val()));
-        }
-
-        applySimNoLimit();
-
-        $('#sim_no').on('input', function() {
-            applySimNoLimit();
-        });
-
-        $('#sim_no').on('paste', function() {
-            var $el = $(this);
-            setTimeout(function() {
-                $el.val(normalizeSimNo($el.val()));
-            }, 0);
-        });
-
-        $('#currentPageForm').on('submit', function() {
-            $('#sim_no').val(normalizeSimNo($('#sim_no').val()));
         });
 
         $('#users_mobile').on('keyup' , function(){

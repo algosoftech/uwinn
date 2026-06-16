@@ -177,14 +177,23 @@ $(function(){
                                     <div class="btn-group">
                                       <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
                                       <ul class="dropdown-menu" role="menu">
-                                        <li>
-                                          <?php if($ALLDATAINFO['winning_status'] == 'unpaid'): ?>
+                                        <?php if($ALLDATAINFO['winning_status'] == 'unpaid'): ?>
+                                          <li>
+                                            <a href="<?php echo getCurrentControllerPath('redeemorder/'.$ALLDATAINFO['_id']->{'$id'})?>" onClick="return confirm('Do you want to redeem this voucher?');"><i class="fas fa-money-bill"></i> Redeem</a>
+                                          </li>
+                                          <li>
                                             <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/I')?>" onClick="return confirm('Do you want to change status');" ><i class="fas fa-thumbs-down"></i>Inactive</a>
-                                          <?php elseif($ALLDATAINFO['winning_status'] == 'Inactive'): ?>
+                                          </li>
+                                        <?php elseif($ALLDATAINFO['winning_status'] == 'paid'): ?>
+                                          <li>
+                                            <a href="<?php echo getCurrentControllerPath('cancelredeem/'.$ALLDATAINFO['_id']->{'$id'})?>" onClick="return confirm('Do you want to cancel this redemption?');"><i class="fas fa-undo"></i> Cancel Redeem</a>
+                                          </li>
+                                        <?php elseif($ALLDATAINFO['winning_status'] == 'Inactive'): ?>
+                                          <li>
                                             <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/A')?>" onClick="return confirm('Do you want to change status');"><i class="fas fa-thumbs-up"></i> Active</a>
-                                          <?php endif; ?>
-                                        </li>
-                                        <?php if($ALLDATAINFO['soft_delete'] == 0): ?>
+                                          </li>
+                                        <?php endif; ?>
+                                        <?php if(empty($ALLDATAINFO['soft_delete']) || $ALLDATAINFO['soft_delete'] == 0): ?>
                                           <li> 
                                               <a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['_id']->{'$id'})?>" onClick="return confirm('Do you want to delete');" ><i class="fas fa-trash"></i>Delete</a> 
                                           </li>

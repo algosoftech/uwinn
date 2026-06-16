@@ -21,7 +21,7 @@
 //    $("#fromDate1").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
 //    $("#toDate1").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
 // });
-</script> 
+</script>
 <div class="pcoded-main-container">
     <div class="pcoded-content">
         <!-- [ breadcrumb ] start -->
@@ -47,7 +47,6 @@
               <div class="card-header">
                 <h5>Manage Orders</h5>
                 <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#exportModal">Export excel</a>
-                <a href="javaScriptcript:void{0}" class="btn btn-sm btn-success pull-right mr-2" data-toggle="modal" data-target="#shopExportModal">Shop excel</a>
               </div>
               <div class="card-body">
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
@@ -360,7 +359,6 @@
 </div>
 
 <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@getbootstrap">Open modal for @getbootstrap</button> -->
-<?php include(APPPATH.'views/orders/allorders/shop_export_modal.php'); ?>
 
 <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">

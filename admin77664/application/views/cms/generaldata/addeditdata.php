@@ -452,53 +452,8 @@
                               
                             </fieldset>
                           </div>
+                                      
 
-                          <div class="form-group-inner col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                            <fieldset>
-                              <legend>RAFFLE SECTION</legend>
-                              <div class="row">
-                                  <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('website_raffle_title')): ?><?php endif; ?>">
-                                    <label> WEBSITE  <span class="required">*</span></label>
-                                    <input type="text" name="website_raffle_title" id="website_raffle_title" value="<?php if(set_value('website_raffle_title')): echo set_value('website_raffle_title'); else: echo stripslashes($EDITDATA['website_raffle_title'] ?? '');endif; ?>" class="form-control valid required" placeholder="Website">
-                                    <?php if(form_error('website_raffle_title')): ?>
-                                      <span for="website_raffle_title" generated="true" class="help-inline"><?php echo form_error('website_raffle_title'); ?></span>
-                                    <?php endif; ?>
-                                  </div>
-
-                                  <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('alt_text_raffle')): ?><?php endif; ?>">
-                                    <label> ALT TEXT  <span class="required">*</span></label>
-                                    <input type="text" name="alt_text_raffle" id="alt_text_raffle" value="<?php if(set_value('alt_text_raffle')): echo set_value('alt_text_raffle'); else: echo stripslashes($EDITDATA['alt_text_raffle'] ?? '');endif; ?>" class="form-control valid required" placeholder="Alt Text">
-                                    <?php if(form_error('alt_text_raffle')): ?>
-                                      <span for="alt_text_raffle" generated="true" class="help-inline"><?php echo form_error('alt_text_raffle'); ?></span>
-                                    <?php endif; ?>
-                                  </div>
-
-                                  <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('email_raffle')): ?><?php endif; ?>">
-                                    <label> Email  <span class="required">*</span></label>
-                                    <input type="text" name="email_raffle" id="email_raffle" value="<?php if(set_value('email_raffle')): echo set_value('email_raffle'); else: echo stripslashes($EDITDATA['email_raffle'] ?? '');endif; ?>" class="form-control valid required" placeholder="Email">
-                                    <?php if(form_error('email_raffle')): ?>
-                                      <span for="email_raffle" generated="true" class="help-inline"><?php echo form_error('email_raffle'); ?></span>
-                                    <?php endif; ?>
-                                  </div>
-
-                                  <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('contact_number_raffle')): ?><?php endif; ?>">
-                                    <label> Contact Number  <span class="required">*</span></label>
-                                    <input type="text" name="contact_number_raffle" id="contact_number_raffle" value="<?php if(set_value('contact_number_raffle')): echo set_value('contact_number_raffle'); else: echo stripslashes($EDITDATA['contact_number_raffle'] ?? '');endif; ?>" class="form-control valid required" placeholder="Contact Number">
-                                    <?php if(form_error('contact_number_raffle')): ?>
-                                      <span for="contact_number_raffle" generated="true" class="help-inline"><?php echo form_error('contact_number_raffle'); ?></span>
-                                    <?php endif; ?>
-                                  </div>
-
-                                  <div class="form-group-inner col-lg-12 col-md-12 col-sm-12 col-xs-12 <?php if(form_error('address_raffle')): ?>error<?php endif; ?>">
-                                    <label>Address<span class="required">*</span></label>
-                                    <textarea id="address_raffle" name="address_raffle" class=" form-control required" rows="4"><?php if(set_value('address_raffle')): echo set_value('address_raffle'); else: echo stripslashes($EDITDATA['address_raffle'] ?? '');endif; ?></textarea>
-                                    <?php if(form_error('address_raffle')): ?>
-                                      <span for="address_raffle" generated="true" class="help-inline"><?php echo form_error('address_raffle'); ?></span>
-                                    <?php endif; ?>
-                                  </div>
-                              </div>
-                            </fieldset>
-                          </div>
                         </div>
                          
                     </fieldset>
@@ -524,7 +479,6 @@
 <script type="text/javascript">
   $(function(){create_editor_for_textarea('contact_description1')});
       $(function(){create_editor_for_textarea('address')});
-      $(function(){create_editor_for_textarea('address_raffle')});
       $(function(){create_editor_for_textarea('description2')});
       $(function(){create_editor_for_textarea('recharge_description')});
 

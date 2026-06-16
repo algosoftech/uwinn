@@ -21,9 +21,8 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Hourly Game Orders</h5>
+                        <h5>Lotto Orders</h5>
                         <a href="javaScript:void(0)" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#exportModal">Export excel</a>
-                        <a href="javaScript:void(0)" class="btn btn-sm btn-success pull-right mr-2" data-toggle="modal" data-target="#shopExportModal">Shop excel</a>
                     </div>
                     <div class="card-body">
                         <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
@@ -91,6 +90,7 @@
                                                     <th width="5%">S.No.</th>
                                                     <th width="15%">Order ID</th>
                                                     <th width="10%">Seller Details</th>
+                                                    <th width="10%">Delivery Address</th>
                                                     <th width="20%">Game</th>
                                                     <th width="8%">Qty</th>
                                                     <th width="12%">Total Price</th>
@@ -124,6 +124,21 @@
                                                         <b>Type </b>           : <?=htmlspecialchars($row['seller_users_type'] ?? 'N/A'); ?><br/>
                                                         <b>POS Number </b>     : <?=htmlspecialchars($row['seller_users_pos_number'] ?? 'N/A'); ?><br/>
                                                         <b>Bind with Name </b> : <?=htmlspecialchars($row['seller_users_bind_person_name'] ?? 'N/A'); ?>
+                                                    </td>
+                                                    <td>
+                                                        <div class="text-center">
+                                                          <?php if($row['delivery_address']): ?>
+                                                            <p>
+                                                              <b>Delivery Address</b> 
+                                                              <br> <?=stripslashes($row['delivery_address']??'N/A')?>
+                                                            </p>
+                                                            <p> 
+                                                              <b>Delivery charges</b> AED <?=stripslashes($row['delivery_charge']??'N/A');?> 
+                                                            </p>
+                                                          <?php else: ?>
+                                                            --
+                                                            <?php endif; ?>
+                                                        </div>
                                                     </td>
                                                     <td><?php echo htmlspecialchars($row['products_name'] ?? 'N/A'); ?></td>
                                                     <td><?php echo (int) ($row['qty'] ?? 0); ?></td>
@@ -175,7 +190,7 @@
                                                 </tr>
                                                 <?php endif; ?>
                                             </tbody>
-                                         </table>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -251,12 +266,16 @@
         </div>
           <div class="row">
             <div class="col-sm-12 col-md-6">
-              <label for="exportFromDate" class="col-form-label">Start Date:</label>
-              <input type="datetime-local" name="fromDate" id="exportFromDate" step="1" autocomplete="off" value="<?php echo !empty($fromDate) ? date('Y-m-d\TH:i', strtotime($fromDate)) : ''; ?>" class="form-control form-control-sm" placeholder="Start Date">
+              <label for="recipient-name" class="col-form-label">Form:</label>
             </div>
             <div class="col-sm-12 col-md-6">
-              <label for="exportToDate" class="col-form-label">End Date:</label>
-              <input type="datetime-local" name="toDate" id="exportToDate" step="1" autocomplete="off" value="<?php echo !empty($toDate) ? date('Y-m-d\TH:i', strtotime($toDate)) : ''; ?>" class="form-control form-control-sm" placeholder="End Date">
+              <label for="recipient-name" class="col-form-label">To:</label>
+            </div>
+            <div class="col-sm-12 col-md-6">
+              <input type="text" name="fromDate" id="fromDate" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
+            </div>
+            <div class="col-sm-12 col-md-6">
+              <input type="text" name="toDate" id="toDate" value="<?php echo $toDate; ?>" class="form-control form-control-sm" placeholder="From Date">
             </div>
           </div>
       </div>
@@ -295,5 +314,3 @@
     });
   })();
 </script>
-
-<?php include(APPPATH.'views/hourlygame/allhourlyorders/shop_export_modal.php'); ?>
