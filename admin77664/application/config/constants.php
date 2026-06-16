@@ -112,9 +112,9 @@ defined('CURRENT_TIME')					OR 	define('CURRENT_TIME',time());
 /////////////   Localhost 		/////////////////
 if($_SERVER['SERVER_NAME']=='localhost'):
 	defined('TIME_DIFFRENCE')			OR 	define('TIME_DIFFRENCE','0'); 
-	defined('MAIN_URL')     			OR 	define('MAIN_URL','http://'.$_SERVER['HTTP_HOST'].'/u-win/');
-	$fileBaseUrl 						=	'http://'.$_SERVER['HTTP_HOST'].'/u-win/';
-	$fileFCPATH 						=	$_SERVER['DOCUMENT_ROOT'].'/u-win/';
+	defined('MAIN_URL')     			OR 	define('MAIN_URL','http://'.$_SERVER['HTTP_HOST'].'/uwinn/');
+	$fileBaseUrl 						=	'http://'.$_SERVER['HTTP_HOST'].'/uwinn/';
+	$fileFCPATH 						=	$_SERVER['DOCUMENT_ROOT'].'/uwinn/';
 
 ///////////// 	/////////////////	
 else: 

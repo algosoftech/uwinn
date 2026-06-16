@@ -6,7 +6,6 @@ class Users extends CI_Controller {
 	public function  __construct() 
 	{ 
 		parent:: __construct();
-		error_reporting(E_ALL ^ E_NOTICE);  
 		$this->load->model(array('admin_model','emailtemplate_model','sms_model','notification_model'));
 		$this->lang->load('statictext', 'admin');
 		$this->load->helper('common');
@@ -21,10 +20,14 @@ class Users extends CI_Controller {
 	public function index()
 	{	
 		$this->admin_model->authCheck('view_data');
-		$this->admin_model->getPermissionType($data); 
+		$data 								= 	array();
 		$data['error'] 						= 	'';
 		$data['activeMenu'] 				= 	'subadmin';
 		$data['activeSubMenu'] 				= 	'users';
+		$data['searchField']				=	'';
+		$data['searchValue']				=	'';
+		$whereCon							=	array();
+		$this->admin_model->getPermissionType($data);
 		
 		if($this->input->get('searchField') && $this->input->get('searchValue')):
 			$sField							=	$this->input->get('searchField');
@@ -32,10 +35,6 @@ class Users extends CI_Controller {
 			$whereCon['like']			 	= 	array('0'=>trim($sField),'1'=>trim($sValue));
 			$data['searchField'] 			= 	$sField;
 			$data['searchValue'] 			= 	$sValue;
-		else:
-			$whereCon['like']		 		= 	"";
-			$data['searchField'] 			= 	'';
-			$data['searchValue'] 			= 	'';
 		endif;
 				
 		$whereCon['where']		 			= 	array('admin_type'=>'Sub Admin');		
@@ -44,13 +43,13 @@ class Users extends CI_Controller {
 		$baseUrl 							= 	getCurrentControllerPath('index');
 		$this->session->set_userdata('usersCMPOPData',currentFullUrl());
 		$qStringdata						=	explode('?',currentFullUrl());
-		$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
+		$suffix								= 	(!empty($qStringdata[1])) ? '?'.$qStringdata[1] : '';
 		$tblName 							= 	'uw_admin';
 		$con 								= 	'';
 		$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCon,$shortField,'0','0');
 		
 		if($this->input->get('showLength') == 'All'):
-			$perPage	 					= 	$totalRows;
+			$perPage	 					= 	$totalRows > 0 ? $totalRows : SHOW_NO_OF_DATA;
 			$data['perpage'] 				= 	$this->input->get('showLength');  
 		elseif($this->input->get('showLength')):
 			$perPage	 					= 	$this->input->get('showLength'); 
@@ -86,7 +85,8 @@ class Users extends CI_Controller {
 			$data['noOfContent']			=	'';
 		endif;
 		
-		$data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page); 
+		$allData 							= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
+		$data['ALLDATA'] 					= 	is_array($allData) ? $allData : array();
 
 		$this->layouts->set_title('User | Sub Admin | UWINN');
 		$this->layouts->admin_view('subadmin/users/index',array(),$data);

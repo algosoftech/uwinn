@@ -1,0 +1,7 @@
+Array
+(
+    [time] => 2026-06-15T14:09:41+02:00
+    [suwin_db_count] => 938
+    [uwin_db_count] => 0
+    [php] => 8.0.30
+)

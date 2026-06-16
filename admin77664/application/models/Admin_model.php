@@ -74,7 +74,7 @@ class Admin_model extends CI_Model
 			$this->mongo_db->select('*');
 			$this->mongo_db->where(array('admin_id'=>(int)$this->session->userdata('UW_ADMIN_ID'),
 								         'login_status'=>'Login',
-								         'admin_token'=>$_COOKIE['UW_ADMIN_LOGIN_TOKEN']));
+								         'admin_token'=>isset($_COOKIE['UW_ADMIN_LOGIN_TOKEN']) ? $_COOKIE['UW_ADMIN_LOGIN_TOKEN'] : ''));
 			$result = $this->mongo_db->find_one('uw_admin_login_log');
 			if($result):
 				if($showType==''):
@@ -150,7 +150,10 @@ class Admin_model extends CI_Model
 	** Date : 06 February 2024
 	************************************************************************/
 	public function getPermissionType(&$data)	
-	{  
+	{
+		if (!is_array($data)) {
+			$data = array();
+		}
 		if($this->session->userdata('UW_ADMIN_TYPE') == 'Super Admin'):
 			$data['view_data']		=	'Y';
 			$data['add_data']		=	'Y';
@@ -167,34 +170,21 @@ class Admin_model extends CI_Model
 			$this->mongo_db->where(array('admin_id'=>(int)$adminId));
 			$this->mongo_db->where_or(array('module_name'=>$currentClass,'first_data.module_name'=>$currentClass,'second_data.module_name'=>$currentClass));
 			$result = $this->mongo_db->find_one('uw_admin_permissions');
-			if($result):	
-				if($result['first_data']):
-					$firstData 		=	$result['first_data'];
-					foreach($firstData as $firstInfo):
-						// if($firstInfo['second_data']):
-						// 	$secondData 		=	$firstInfo['second_data'];
-						// 	foreach($secondData as $secondInfo):
-						// 		if($secondInfo->module_name == $currentClass):
-						// 			$data['view_data']		=	$secondInfo->view_data;
-						// 			$data['add_data']		=	$secondInfo->add_data;
-						// 			$data['edit_data']		=	$secondInfo->edit_data;
-						// 			$data['delete_data']	=	$secondInfo->delete_data;
-						// 		endif;
-						// 	endforeach;
-						// else:
-						// 	if($firstInfo->module_name == $currentClass):
-								$data['view_data']		=	$firstInfo->view_data;
-								$data['add_data']		=	$firstInfo->add_data;
-								$data['edit_data']		=	$firstInfo->edit_data;
-								$data['delete_data']	=	$firstInfo->delete_data;
-						// 	endif;
-						// endif;
+			if($result):
+				$result = json_decode(json_encode($result), true);
+				if(!empty($result['first_data']) && is_array($result['first_data'])):
+					foreach($result['first_data'] as $firstInfo):
+						$firstInfo = is_array($firstInfo) ? $firstInfo : json_decode(json_encode($firstInfo), true);
+						$data['view_data']		=	$firstInfo['view_data'] ?? 'N';
+						$data['add_data']		=	$firstInfo['add_data'] ?? 'N';
+						$data['edit_data']		=	$firstInfo['edit_data'] ?? 'N';
+						$data['delete_data']	=	$firstInfo['delete_data'] ?? 'N';
 					endforeach;
 				else:
-					$data['view_data']		=	$result['view_data'];
-					$data['add_data']		=	$result['add_data'];
-					$data['edit_data']		=	$result['edit_data'];
-					$data['delete_data']	=	$result['delete_data'];
+					$data['view_data']		=	$result['view_data'] ?? 'N';
+					$data['add_data']		=	$result['add_data'] ?? 'N';
+					$data['edit_data']		=	$result['edit_data'] ?? 'N';
+					$data['delete_data']	=	$result['delete_data'] ?? 'N';
 				endif;
 			endif;
 		endif;

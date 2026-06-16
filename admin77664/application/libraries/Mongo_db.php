@@ -200,13 +200,17 @@ Class Mongo_db{
 		try
 		{
 			$dns = "mongodb://{$this->hostname}:{$this->port}/{$this->database}";
+			$timeoutOptions = array(
+				'connectTimeoutMS' => 5000,
+				'serverSelectionTimeoutMS' => 5000
+			);
 			if(isset($this->config[$this->activate]['no_auth']) == TRUE && $this->config[$this->activate]['no_auth'] == TRUE)
 			{
-				$options = array();
+				$options = $timeoutOptions;
 			}
 			else
 			{
-				$options = array('username'=>$this->username, 'password'=>$this->password);
+				$options = array_merge(array('username'=>$this->username, 'password'=>$this->password), $timeoutOptions);
 			}
 			$this->connect = $this->db = new MongoDB\Driver\Manager($dns, $options);
 			
@@ -532,7 +536,7 @@ Class Mongo_db{
 	*
 	* @usage : $this->mongo_db->where_gt('foo', 20);
 	*/
-	public function where_gt($field = "", $x)
+	public function where_gt($field = "", $x = null)
 	{
 		if (!isset($field))
 		{
@@ -555,7 +559,7 @@ Class Mongo_db{
 	*
 	* @usage : $this->mongo_db->where_gte('foo', 20);
 	*/
-	public function where_gte($field = "", $x)
+	public function where_gte($field = "", $x = null)
 	{
 		if (!isset($field))
 		{
@@ -578,7 +582,7 @@ Class Mongo_db{
 	*
 	* @usage : $this->mongo_db->where_lt('foo', 20);
 	*/
-	public function where_lt($field = "", $x)
+	public function where_lt($field = "", $x = null)
 	{
 		if (!isset($field))
 		{
@@ -601,7 +605,7 @@ Class Mongo_db{
 	*
 	* @usage : $this->mongo_db->where_lte('foo', 20);
 	*/
-	public function where_lte($field = "", $x)
+	public function where_lte($field = "", $x = null)
 	{
 		if (!isset($field))
 		{
@@ -624,7 +628,7 @@ Class Mongo_db{
 	*
 	* @usage : $this->mongo_db->where_between('foo', 20, 30);
 	*/
-	public function where_between($field = "", $x, $y)
+	public function where_between($field = "", $x = null, $y = null)
 	{
 		if (!isset($field))
 		{
@@ -652,7 +656,7 @@ Class Mongo_db{
 	*
 	* @usage : $this->mongo_db->where_between_ne('foo', 20, 30);
 	*/
-	public function where_between_ne($field = "", $x, $y)
+	public function where_between_ne($field = "", $x = null, $y = null)
 	{
 		if (!isset($field))
 		{
@@ -680,7 +684,7 @@ Class Mongo_db{
 	*
 	* @usage : $this->mongo_db->where_ne('foo', 1)->get('foobar');
 	*/
-	public function where_ne($field = '', $x)
+	public function where_ne($field = '', $x = null)
 	{
 		if (!isset($field))
 		{
@@ -941,31 +945,41 @@ Class Mongo_db{
 		{
 			show_error("In order to retrieve documents from MongoDB, a collection name must be passed", 500);
 		}
-		try{	
-			$read_concern    = new MongoDB\Driver\ReadConcern($this->read_concern);
-			$read_preference = new MongoDB\Driver\ReadPreference($this->read_preference);
-			$options = array();
-			$options['projection'] = array('_id'=>1);
-			$options['sort'] = $this->sorts;
-			$options['skip'] = (int) $this->offset;
-			$options['limit'] = (int) $this->limit;
-			$options['readConcern'] = $read_concern;
-			$query = new MongoDB\Driver\Query($this->wheres, $options);
-			$cursor = $this->db->executeQuery($this->database.".".$collection, $query, $read_preference);
-			$array = $cursor->toArray();
-			// Clear
+		$read_preference = new MongoDB\Driver\ReadPreference($this->read_preference);
+		$cmdOptions = array('readPreference' => $read_preference);
+		try {
+			$command = new MongoDB\Driver\Command(array(
+				'count' => $collection,
+				'query' => (object) $this->wheres
+			));
+			$cursor = $this->db->executeCommand($this->database, $command, $cmdOptions);
+			$result = current($cursor->toArray());
 			$this->_clear();
-			return count($array);
+			return isset($result->n) ? (int) $result->n : 0;
 		}
-		catch (MongoDB\Driver\Exception $e)
-		{
-			if(isset($this->debug) == TRUE && $this->debug == TRUE)
-			{
-				show_error("MongoDB query failed: {$e->getMessage()}", 500);
+		catch (\Throwable $e) {
+			try {
+				$pipeline = array();
+				if (!empty($this->wheres)) {
+					$pipeline[] = array('$match' => $this->wheres);
+				}
+				$pipeline[] = array('$count' => 'total');
+				$command = new MongoDB\Driver\Command(array(
+					'aggregate' => $collection,
+					'pipeline' => $pipeline,
+					'cursor' => new stdClass()
+				));
+				$cursor = $this->db->executeCommand($this->database, $command, $cmdOptions);
+				$result = current($cursor->toArray());
+				$this->_clear();
+				return isset($result->total) ? (int) $result->total : 0;
 			}
-			else
-			{
-				show_error("MongoDB query failed.", 500);
+			catch (\Throwable $e2) {
+				if (isset($this->debug) == TRUE && $this->debug == TRUE) {
+					show_error("MongoDB count failed: {$e2->getMessage()}", 500);
+				}
+				$this->_clear();
+				return 0;
 			}
 		}
 	}

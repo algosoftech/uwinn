@@ -1,5 +1,5 @@
 <script src="{ASSET_INCLUDE_URL}js/ripple.js"></script>
-<script src="{ASSET_INCLUDE_URL}js/pcoded.min.js"></script>
+<script src="{ASSET_INCLUDE_URL}js/pcoded.js"></script>
 <script src="{ASSET_INCLUDE_URL}js/menu-setting.min.js"></script>
 <script src="{ASSET_INCLUDE_URL}js/jquery.validate.js"></script>
 <!-- notification Js -->

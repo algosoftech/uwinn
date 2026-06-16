@@ -5,6 +5,8 @@ class Layouts
 	private $CI;
 	//hold layout title
 	private $layout_title = NULL;
+	//hold layout keyword
+	private $layout_keyword = NULL;
 	//hold layout discription
 	private $layout_description = NULL;
 	
@@ -32,7 +34,7 @@ class Layouts
 		
 		$pagedata['title'] 				= 	$this->layout_title?$this->layout_title:'Login';
 		$pagedata['description']		= 	$this->layout_description;
-		$pagedata['keyword'] 			= 	$this->keyword;
+		$pagedata['keyword'] 			= 	$this->layout_keyword;
 		
 		if($viewtype == 'onlyview'):
 			$this->CI->parser->parse($view_name, $params);

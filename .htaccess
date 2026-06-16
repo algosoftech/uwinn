@@ -1,12 +1,14 @@
 Options +FollowSymlinks
 RewriteEngine On
 
-# Caching rules
-
-ExpiresByType image/png "access plus 1 day"
-ExpiresByType image/gif "access plus 1 day"
-ExpiresByType image/jpeg "access plus 1 day"
-ExpiresByType text/css "access plus 1 day"
+# Caching rules (only when mod_expires is enabled)
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresByType image/png "access plus 1 day"
+	ExpiresByType image/gif "access plus 1 day"
+	ExpiresByType image/jpeg "access plus 1 day"
+	ExpiresByType text/css "access plus 1 day"
+</IfModule>
 
 # Redirect www to non-www and ensure HTTPS
 

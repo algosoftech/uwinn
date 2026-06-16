@@ -1,0 +1,104 @@
+{
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userEmail": "info@u-winn.com",
+        "userPassword": "Admin@123",
+        "loginFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1781522693,
+        "ADMIN_LOGGED_IN": true,
+        "ADMIN_ID": 100000000000001,
+        "ADMIN_TITLE": "Mr",
+        "ADMIN_FIRST_NAME": "Uwinn",
+        "ADMIN_MIDDLE_NAME": "",
+        "ADMIN_LAST_NAME": "Admin",
+        "ADMIN_EMAIL": "ugesh@debross.com",
+        "ADMIN_MOBILE": 501292591,
+        "ADMIN_IMAGE": "",
+        "ADMIN_ADDRESS": "",
+        "ADMIN_CITY": "",
+        "ADMIN_STATE": "",
+        "ADMIN_COUNTRY": "India",
+        "ADMIN_ZIPCODE": 0,
+        "ADMIN_TYPE": "Super Admin",
+        "ADMIN_CURRENT_PATH": "http:\/\/localhost\/instwin\/admin77664\/",
+        "ADMIN_USER_TYPE": "",
+        "ADMIN_LAST_LOGIN": "1780651776 (192.168.1.100)",
+        "ALLRECHARGEDATA": "http:\/\/localhost\/instwin\/admin77664\/recharge\/allrecharge\/index",
+        "ALLUSERSDATA": "http:\/\/localhost\/instwin\/admin77664\/users\/allusers\/index"
+    },
+    "ip_address": {
+        "status": "fail",
+        "message": "reserved range",
+        "query": "::1"
+    },
+    "timestamp": "2026-06-15 15:26:00",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/148.0.0.0 Safari\/537.36",
+    "requested_url": "\/uwinn\/admin77664\/login",
+    "referer": "http:\/\/localhost\/uwinn\/admin77664\/login"
+}
+
+{
+    "loggedIn_userID": 100000000000001,
+    "loggedIn_Email": "info@u-winn.com",
+    "loggedIn_MOBILE": 501292591,
+    "access_method": "POST",
+    "requested_data": {
+        "ci_csrf_token": "",
+        "userOtp": "3197",
+        "otpVerificationFormSubmit": "Yes"
+    },
+    "session_data": {
+        "__ci_last_regenerate": 1781522693,
+        "ADMIN_LOGGED_IN": true,
+        "ADMIN_ID": 100000000000001,
+        "ADMIN_TITLE": "Mr",
+        "ADMIN_FIRST_NAME": "Uwinn",
+        "ADMIN_MIDDLE_NAME": "",
+        "ADMIN_LAST_NAME": "Admin",
+        "ADMIN_EMAIL": "ugesh@debross.com",
+        "ADMIN_MOBILE": 501292591,
+        "ADMIN_IMAGE": "",
+        "ADMIN_ADDRESS": "",
+        "ADMIN_CITY": "",
+        "ADMIN_STATE": "",
+        "ADMIN_COUNTRY": "India",
+        "ADMIN_ZIPCODE": 0,
+        "ADMIN_TYPE": "Super Admin",
+        "ADMIN_CURRENT_PATH": "http:\/\/localhost\/instwin\/admin77664\/",
+        "ADMIN_USER_TYPE": "",
+        "ADMIN_LAST_LOGIN": "1780651776 (192.168.1.100)",
+        "ALLRECHARGEDATA": "http:\/\/localhost\/instwin\/admin77664\/recharge\/allrecharge\/index",
+        "ALLUSERSDATA": "http:\/\/localhost\/instwin\/admin77664\/users\/allusers\/index",
+        "UW_ADMIN_LOGGED_IN": true,
+        "UW_ADMIN_ID": 100000000000001,
+        "UW_ADMIN_TITLE": "Mr",
+        "UW_ADMIN_FIRST_NAME": "Uwinn",
+        "UW_ADMIN_MIDDLE_NAME": "Test",
+        "UW_ADMIN_LAST_NAME": "Admin",
+        "UW_ADMIN_EMAIL": "info@u-winn.com",
+        "UW_ADMIN_MOBILE": 501292591,
+        "UW_ADMIN_IMAGE": "",
+        "UW_ADMIN_ADDRESS": "",
+        "UW_ADMIN_CITY": "",
+        "UW_ADMIN_STATE": "",
+        "UW_ADMIN_COUNTRY": "India",
+        "UW_ADMIN_ZIPCODE": 0,
+        "UW_ADMIN_TYPE": "Super Admin",
+        "UW_ADMIN_CURRENT_PATH": "http:\/\/localhost\/uwinn\/admin77664\/",
+        "UW_ADMIN_USER_TYPE": "",
+        "UW_ADMIN_LAST_LOGIN": "1781240372 (192.168.1.100)"
+    },
+    "ip_address": {
+        "status": "fail",
+        "message": "reserved range",
+        "query": "::1"
+    },
+    "timestamp": "2026-06-15 15:26:48",
+    "user_agent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/148.0.0.0 Safari\/537.36",
+    "requested_url": "\/uwinn\/admin77664\/login-verify-otp",
+    "referer": "http:\/\/localhost\/uwinn\/admin77664\/login-verify-otp"
+}
+

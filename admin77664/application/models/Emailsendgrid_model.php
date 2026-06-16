@@ -1,6 +1,6 @@
 <?php
 if(!defined('BASEPATH')) exit('No direct script access allowed');
-require_once 'sendgridmail/library/sendgrid-php.php';
+require_once FCPATH.'sendgridmail/library/sendgrid-php.php';
 
 use SendGrid\Mail\Mail;
 

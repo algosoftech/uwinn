@@ -1,5 +1,26 @@
 <?php
 ob_start();
+if (isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false)) {
+	$uwinn_show_error = function ($msg) {
+		while (ob_get_level() > 0) {
+			ob_end_clean();
+		}
+		echo '<pre style="padding:20px;background:#fff;color:#c00;font:14px monospace;">';
+		echo htmlspecialchars($msg);
+		echo '</pre>';
+		exit;
+	};
+	set_exception_handler(function (Throwable $e) use ($uwinn_show_error) {
+		$uwinn_show_error('EXCEPTION: ' . $e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine() . "\n\n" . $e->getTraceAsString());
+	});
+	register_shutdown_function(function () use ($uwinn_show_error) {
+		$err = error_get_last();
+		if (!$err || !in_array($err['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR), true)) {
+			return;
+		}
+		$uwinn_show_error('FATAL: ' . $err['message'] . "\n" . $err['file'] . ':' . $err['line']);
+	});
+}
 date_default_timezone_set('UTC');
 /**
  * CodeIgniter
@@ -68,7 +89,11 @@ date_default_timezone_set('UTC');
 switch (ENVIRONMENT)
 {
 	case 'development':
-		error_reporting(-1);
+		if (isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false)) {
+			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_WARNING);
+		} else {
+			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+		}
 		ini_set('display_errors', 1);
 	break;
 

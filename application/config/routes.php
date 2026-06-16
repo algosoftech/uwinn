@@ -289,9 +289,16 @@ $route['api/hourlygame/order/hourly-order-list'] = 'api/hourlygames/hourlyOrderL
 $route['api/lotto/hourly-draw-result']           = 'api/hourlygames/hourlyDrawResult';
 $route['api/hourlygame/move-to-wallet']          = 'api/hourlygames/moveToWallet';
 
-$route['api/ding/operator/getaccount']     = 'api/ding/getaccount';
-$route['api/ding/plan/list'] 		       = 'api/ding/getPlanList'; 
+
 
 // common summary api 
 $route['api/updateSimNo'] 		   = 'api/users/updateSimNo';
 $route['api/combined-summary'] 	   = 'api/CommonReportSummary/getUnifiedSummary';
+
+
+$route['api/ding/operator/getaccount']     = 'api/ding/getaccount';
+$route['api/ding/operator/authcheck']     = 'api/ding/authcheck';
+$route['api/ding/plan/list'] 		       = 'api/ding/getPlanList';
+$route['api/ding/plan/recharge/create']    = 'api/ding/createRecharge';
+$route['api/ding/plan/recharge/history']   = 'api/ding/rechargeHistory';
+$route['api/ding/plan/recharge/summary']   = 'api/ding/rechargeSummary';

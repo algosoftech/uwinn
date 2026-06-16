@@ -1,5 +1,33 @@
 <?php
 /*
+* Safe array value for PHP 8 views
+*/
+if (!function_exists('arr')) {
+	function arr($array, $key, $default = '') {
+		if (!is_array($array) || !array_key_exists($key, $array)) {
+			return $default;
+		}
+		return $array[$key];
+	}
+}
+
+/*
+* Render admin menu icon HTML from DB value (class string or full <i> tag)
+*/
+if (!function_exists('render_module_icon')) {
+	function render_module_icon($icone) {
+		$icone = trim(stripslashes((string) $icone));
+		if ($icone === '') {
+			return '<i class="fas fa-circle"></i>';
+		}
+		if (strpos($icone, '<') !== false) {
+			return $icone;
+		}
+		return '<i class="' . htmlspecialchars($icone, ENT_QUOTES, 'UTF-8') . '"></i>';
+	}
+}
+
+/*
 * Get url segment for pagination
 */
 if (!function_exists('getUrlSegment')) {

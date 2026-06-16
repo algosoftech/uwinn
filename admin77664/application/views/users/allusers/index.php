@@ -113,35 +113,35 @@ $(function(){
                     </tr>
                   </thead>
                   <tbody style="text-align: center;">
-                    <?php if($ALLDATA <> ""): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
+                    <?php if(!empty($ALLDATA) && is_array($ALLDATA)): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO):
                     if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
                     ?>
                     <tr role="row" class="<?php echo $rowClass; ?>">
                       <td style="text-align: center;"><?=$i++?></td>
-                      <td><?=stripslashes($ALLDATAINFO['users_seq_id'])?></td>
-                      <td><?=stripslashes($ALLDATAINFO['pos_number']?$ALLDATAINFO['pos_number']:'N/A')?></td>
-                      <td><?=stripslashes($ALLDATAINFO['pos_device_id']?$ALLDATAINFO['pos_device_id']:'N/A')?></td>
-                      <td><?=stripslashes($ALLDATAINFO['users_type'])?></td>
-                      <td><?=stripslashes($ALLDATAINFO['users_name'])?></td>
-                      <td><?=stripslashes($ALLDATAINFO['last_name'])?></td>
-                      <td><?=stripslashes($ALLDATAINFO['users_email'])?></td>
-                      <td><?=stripslashes($ALLDATAINFO['users_mobile'])?></td>
-                      <td><?=stripslashes($ALLDATAINFO['availableArabianPoints'])?></td>
+                      <td><?=stripslashes($ALLDATAINFO['users_seq_id'] ?? '')?></td>
+                      <td><?=stripslashes(!empty($ALLDATAINFO['pos_number']) ? $ALLDATAINFO['pos_number'] : 'N/A')?></td>
+                      <td><?=stripslashes(!empty($ALLDATAINFO['pos_device_id']) ? $ALLDATAINFO['pos_device_id'] : 'N/A')?></td>
+                      <td><?=stripslashes($ALLDATAINFO['users_type'] ?? '')?></td>
+                      <td><?=stripslashes($ALLDATAINFO['users_name'] ?? '')?></td>
+                      <td><?=stripslashes($ALLDATAINFO['last_name'] ?? '')?></td>
+                      <td><?=stripslashes($ALLDATAINFO['users_email'] ?? '')?></td>
+                      <td><?=stripslashes($ALLDATAINFO['users_mobile'] ?? '')?></td>
+                      <td><?=stripslashes($ALLDATAINFO['availableArabianPoints'] ?? '')?></td>
                       <td>
-                        <?=stripslashes($ALLDATAINFO['area'])?>
-                        <?=stripslashes($ALLDATAINFO['address'])?>
+                        <?=stripslashes($ALLDATAINFO['area'] ?? '')?>
+                        <?=stripslashes($ALLDATAINFO['address'] ?? '')?>
                       </td>
-                      <td><?=stripslashes($ALLDATAINFO['store_name'])?></td>
-                      <?php if($ALLDATAINFO['bind_person_id']): ?>
+                      <td><?=stripslashes($ALLDATAINFO['store_name'] ?? '')?></td>
+                      <?php if(!empty($ALLDATAINFO['bind_person_id'])): ?>
                         <td>
-                          Name : <?=stripslashes($ALLDATAINFO['bind_person_name'])?><br>
-                          User Type : <?=stripslashes($ALLDATAINFO['bind_user_type'])?><br>
+                          Name : <?=stripslashes($ALLDATAINFO['bind_person_name'] ?? '')?><br>
+                          User Type : <?=stripslashes($ALLDATAINFO['bind_user_type'] ?? '')?><br>
                           <a href="#">View All</a>
                         </td>
-                      <?php elseif($ALLDATAINFO['users_type'] == "Users"): ?>
+                      <?php elseif(($ALLDATAINFO['users_type'] ?? '') == "Users"): ?>
                         <td>
-                          Name : <?=stripslashes($ALLDATAINFO['bind_person_name'])?><br>
-                          User Type : <?=stripslashes($ALLDATAINFO['bind_user_type'])?><br>
+                          Name : <?=stripslashes($ALLDATAINFO['bind_person_name'] ?? '')?><br>
+                          User Type : <?=stripslashes($ALLDATAINFO['bind_user_type'] ?? '')?><br>
                         </td>
                       <?php else: ?>
                         <td>
@@ -156,43 +156,43 @@ $(function(){
                       </td>
                       <td>
                         <?php
-                        if($ALLDATAINFO['device_type']):
+                        if(!empty($ALLDATAINFO['device_type'])):
                           echo 'Device Type : '.stripslashes($ALLDATAINFO['device_type']);
-                          echo  '<br>App Version : '.stripslashes($ALLDATAINFO['app_version']);
+                          echo  '<br>App Version : '.stripslashes($ALLDATAINFO['app_version'] ?? '');
                         else:
                           echo '-';
                         endif;
                         ?>
                       </td>
 
-                      <td><?=date('d-M-y h:i A',strtotime($ALLDATAINFO['created_at']))?></td>
+                      <td><?=!empty($ALLDATAINFO['created_at']) ? date('d-M-y h:i A', strtotime($ALLDATAINFO['created_at'])) : '-'?></td>
                      
                       
-                      <td style="text-align: right;"><?=showStatus($ALLDATAINFO['status'])?></td>
+                      <td style="text-align: right;"><?=showStatus($ALLDATAINFO['status'] ?? '')?></td>
                       <td>
                       <div class="btn-group">
                         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
                         <ul class="dropdown-menu" role="menu">
-                          <?php if($ALLDATAINFO['users_type'] == 'Users') { ?>
-                          <li><a href="<?php echo base_url('users/activity-dashboard/'.$ALLDATAINFO['users_id']) ?>"><i class="fas fa-eye"></i> View Dashboard</a></li>
+                          <?php if(($ALLDATAINFO['users_type'] ?? '') == 'Users') { ?>
+                          <li><a href="<?php echo base_url('users/activity-dashboard/'.($ALLDATAINFO['users_id'] ?? '')) ?>"><i class="fas fa-eye"></i> View Dashboard</a></li>
                           <?php } ?>
-                        <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['users_id'])?>"><i class="fas fa-edit"></i> Edit Details</a></li>
-                        <?php if($ALLDATAINFO['status'] == 'A'): ?>
-                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['users_id'].'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
-                        <?php elseif($ALLDATAINFO['status'] == 'I' || $ALLDATAINFO['status'] == 'N'): ?>
-                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['users_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
+                        <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.($ALLDATAINFO['users_id'] ?? ''))?>"><i class="fas fa-edit"></i> Edit Details</a></li>
+                        <?php if(($ALLDATAINFO['status'] ?? '') == 'A'): ?>
+                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['users_id'] ?? '').'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
+                        <?php elseif(($ALLDATAINFO['status'] ?? '') == 'I' || ($ALLDATAINFO['status'] ?? '') == 'N'): ?>
+                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['users_id'] ?? '').'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
                         <?php endif; ?>
-                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['users_id'].'/D')?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
-                          <li><a href="<?php echo getCurrentControllerPath('updatequickuser/'.$ALLDATAINFO['users_id'])?>" ><i class="fas fa-plus"></i> Enable/Disable Quick Purchase </a></li>
-                          <li><a href="<?php echo getCurrentControllerPath('reverseAmount/'.$ALLDATAINFO['users_id'].'/'.$ALLDATAINFO['availableArabianPoints'])?>" ><i class="fas fa-minus"></i> Reverse Amount</a></li>
-                          <?php if($ALLDATAINFO['redeem_attempt_count'] == 3): ?>
-                            <li><a title="Enable redeem recharge coupon code." href="<?php echo getCurrentControllerPath('changeRechargeCouponRedeemstatus/'.$ALLDATAINFO['users_id'].'/0')?>" onClick="return confirm('Want to enable recharge coupon redeem!');"><i class="fas fa-check"></i> Enable Redeem</a></li>
+                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['users_id'] ?? '').'/D')?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
+                          <li><a href="<?php echo getCurrentControllerPath('updatequickuser/'.($ALLDATAINFO['users_id'] ?? ''))?>" ><i class="fas fa-plus"></i> Enable/Disable Quick Purchase </a></li>
+                          <li><a href="<?php echo getCurrentControllerPath('reverseAmount/'.($ALLDATAINFO['users_id'] ?? '').'/'.($ALLDATAINFO['availableArabianPoints'] ?? 0))?>" ><i class="fas fa-minus"></i> Reverse Amount</a></li>
+                          <?php if(($ALLDATAINFO['redeem_attempt_count'] ?? 0) == 3): ?>
+                            <li><a title="Enable redeem recharge coupon code." href="<?php echo getCurrentControllerPath('changeRechargeCouponRedeemstatus/'.($ALLDATAINFO['users_id'] ?? '').'/0')?>" onClick="return confirm('Want to enable recharge coupon redeem!');"><i class="fas fa-check"></i> Enable Redeem</a></li>
                             <?php else: ?>
-                              <li><a title="Disable redeem recharge coupon code." href="<?php echo getCurrentControllerPath('changeRechargeCouponRedeemstatus/'.$ALLDATAINFO['users_id'].'/3')?>" onClick="return confirm('Want to disable recharge coupon redeem!');"><i class="fas fa-times"></i> Disable Redeem</a></li>
+                              <li><a title="Disable redeem recharge coupon code." href="<?php echo getCurrentControllerPath('changeRechargeCouponRedeemstatus/'.($ALLDATAINFO['users_id'] ?? '').'/3')?>" onClick="return confirm('Want to disable recharge coupon redeem!');"><i class="fas fa-times"></i> Disable Redeem</a></li>
                           <?php endif; ?>
                           <?php $segment = $this->uri->segment(2);?>
                           <?php if($segment == 'allusers'): ?>
-                          <li><a href="<?php echo getCurrentControllerPath('redeeminglimit/'.$ALLDATAINFO['users_id'])?>" ><i class="fa fa-money-check"></i> Redeeming Amount Limit </a></li>
+                          <li><a href="<?php echo getCurrentControllerPath('redeeminglimit/'.($ALLDATAINFO['users_id'] ?? ''))?>" ><i class="fa fa-money-check"></i> Redeeming Amount Limit </a></li>
                           <?php endif; ?>
                          </ul>
                       </div>

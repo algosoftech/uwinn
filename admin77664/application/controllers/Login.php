@@ -6,7 +6,7 @@ class Login extends CI_Controller {
 	public function  __construct() 
 	{ 
 		parent:: __construct();
-		error_reporting(E_ALL ^ E_NOTICE);  
+		error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);  
 		$this->load->model(array('admin_model','emailtemplate_model','emailsendgrid_model','sms_model','notification_model'));
 		$this->lang->load('statictext', 'admin');
 		$this->load->helper('common');
@@ -406,7 +406,7 @@ class Login extends CI_Controller {
 		$logoutParam['logout_ip']			=	currentIp();
 
 		$logoutuWhere['login_status']		=	'Login';
-		$logoutuWhere['admin_token']		=	$_COOKIE['UW_ADMIN_LOGIN_TOKEN'];
+		$logoutuWhere['admin_token']		=	isset($_COOKIE['UW_ADMIN_LOGIN_TOKEN']) ? $_COOKIE['UW_ADMIN_LOGIN_TOKEN'] : '';
 		$logoutuWhere['admin_id']			=	(int)$this->session->userdata('UW_ADMIN_ID');
 		$this->common_model->editDataByMultipleCondition('uw_admin_login_log',$logoutParam,$logoutuWhere);
 

@@ -25,7 +25,7 @@ class Allbtcusers extends CI_Controller {
 	public function  __construct() 
 	{ 
 		parent:: __construct();
-		error_reporting(E_ALL ^ E_NOTICE);  
+		error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);  
 		$this->load->model(array('admin_model','emailtemplate_model','emailsendgrid_model','sms_model','notification_model'));
 		$this->lang->load('statictext', 'admin');
 		$this->load->helper('common');
@@ -45,7 +45,12 @@ class Allbtcusers extends CI_Controller {
 		$data['error'] 						= 	'';
 		$data['activeMenu'] 				= 	'users';
 		$data['activeSubMenu'] 				= 	'allbtcusers';
-		
+		$data['searchField']				=	'';
+		$data['searchValue']				=	'';
+		$data['fromDate']					=	'';
+		$data['toDate']						=	'';
+		$whereCon							=	array();
+
 		if($this->input->get('searchField') && $this->input->get('searchValue')):
 			
 			$searchField = $this->input->get('searchField');
@@ -67,13 +72,13 @@ class Allbtcusers extends CI_Controller {
 		$baseUrl 							= 	getCurrentControllerPath('index');
 		$this->session->set_userdata('ALLUSERSDATA',currentFullUrl());
 		$qStringdata						=	explode('?',currentFullUrl());
-		$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
+		$suffix								= 	(!empty($qStringdata[1])) ? '?'.$qStringdata[1] : '';
 		$tblName 							= 	'uw_users';
 		$con 								= 	'';
 		$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCon,$shortField,'0','0');
 		
 		if($this->input->get('showLength') == 'All'):
-			$perPage	 					= 	$totalRows;
+			$perPage	 					= 	$totalRows > 0 ? $totalRows : SHOW_NO_OF_DATA;
 			$data['perpage'] 				= 	$this->input->get('showLength');  
 		elseif($this->input->get('showLength')):
 			$perPage	 					= 	$this->input->get('showLength'); 
@@ -110,7 +115,8 @@ class Allbtcusers extends CI_Controller {
 			$data['noOfContent']			=	'';
 		endif;
 		
-		$data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
+		$allData 							= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
+		$data['ALLDATA'] 					= 	is_array($allData) ? $allData : array();
 		// echo '<pre>';print_r($data['ALLDATA']);die();
 		$this->layouts->set_title('All Users | Users | UWINN');
 		$this->layouts->admin_view('users/allusers/index',array(),$data);
