@@ -156,6 +156,12 @@ class Generaldata extends CI_Controller {
 			$this->form_validation->set_rules('b2b_mobile_qr_code','Show QR Code', 'trim|required');
 			$this->form_validation->set_rules('b2b_mobile_qr_code_time_sec','Show QR Time', 'trim|required');
 
+			$this->form_validation->set_rules('website_raffle_title', 'Website Raffle Title', 'trim|required');
+			$this->form_validation->set_rules('alt_text_raffle', 'Alt Text Raffle', 'trim|required');
+			$this->form_validation->set_rules('email_raffle', 'Email Raffle', 'trim|required');
+			$this->form_validation->set_rules('contact_number_raffle', 'Contact Number Raffle', 'trim|required');
+			$this->form_validation->set_rules('address_raffle', 'Address Raffle', 'trim|required');
+
 			if($this->form_validation->run() && $error == 'NO'): 
 
 				if($_FILES['image']['name']):
@@ -212,6 +218,12 @@ class Generaldata extends CI_Controller {
 				$param['enable_raffle_entries'] 	 = $this->input->post('enable_raffle_entries');
 				$param['b2b_mobile_qr_code'] 	      = $this->input->post('b2b_mobile_qr_code');
 				$param['b2b_mobile_qr_code_time_sec'] = (int)$this->input->post('b2b_mobile_qr_code_time_sec');
+
+				$param['website_raffle_title'] = stripslashes($this->input->post('website_raffle_title'));
+				$param['alt_text_raffle'] = stripslashes($this->input->post('alt_text_raffle'));
+				$param['email_raffle'] = stripslashes($this->input->post('email_raffle'));
+				$param['contact_number_raffle'] = stripslashes($this->input->post('contact_number_raffle'));
+				$param['address_raffle'] = stripslashes($this->input->post('address_raffle'));
 				
 				if($this->input->post('CurrentDataID') ==''):
 						$param['general_data_id']		=	(int)$this->common_model->getNextSequence('uw_general_data');
