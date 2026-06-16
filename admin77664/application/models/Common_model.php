@@ -1963,6 +1963,7 @@ class Common_model extends CI_Model
 		);
 
     	$sortBy       = array('created_at' => -1);
+		$unwind       = array();
 	    $OrderData    = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$startIndex,$itemsPerPage);
 	    return $OrderData;
 	    die();

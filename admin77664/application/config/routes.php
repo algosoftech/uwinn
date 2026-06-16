@@ -138,16 +138,8 @@ elseif($secondSlug == 'subwinner'):
 	$route['subwinner'] 										= 	'draws/subwinner';
 elseif($secondSlug == 'allinventory'):  
 	$route['emirate/allinventory/addeditdata'] 					= 	'emirate/allinventory/addeditdata';
-elseif($firstSlug && $secondSlug && $thirdSlug && in_array($thirdSlug, $functionArray, true)):
-	$route[$firstSlug.'/'.$secondSlug.'/'.$thirdSlug]			= 	$firstSlug.'/'.$secondSlug.'/'.$thirdSlug;
-	$route[$firstSlug.'/'.$secondSlug.'/(:any)']				= 	$firstSlug.'/'.$secondSlug.'/$1';
 else: 
-	$mongoDbName = (in_array($_SERVER['SERVER_NAME'], array('localhost', '127.0.0.1'), true)) ? 'suwin_db' : 'uwin_db';
-	if (in_array($_SERVER['SERVER_NAME'], array('localhost', '127.0.0.1'), true)):
-		$mngConf		= 	new MongoDB\Driver\Manager("mongodb://localhost:27017");
-	else:
-		$mngConf		= 	new MongoDB\Driver\Manager("mongodb://192.168.1.7:27017");
-	endif;
+	$mngConf		= 	new MongoDB\Driver\Manager("mongodb://192.168.1.7:27017");
 	if(in_array($fourthlug,$functionArray)):
 	    $filter 	= 	['module_name'=>$firstSlug,'first_data.module_name'=>$secondSlug,'first_data.second_data.module_name'=>$thirdSlug]; 
 	elseif(in_array($thirdSlug,$functionArray)):	
