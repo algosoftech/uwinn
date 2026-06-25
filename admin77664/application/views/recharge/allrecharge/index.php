@@ -99,8 +99,9 @@ $(function(){
                             <thead style="text-align: center;">
                               <tr role="row">
                               <th width="5%" style="text-align: center;">S.No.</th>
-                              <th width="20%">UPoints</th>
-                              <th width="20%">Recharge By</th>
+                              <th width="15%">UPoints</th>
+                              <th width="10%">Type</th>
+                              <th width="18%">Recharge By</th>
                               <th width="20%">User Type</th>
                               <th width="20%">Recharge To </th>
                               <th width="20%">Remarks</th>
@@ -110,17 +111,26 @@ $(function(){
                               </tr>
                             </thead>
                             <tbody style="text-align: center;">
-                              <?php if($ALLDATA <> ""): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
+                              <?php if(!empty($ALLDATA) && is_array($ALLDATA)): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
                               if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
+                              $rechargeType = !empty($ALLDATAINFO['recharge_type']) ? $ALLDATAINFO['recharge_type'] : 'upoint';
+                              $rechargeTypeLabel = !empty($ALLDATAINFO['recharge_type_label']) ? $ALLDATAINFO['recharge_type_label'] : 'UPOINT';
                               ?>
                               <tr role="row" class="<?php echo $rowClass; ?>">
                                 <td style="text-align: center;"><?=$i++?></td>
 
-                                <?php if($ALLDATAINFO['rechargeDetails']): ?>
+                                <?php if(!empty($ALLDATAINFO['rechargeDetails'])): ?>
                                   <td><?=stripslashes($ALLDATAINFO['sum_arabian_points'])?></td>
                                 <?php else: ?>
                                   <td><?=stripslashes($ALLDATAINFO['upoints'])?></td>
                                 <?php endif; ?>
+                                <td>
+                                  <?php if($rechargeType === 'ding'): ?>
+                                    <label class="badge badge-light-primary">Ding</label>
+                                  <?php else: ?>
+                                    <label class="badge badge-light-info">UPOINT</label>
+                                  <?php endif; ?>
+                                </td>
                                  <td>
 
                                     <?php
@@ -129,9 +139,14 @@ $(function(){
 
                                     if($created_by == 'ADMIN'):
 
-                                      $recharged_by = $this->common_model->getDataByParticularField('uw_admin','admin_id',(int)$ALLDATAINFO['created_user_id']);
+                                      $adminId = !empty($ALLDATAINFO['created_user_id']) ? (int)$ALLDATAINFO['created_user_id'] : (int)$ALLDATAINFO['created_by'];
+                                      $recharged_by = $this->common_model->getDataByParticularField('uw_admin','admin_id',$adminId);
 
+                                      if(!empty($recharged_by)):
                                       echo "Email : ". $recharged_by['admin_email'].'</br>' . "Name : ". $recharged_by['admin_first_name'].' '.$recharged_by['admin_last_name'];
+                                      else:
+                                      echo 'Admin';
+                                      endif;
                                     else:
 
                                       $recharged_by = $this->common_model->getDataByParticularField('uw_users','users_id',(int)$ALLDATAINFO['created_by']);
@@ -166,13 +181,22 @@ $(function(){
                                     User Type : <?=stripslashes($users_type['users_type'])?>
                                   <?php endif; ?>
                                 </td>
-                                <td><?= @$ALLDATAINFO['remarks'];?></td>
-                                <td><?=date('d-F-Y h:i A',strtotime($ALLDATAINFO['created_at']))?></td>
+                                <td><?=isset($ALLDATAINFO['remarks']) ? $ALLDATAINFO['remarks'] : ''?></td>
+                                <td><?php
+                                  $createdAt = isset($ALLDATAINFO['created_at']) ? $ALLDATAINFO['created_at'] : '';
+                                  if ($createdAt !== '' && is_numeric($createdAt)) {
+                                    echo date('d-F-Y h:i A', (int) $createdAt);
+                                  } elseif ($createdAt !== '') {
+                                    echo date('d-F-Y h:i A', strtotime($createdAt));
+                                  }
+                                ?></td>
                                 <td>
-                                  <?php if($ALLDATAINFO['status'] == 'A'): ?>
+                                  <?php if(isset($ALLDATAINFO['status']) && $ALLDATAINFO['status'] == 'A'): ?>
                                     <label class="badge badge-light-success">Success</label>
-                                  <?php elseif($ALLDATAINFO['status'] == 'R'): ?>
+                                  <?php elseif(isset($ALLDATAINFO['status']) && $ALLDATAINFO['status'] == 'R'): ?>
                                     <label class="badge badge-light-danger">Reverse</label>
+                                  <?php else: ?>
+                                    <label class="badge badge-light-secondary">N/A</label>
                                   <?php endif; ?>
                                 </td>
                                 <td>
@@ -187,15 +211,15 @@ $(function(){
                                   <?php endif; ?>
                                     <!-- <li><a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['load_balance_id'])?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
                                    </ul> -->
-                                   <?php if($ALLDATAINFO['status'] == 'A'): ?>
-                                   <li><a href="<?php echo getCurrentControllerPath('reverse/'.$ALLDATAINFO['load_balance_id'])?>" onClick="return confirm('Do you want to reverse this recharge!');"><i class="fas fa-recycle"></i> Reverse</a></li>
+                                   <?php if(isset($ALLDATAINFO['status']) && $ALLDATAINFO['status'] == 'A'): ?>
+                                   <li><a href="<?php echo getCurrentControllerPath('reverse/'.$ALLDATAINFO['load_balance_id'].'/'.$rechargeType)?>" onClick="return confirm('Do you want to reverse this recharge!');"><i class="fas fa-recycle"></i> Reverse</a></li>
                                     <?php endif; ?>
                                 </div>
                                 </td>
                               </tr>
                               <?php $j++; endforeach; else: ?>
                               <tr>
-                                <td colspan="6" style="text-align:center;">No Data Available In Table</td>
+                                <td colspan="10" style="text-align:center;">No Data Available In Table</td>
                               </tr>
                               <?php endif; ?>
                             </tbody>

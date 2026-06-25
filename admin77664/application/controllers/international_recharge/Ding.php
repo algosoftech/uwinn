@@ -19,6 +19,59 @@ class Ding extends CI_Controller {
 		exit;
 	}
 
+	/**
+	 * Round Ding money to nearest 0.05 AED slab (e.g. 2.825 => 2.85).
+	 */
+	private function _ding_round_amount($amount)
+	{
+		return round((float) $amount * 20, 0, PHP_ROUND_HALF_UP) / 20;
+	}
+
+	private function _ding_format_display_amount($amount)
+	{
+		return number_format($this->_ding_round_amount($amount), 2, '.', '');
+	}
+
+	/**
+	 * Normalize Mongo / BSON money fields to float (never use markupcommission for display).
+	 */
+	private function _ding_money_value($value)
+	{
+		if ($value === null || $value === '') {
+			return 0.0;
+		}
+		if (is_object($value)) {
+			if ($value instanceof MongoDB\BSON\Decimal128) {
+				return (float) (string) $value;
+			}
+			if (method_exists($value, '__toString')) {
+				return (float) (string) $value;
+			}
+		}
+		if (is_array($value)) {
+			if (isset($value['$numberDecimal'])) {
+				return (float) $value['$numberDecimal'];
+			}
+			if (isset($value['$numberDouble'])) {
+				return (float) $value['$numberDouble'];
+			}
+		}
+		return (float) $value;
+	}
+
+	private function _ding_apply_display_amounts(&$row)
+	{
+		if (!is_array($row)) {
+			return;
+		}
+		if (isset($row['amount']) && $row['amount'] !== '') {
+			$row['display_amount'] = $this->_ding_format_display_amount($this->_ding_money_value($row['amount']));
+		}
+		$agentCommission = isset($row['commission_amount']) ? $this->_ding_money_value($row['commission_amount']) : 0.0;
+		$row['commission_amount'] = $agentCommission;
+		$row['display_commission_amount'] = number_format($agentCommission, 3, '.', '');
+	}
+
 	private function dingExtractApiErrorMessage($response)
 	{
 		if(!is_array($response)):
@@ -93,6 +146,17 @@ class Ding extends CI_Controller {
 		redirect(correctLink('DINGRECHARGEDATA', getCurrentControllerPath('settings')));
 	}
 
+	private function dingUpdateAllProviderMarkupCommission($markupCommissionPercentage)
+	{
+		$providerParam = array(
+			'markup_commission' => (float) $markupCommissionPercentage,
+			'update_ip'         => currentIp(),
+			'update_date'       => (int) $this->timezone->utc_time(),
+			'updated_by'        => (int) $this->session->userdata('ADMIN_ID'),
+		);
+		$this->common_model->editMultipleDataByMultipleCondition('ding_provider_list', $providerParam, array());
+	}
+
 	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 + + Function name 	: index
@@ -111,22 +175,11 @@ class Ding extends CI_Controller {
 		if($this->input->get('searchField') && $this->input->get('searchValue')):
 			$sField							= trim((string) $this->input->get('searchField'));
 			$sValue							= trim((string) $this->input->get('searchValue'));
-			// transaction_id may be string (Ding ref) or numeric; use partial match unless pure digits
-			if ($sField === 'transaction_id' && $sValue !== '') {
-				if (ctype_digit($sValue)) {
-					$whereCon['where'] = array('transaction_id' => (int) $sValue);
-				} else {
-					$whereCon['like'] = array('0' => 'transaction_id', '1' => $sValue);
-				}
-			} elseif (is_numeric($sValue)) {
-				$whereCon['where'] = array($sField => (int) $sValue);
-			} else {
-				$whereCon['like'] = array('0' => $sField, '1' => $sValue);
-			}
+			$whereCon                       = $this->_ding_build_list_where_con($sField, $sValue);
 			$data['searchField'] 			= $sField;
 			$data['searchValue'] 			= $sValue;
 		else:
-			$whereCon['like']		 		= "";
+			$whereCon                       = array('like' => '');
 			$data['searchField'] 			= "";
 			$data['searchValue'] 			= "";
 		endif;
@@ -190,12 +243,7 @@ class Ding extends CI_Controller {
 				if (!is_array($r)) {
 					continue;
 				}
-				if (isset($r['amount']) && is_numeric($r['amount'])) {
-					$r['amount'] = number_format((float) $r['amount'], 2, '.', '');
-				}
-				if (isset($r['commission_amount']) && is_numeric($r['commission_amount'])) {
-					$r['commission_amount'] = number_format((float) $r['commission_amount'], 2, '.', '');
-				}
+				$this->_ding_apply_display_amounts($r);
 				$data['ALLDATA'][$k] = $r;
 			}
 		}
@@ -206,10 +254,73 @@ class Ding extends CI_Controller {
     // END OF FUNCTION
 
 	/**
-	 * Parse from/to UI datetimes and return display strings + Unix bounds for Mongo (created_at is int).
-	 *
-	 * @return array{0:string,1:string,2:int,3:int} startStr, endStr, startTs, endTsInclusive
+	 * Build list/export filters for ding_recharge_history.
+	 * Seller fields are resolved via uw_users because they are joined after fetch.
 	 */
+	private function _ding_build_list_where_con($sField, $sValue)
+	{
+		$whereCon = array('like' => '');
+		$sField = trim((string) $sField);
+		$sValue = trim((string) $sValue);
+		if ($sField === '' || $sValue === '') {
+			return $whereCon;
+		}
+
+		$sellerFieldMap = array(
+			'seller_users_mobile'     => 'users_mobile',
+			'seller_users_type'       => 'users_type',
+			'seller_users_pos_number' => 'pos_number',
+		);
+		if (isset($sellerFieldMap[$sField])) {
+			$userField = $sellerFieldMap[$sField];
+			$userWhere = array();
+			if ($userField === 'users_mobile' || $userField === 'pos_number') {
+				if (!ctype_digit($sValue)) {
+					$whereCon['where'] = array('users_id' => -1);
+					return $whereCon;
+				}
+				$userWhere['where'] = array($userField => (int) $sValue);
+			} else {
+				$userWhere['like'] = array('0' => $userField, '1' => $sValue);
+			}
+			$users = $this->common_model->getData('multiple', 'uw_users', $userWhere, array('_id' => -1));
+			$userIds = array();
+			if (!empty($users) && is_array($users)) {
+				foreach ($users as $u) {
+					$u = is_object($u) ? json_decode(json_encode($u), true) : $u;
+					if (!empty($u['users_id'])) {
+						$userIds[] = (int) $u['users_id'];
+					}
+				}
+			}
+			$userIds = array_values(array_unique($userIds));
+			if (empty($userIds)) {
+				$whereCon['where'] = array('users_id' => -1);
+			} elseif (count($userIds) === 1) {
+				$whereCon['where'] = array('users_id' => $userIds[0]);
+			} else {
+				$whereCon['where_in'] = array('users_id', $userIds);
+			}
+			return $whereCon;
+		}
+
+		if ($sField === 'transaction_id') {
+			if (ctype_digit($sValue)) {
+				$whereCon['where'] = array('transaction_id' => (int) $sValue);
+			} else {
+				$whereCon['like'] = array('0' => 'transaction_id', '1' => $sValue);
+			}
+		} elseif ($sField === 'account_number') {
+			$whereCon['like'] = array('0' => 'account_number', '1' => $sValue);
+		} elseif (is_numeric($sValue)) {
+			$whereCon['where'] = array($sField => (int) $sValue);
+		} else {
+			$whereCon['like'] = array('0' => $sField, '1' => $sValue);
+		}
+
+		return $whereCon;
+	}
+
 	private function _ding_created_at_bounds($fromRaw, $toRaw)
 	{
 		$fromRaw = trim((string) $fromRaw);
@@ -251,17 +362,7 @@ class Ding extends CI_Controller {
 		$sField = trim((string) $searchField);
 		$sValue = trim((string) $searchValue);
 		if ($sField !== '' && $sValue !== '') {
-			if ($sField === 'transaction_id') {
-				if (ctype_digit($sValue)) {
-					$whereCon['where'] = array('transaction_id' => (int) $sValue);
-				} else {
-					$whereCon['like'] = array('0' => 'transaction_id', '1' => $sValue);
-				}
-			} elseif (is_numeric($sValue)) {
-				$whereCon['where'] = array($sField => (int) $sValue);
-			} else {
-				$whereCon['like'] = array('0' => $sField, '1' => $sValue);
-			}
+			$whereCon = $this->_ding_build_list_where_con($sField, $sValue);
 		} else {
 			$whereCon['like'] = '';
 		}
@@ -387,7 +488,7 @@ class Ding extends CI_Controller {
 			),
 			'where_in' => array('request_oid', array_values($oidMap)),
 		);
-		$lbRows = $this->common_model->getData('multiple', 'loadBalance', $whereLb);
+		$lbRows = $this->common_model->getData('multiple', 'uw_loadBalance', $whereLb);
 		$commissionMap = array();
 		if (!empty($lbRows) && is_array($lbRows)) {
 			foreach ($lbRows as $lb) {
@@ -405,7 +506,9 @@ class Ding extends CI_Controller {
 				if ($ridStr === '') {
 					continue;
 				}
-				$commissionMap[$ridStr] = (float) ($commissionMap[$ridStr] ?? 0) + (float) ($x['upoints'] ?? 0);
+				if (!isset($commissionMap[$ridStr])) {
+					$commissionMap[$ridStr] = $this->_ding_money_value($x['upoints'] ?? 0);
+				}
 			}
 		}
 
@@ -422,7 +525,14 @@ class Ding extends CI_Controller {
 			} elseif (is_array($idNorm) && isset($idNorm['$oid'])) {
 				$oidStr = (string) $idNorm['$oid'];
 			}
-			$r['commission_amount'] = isset($commissionMap[$oidStr]) ? (float) $commissionMap[$oidStr] : 0.0;
+			$storedCommission = isset($r['commission_amount']) ? $this->_ding_money_value($r['commission_amount']) : 0.0;
+			if ($storedCommission > 0) {
+				$r['commission_amount'] = $storedCommission;
+			} elseif ($oidStr !== '' && isset($commissionMap[$oidStr])) {
+				$r['commission_amount'] = $this->_ding_money_value($commissionMap[$oidStr]);
+			} else {
+				$r['commission_amount'] = 0.0;
+			}
 			$out[] = $r;
 		}
 		return $out;
@@ -435,6 +545,17 @@ class Ding extends CI_Controller {
 	public function cancel($historyId = '')
 	{
 		$this->admin_model->authCheck('edit_data');
+		if (strtoupper((string) $this->input->server('REQUEST_METHOD')) !== 'POST') {
+			$this->session->set_flashdata('alert_error', 'Invalid cancel request.');
+			redirect(correctLink('DINGRECHARGEDATA', getCurrentControllerPath('international_recharge/ding/index')));
+			return;
+		}
+		$cancelNarration = trim((string) $this->input->post('cancel_narration'));
+		if ($cancelNarration === '') {
+			$this->session->set_flashdata('alert_error', 'Cancel narration is required.');
+			redirect(correctLink('DINGRECHARGEDATA', getCurrentControllerPath('international_recharge/ding/index')));
+			return;
+		}
 		$historyId = trim((string) $historyId);
 		if ($historyId === '') {
 			$this->session->set_flashdata('alert_error', 'Invalid recharge record.');
@@ -486,7 +607,7 @@ class Ding extends CI_Controller {
 				'status'      => 'A',
 			),
 		);
-		if ((int) $this->common_model->getData('count', 'loadBalance', $whereDup) > 0) {
+		if ((int) $this->common_model->getData('count', 'uw_loadBalance', $whereDup) > 0) {
 			$this->session->set_flashdata('alert_error', 'Cancellation was already applied for this recharge.');
 			redirect(correctLink('MASTERDATARECHARGETYPE', getCurrentControllerPath('international_recharge/ding/index')));
 			return;
@@ -498,7 +619,7 @@ class Ding extends CI_Controller {
 				'status'      => 'A',
 			),
 		);
-		$lbRows = $this->common_model->getData('multiple', 'loadBalance', $whereLb, array('_id' => 1));
+		$lbRows = $this->common_model->getData('multiple', 'uw_loadBalance', $whereLb, array('_id' => 1));
 		$mainUpoints = 0.0;
 		$commissionUpoints = 0.0;
 		if (!empty($lbRows)) {
@@ -518,12 +639,15 @@ class Ding extends CI_Controller {
 						$mainUpoints = $u;
 					}
 				} elseif ($n === 'Ding Recharge Commission') {
-					$commissionUpoints = (float) ($lb['upoints'] ?? 0);
+					$commissionUpoints = $this->_ding_money_value($lb['upoints'] ?? 0);
 				}
 			}
 		}
 		if ($mainUpoints <= 0 && isset($history['amount'])) {
-			$mainUpoints = (float) $history['amount'];
+			$mainUpoints = $this->_ding_money_value($history['amount']);
+		}
+		if ($commissionUpoints <= 0 && isset($history['commission_amount'])) {
+			$commissionUpoints = $this->_ding_money_value($history['commission_amount']);
 		}
 		// Keep reversal aligned with recharge amount slabs (e.g. 2.825 => 2.85).
 		$mainUpoints = round($mainUpoints * 20, 0, PHP_ROUND_HALF_UP) / 20;
@@ -566,9 +690,13 @@ class Ding extends CI_Controller {
 		if (isset($history['account_number'])) {
 			$destNumber = trim((string) $history['account_number']);
 		}
+		$sendCurrencyIso = !empty($history['send_currency_iso']) ? trim((string) $history['send_currency_iso']) : 'AED';
+		$toNumber = ($destNumber !== '') ? ' to '.$destNumber : '';
+		$mainDisplay = $this->_ding_format_display_amount($mainUpoints);
+		$commissionDisplay = number_format($commissionUpoints, 3, '.', '');
 
 		// 1) Refund main Ding debit (matches API Ding + getRechargeSummary "Ding Recharge Cancelled")
-		$lb1['load_balance_id'] = (int) $this->common_model->getNextSequence('loadBalance');
+		$lb1['load_balance_id'] = (int) $this->common_model->getNextSequence('uw_loadBalance');
 		$lb1['users_oid'] = $userOid;
 		$lb1['request_oid'] = $oid;
 		$lb1['user_id_deb'] = 0;
@@ -579,7 +707,7 @@ class Ding extends CI_Controller {
 		$lb1['end_balance_recharge'] = $afterMain;
 		$lb1['record_type'] = 'Credit';
 		$lb1['narration'] = 'Ding Recharge Cancelled';
-		$lb1['remarks'] = 'Admin cancel: refund Ding recharge amount';
+		$lb1['remarks'] = 'Cancelled Recharge Amount: '.$mainDisplay.' '.$sendCurrencyIso.$toNumber.'. Narration: '.$cancelNarration;
 		if ($destNumber !== '') {
 			$lb1['destination_number'] = $destNumber;
 		}
@@ -588,11 +716,11 @@ class Ding extends CI_Controller {
 		$lb1['created_at'] = $ts;
 		$lb1['created_by'] = $adminName;
 		$lb1['status'] = 'A';
-		$this->common_model->addData('loadBalance', $lb1);
+		$this->common_model->addData('uw_loadBalance', $lb1);
 
 		// 2) Reverse commission credited on the original transaction
 		if ($commissionUpoints > 0) {
-			$lb2['load_balance_id'] = (int) $this->common_model->getNextSequence('loadBalance');
+			$lb2['load_balance_id'] = (int) $this->common_model->getNextSequence('uw_loadBalance');
 			$lb2['users_oid'] = $userOid;
 			$lb2['request_oid'] = $oid;
 			$lb2['user_id_deb'] = $usersId;
@@ -603,7 +731,7 @@ class Ding extends CI_Controller {
 			$lb2['end_balance_recharge'] = $afterCommission;
 			$lb2['record_type'] = 'Debit';
 			$lb2['narration'] = 'Ding Recharge Commission Cancelled';
-			$lb2['remarks'] = 'Admin cancel: reverse Ding commission';
+			$lb2['remarks'] = 'Cancelled Commission Amount: '.$commissionDisplay.' '.$sendCurrencyIso.$toNumber.'. Narration: '.$cancelNarration;
 			if ($destNumber !== '') {
 				$lb2['destination_number'] = $destNumber;
 			}
@@ -612,7 +740,7 @@ class Ding extends CI_Controller {
 			$lb2['created_at'] = $ts;
 			$lb2['created_by'] = $adminName;
 			$lb2['status'] = 'A';
-			$this->common_model->addData('loadBalance', $lb2);
+			$this->common_model->addData('uw_loadBalance', $lb2);
 		}
 
 		$userParam['availableReachargePoints'] = $afterCommission;
@@ -623,6 +751,7 @@ class Ding extends CI_Controller {
 		$histUp['recharge_state'] = 'Cancelled';
 		$histUp['cancelled_at'] = $ts;
 		$histUp['cancelled_by'] = $adminName;
+		$histUp['cancel_narration'] = $cancelNarration;
 		$this->common_model->editData('ding_recharge_history', $histUp, '_id', $oid);
 
 		$this->session->set_flashdata('alert_success', 'Recharge cancelled; balance and commission have been reversed.');
@@ -870,14 +999,16 @@ class Ding extends CI_Controller {
 			'Sl.No' => (int) $slNo,
 			'Transaction ID' => (string) ($r['transaction_id'] ?? ''),
 			'Provider' => (string) ($r['provider_name'] ?? ''),
-			'Account Number' => (string) ($r['account_number'] ?? ''),
-			'Amount' => (string) ($r['amount'] ?? ''),
+			'Recharge Number' => (string) ($r['account_number'] ?? ''),
+			'Amount' => isset($r['amount']) ? $this->_ding_format_display_amount($r['amount']) : '',
+			'Commission' => (string) ($r['display_commission_amount'] ?? '0.00'),
 			'Currency' => (string) ($r['send_currency_iso'] ?? ''),
 			'Seller POS' => (string) ($r['seller_users_pos_number'] ?? ''),
 			'Seller Type' => (string) ($r['seller_users_type'] ?? ''),
 			'Seller Mobile' => (string) ($r['seller_users_mobile'] ?? ''),
 			'Created At' => $created,
-			'Recharge State' => $rechargeState,
+			'Recharge State' => $displayStatus,
+			'Cancel Narration' => (string) ($r['cancel_narration'] ?? ''),
 		);
 	}
 
@@ -938,6 +1069,15 @@ class Ding extends CI_Controller {
 		}
 		if (!empty($rows)) {
 			$rows = $this->_ding_attach_seller_details($rows);
+			$rows = $this->_ding_attach_commission_amount($rows);
+			foreach ($rows as $k => $row) {
+				$r = is_object($row) ? json_decode(json_encode($row), true) : $row;
+				if (!is_array($r)) {
+					continue;
+				}
+				$this->_ding_apply_display_amounts($r);
+				$rows[$k] = $r;
+			}
 		}
 
 		$CSVData = array();
@@ -1010,6 +1150,7 @@ class Ding extends CI_Controller {
 					$param['update_date'] = (int)$this->timezone->utc_time();//currentDateTime();
 					$param['updated_by']  = (int)$this->session->userdata('ADMIN_ID');
 					$this->common_model->editData($tblName, $param, '_id', new MongoDB\BSON\ObjectID($ListId));
+					$this->dingUpdateAllProviderMarkupCommission($markupCommissionPercentage);
 					$this->session->set_flashdata('alert_success',lang('updatesuccess'));
 				else:
 					$param['status']		 = 'A';
@@ -1017,6 +1158,7 @@ class Ding extends CI_Controller {
 					$param['creation_date']	 = (int)$this->timezone->utc_time();//currentDateTime();
 					$param['created_by']	 = (int)$this->session->userdata('ADMIN_ID');
 					$alastInsertId			 =	$this->common_model->addData($tblName,$param);
+					$this->dingUpdateAllProviderMarkupCommission($markupCommissionPercentage);
 					$this->session->set_flashdata('alert_success',lang('addsuccess'));
 				endif;
 				redirect(correctLink('DINGRECHARGEDATA',getCurrentControllerPath('settings')));

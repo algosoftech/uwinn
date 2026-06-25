@@ -25,7 +25,7 @@ class Wallet_statements extends CI_Controller {
 	public function  __construct() 
 	{ 
 		parent:: __construct();
-		error_reporting(E_ALL ^ E_NOTICE);  
+		error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);  
 		$this->load->model(array('admin_model','emailtemplate_model','sms_model','notification_model','order_model'));
 		$this->lang->load('statictext', 'admin');
 		$this->load->helper('common');
@@ -45,6 +45,13 @@ class Wallet_statements extends CI_Controller {
 		$data['error'] 			= '';
 		$data['activeMenu'] 	= 'wallet';
 		$data['activeSubMenu'] 	= 'wallet_statements';
+		$data['fromDate']       = '';
+		$data['toDate']         = '';
+		$walletwhereCon         = array();
+		$walletstatements       = array();
+		$userdetails            = false;
+		$start_date             = '';
+		$end_date               = '';
 
 		$searchField = $this->input->get('searchField');
 		$searchValue = $this->input->get('searchValue');
@@ -87,14 +94,19 @@ class Wallet_statements extends CI_Controller {
 			$tblName 	  = 'uw_users';
 			$userdetails  = $this->common_model->getData('single',$tblName, $whereCon, $shortField);
 			// echo "<pre>"; print_r($userdetails); die();
+			if(!empty($userdetails)):
 			$user_OId     = $userdetails['_id']->{'$id'};
 			$walletwhereCon['where']  = array('user_oid' => new MongoDB\BSON\ObjectId($user_OId));
+			$dingWalletWhereCon['where'] = array('users_oid' => new MongoDB\BSON\ObjectId($user_OId));
 			// Statements query start...
 			if($start_date):
 				$walletwhereCon['where_gte'] = 	array(array('0' => 'created_at', '1' => trim($start_date)));
+				$dingWalletWhereCon['where']['created_at']['$gte'] = strtotime(trim($start_date));
 			endif;
 			if($end_date):
 				$walletwhereCon['where_lte'] = 	array(array('0' => 'created_at', '1' => trim($end_date)));
+				$dingWalletWhereCon['where']['created_at']['$lte'] = strtotime(trim($end_date));
+			endif;
 			endif;
 		endif;
 
@@ -106,7 +118,9 @@ class Wallet_statements extends CI_Controller {
 		$tblName 	  	   			  = 'uw_loadBalance';
 		$shortField        			  = array('_id'=> -1 );
 		if(!empty($walletwhereCon)):
-			$totalRows = $this->common_model->getData('count',$tblName, $walletwhereCon, $shortField);
+			$uwCount   = (int)$this->common_model->getData('count',$tblName, $walletwhereCon, $shortField);
+			$dingCount = !empty($dingWalletWhereCon) ? (int)$this->common_model->getData('count',$tblName, $dingWalletWhereCon, $shortField) : 0;
+			$totalRows = $uwCount + $dingCount;
 		else:
 			$totalRows = 0;
 		endif;
@@ -153,10 +167,14 @@ class Wallet_statements extends CI_Controller {
 		$shortField  = array('_id' =>  -1);
 		/* pagination end */ 
 		if(!empty($walletwhereCon)):
-			$walletstatements	= $this->common_model->getData('multiple',$tblName,$walletwhereCon,$shortField,$perPage,$page);
+			$fetchLimit = max((int)$totalRows, 1);
+			$walletList = $this->common_model->getData('multiple',$tblName,$walletwhereCon,$shortField,$fetchLimit,0);
+			$dingList   = !empty($dingWalletWhereCon) ? $this->common_model->getData('multiple',$tblName,$dingWalletWhereCon,$shortField,$fetchLimit,0) : array();
+			$walletstatements = $this->_mergeWalletStatementLists($walletList, $dingList);
+			$walletstatements = array_slice($walletstatements, (int)$page, (int)$perPage);
 		endif;
-		$data['ALLDATA']      = $walletstatements;
-		$data['users_type']   = $userdetails['users_type'];
+		$data['ALLDATA']      = is_array($walletstatements) ? $walletstatements : array();
+		$data['userData']     = !empty($userdetails) ? $userdetails : false;
 		// echo "<pre>";print_r($data);die();
 		
 		$this->layouts->set_title('Wallet Statements | UWINN');
@@ -203,6 +221,7 @@ class Wallet_statements extends CI_Controller {
 			
 			$user_OId     = $userdetails['_id']->{'$id'};
 			$whereCondition['where']['user_oid'] =  new MongoDB\BSON\ObjectId($user_OId);
+			$dingWhereCondition['where']['users_oid'] =  new MongoDB\BSON\ObjectId($user_OId);
 			// echo "<pre>";print_r($whereCondition);die();
 		endif;
 
@@ -210,7 +229,9 @@ class Wallet_statements extends CI_Controller {
 		$resultType   = "count";
 		$shortField   = array('_id' => -1);
 		if(!empty($whereCondition)):
-			$totalRows = $this->common_model->getData('count','uw_loadBalance',$whereCondition,$shortField);
+			$uwCount   = (int)$this->common_model->getData('count','uw_loadBalance',$whereCondition,$shortField);
+			$dingCount = !empty($dingWhereCondition) ? (int)$this->common_model->getData('count','uw_loadBalance',$dingWhereCondition,$shortField) : 0;
+			$totalRows = $uwCount + $dingCount;
 		else:
 			$totalRows = 0;
 		endif;
@@ -292,6 +313,7 @@ class Wallet_statements extends CI_Controller {
 			$userdetails  = $this->common_model->getData('single',$tblName, $whereCon, $shortField);
 			$user_OId     = $userdetails['_id']->{'$id'};
 			$whereCondition['where']['user_oid'] =  new MongoDB\BSON\ObjectId($user_OId);
+			$dingWhereCondition['where']['users_oid'] =  new MongoDB\BSON\ObjectId($user_OId);
 			// echo "<pre>";print_r($whereCondition);die();
 			
 			// $page = $this->input->post('pageno');
@@ -300,7 +322,10 @@ class Wallet_statements extends CI_Controller {
 	 		$itemsPerPage = 5000;
 	 		$startIndex   = ($page - 1)*$itemsPerPage;
 	 		$shortField   = array('_id' => -1);
-			$WalletData   = $this->common_model->getData('multiple','uw_loadBalance',$whereCondition,$shortField,$itemsPerPage,$startIndex);
+	 		$walletList   = $this->common_model->getData('multiple','uw_loadBalance',$whereCondition,$shortField,5000,0);
+	 		$dingList     = !empty($dingWhereCondition) ? $this->common_model->getData('multiple','uw_loadBalance',$dingWhereCondition,$shortField,5000,0) : array();
+	 		$mergedWallet = $this->_mergeWalletStatementLists($walletList, $dingList);
+	 		$WalletData   = array_slice($mergedWallet, $startIndex, $itemsPerPage);
 		endif; 
  		// echo "<pre>";print_r($WalletData);die();
 
@@ -329,17 +354,49 @@ class Wallet_statements extends CI_Controller {
 			 	$CSVData1['RECORD TYPE']     = !empty($itemsArray['narration']) ? $itemsArray['narration'] : 'N/A';
 				$CSVData1['NARRATION']       = !empty($remarks) ? $remarks : 'N/A';
 				$CSVData1['STATUS']      	= !empty($itemsArray['record_type']) ? $itemsArray['record_type'] : 'N/A';
-				$CSVData1['CREATED']         = !empty($itemsArray['created_at']) ? date('d M Y h:i:s A', strtotime($itemsArray['created_at'])) : 'N/A';
-				$CSVData1['OPENING BALANCE'] = !empty($itemsArray['availableArabianPoints']) ? $itemsArray['availableArabianPoints'] : 'N/A';
+				$CSVData1['CREATED']         = !empty($itemsArray['created_at']) ? (is_numeric($itemsArray['created_at']) ? date('d M Y h:i:s A', (int)$itemsArray['created_at']) : date('d M Y h:i:s A', strtotime($itemsArray['created_at']))) : 'N/A';
+				$CSVData1['OPENING BALANCE'] = isset($itemsArray['wallet_type']) && $itemsArray['wallet_type'] == 'ding' ? (!empty($itemsArray['availableReachargePoints']) ? $itemsArray['availableReachargePoints'] : '0') : (!empty($itemsArray['availableArabianPoints']) ? $itemsArray['availableArabianPoints'] : 'N/A');
 				$CSVData1['CREDIT']          = !empty($CREDIT) ? $CREDIT : 'N/A';
 				$CSVData1['DEBIT']           = !empty($DEBIT) ? $DEBIT : 'N/A';
-				$CSVData1['CLOSING BALANCE'] = !empty($itemsArray['end_balance']) ? $itemsArray['end_balance'] : '0';
+				$CSVData1['CLOSING BALANCE'] = isset($itemsArray['wallet_type']) && $itemsArray['wallet_type'] == 'ding' ? (isset($itemsArray['end_balance_recharge']) ? $itemsArray['end_balance_recharge'] : '0') : (!empty($itemsArray['end_balance']) ? $itemsArray['end_balance'] : '0');
 				array_push($CSVData, $CSVData1);
 			endforeach;
 		endif;
 
 		echo json_encode($CSVData);
 		die();
+	}
+
+	private function _getWalletStatementSortTime($row)
+	{
+		$createdAt = isset($row['created_at']) ? $row['created_at'] : 0;
+		if (is_numeric($createdAt)) {
+			return (int)$createdAt;
+		}
+		return (int)strtotime((string)$createdAt);
+	}
+
+	private function _mergeWalletStatementLists($walletList, $dingList)
+	{
+		$walletList = is_array($walletList) ? $walletList : array();
+		$dingList   = is_array($dingList) ? $dingList : array();
+
+		foreach ($walletList as &$row) {
+			$row['wallet_type'] = 'upoint';
+		}
+		unset($row);
+
+		foreach ($dingList as &$row) {
+			$row['wallet_type'] = 'ding';
+		}
+		unset($row);
+
+		$merged = array_merge($walletList, $dingList);
+		usort($merged, function($a, $b) {
+			return $this->_getWalletStatementSortTime($b) - $this->_getWalletStatementSortTime($a);
+		});
+
+		return $merged;
 	}
 
 

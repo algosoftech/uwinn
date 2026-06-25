@@ -25,11 +25,74 @@ class Allusers extends CI_Controller {
 	public function  __construct() 
 	{ 
 		parent:: __construct();
-		error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+		error_reporting(E_ALL ^ E_NOTICE);  
 		$this->load->model(array('admin_model','emailtemplate_model','emailsendgrid_model','sms_model','notification_model'));
 		$this->lang->load('statictext', 'admin');
 		$this->load->helper('common');
-	} 
+	}
+
+	private function _user_money_value($value)
+	{
+		if ($value === null || $value === '') {
+			return 0.0;
+		}
+		if (is_object($value)) {
+			if ($value instanceof MongoDB\BSON\Decimal128) {
+				return (float) (string) $value;
+			}
+			if (method_exists($value, '__toString')) {
+				return (float) (string) $value;
+			}
+		}
+		if (is_array($value)) {
+			if (isset($value['$numberDecimal'])) {
+				return (float) $value['$numberDecimal'];
+			}
+			if (isset($value['$numberDouble'])) {
+				return (float) $value['$numberDouble'];
+			}
+			if (isset($value['$numberLong'])) {
+				return (float) $value['$numberLong'];
+			}
+		}
+		return (float) $value;
+	}
+
+	private function _user_scalar_value($value)
+	{
+		if (is_array($value)) {
+			if (isset($value['$numberLong'])) {
+				return (string) $value['$numberLong'];
+			}
+			if (isset($value['$numberDecimal'])) {
+				return (string) $value['$numberDecimal'];
+			}
+			if (isset($value['$oid'])) {
+				return (string) $value['$oid'];
+			}
+			if (isset($value['$id'])) {
+				return (string) $value['$id'];
+			}
+		}
+		if (is_object($value) && $value instanceof MongoDB\BSON\ObjectId) {
+			return (string) $value;
+		}
+		return $value;
+	}
+
+	private function _user_attach_internal_balance(&$data)
+	{
+		if (empty($data['IS_EDIT']) || empty($data['EDITDATA']) || !is_array($data['EDITDATA'])) {
+			return;
+		}
+		$edit = &$data['EDITDATA'];
+		if (isset($edit['users_id'])) {
+			$edit['users_id'] = $this->_user_scalar_value($edit['users_id']);
+		}
+		$edit['availableReachargePoints'] = $this->_user_money_value(
+			$edit['availableReachargePoints'] ?? $edit['availableRechargePoints'] ?? $edit['availablerechargeArabianPoints'] ?? 0
+		);
+	}
 
 	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -45,11 +108,6 @@ class Allusers extends CI_Controller {
 		$data['error'] 						= 	'';
 		$data['activeMenu'] 				= 	'users';
 		$data['activeSubMenu'] 				= 	'allusers';
-		$data['searchField']				=	'';
-		$data['searchValue']				=	'';
-		$data['fromDate']					=	'';
-		$data['toDate']						=	'';
-		$whereCon							=	array();
 		
 		if($this->input->get('searchField') && $this->input->get('searchValue')):
 			
@@ -71,6 +129,7 @@ class Allusers extends CI_Controller {
 			endif;
 
 		else:
+			$whereCon['like']		 		= 	"";
 			$data['searchField'] 			= 	'';
 			$data['searchValue'] 			= 	'';	
 		endif;
@@ -80,13 +139,13 @@ class Allusers extends CI_Controller {
 		$baseUrl 							= 	getCurrentControllerPath('index');
 		$this->session->set_userdata('ALLUSERSDATA',currentFullUrl());
 		$qStringdata						=	explode('?',currentFullUrl());
-		$suffix								= 	(!empty($qStringdata[1])) ? '?'.$qStringdata[1] : '';
+		$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
 		$tblName 							= 	'uw_users';
 		$con 								= 	'';
 		$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCon,$shortField,'0','0');
 		
 		if($this->input->get('showLength') == 'All'):
-			$perPage	 					= 	$totalRows > 0 ? $totalRows : SHOW_NO_OF_DATA;
+			$perPage	 					= 	$totalRows;
 			$data['perpage'] 				= 	$this->input->get('showLength');  
 		elseif($this->input->get('showLength')):
 			$perPage	 					= 	$this->input->get('showLength'); 
@@ -123,8 +182,7 @@ class Allusers extends CI_Controller {
 			$data['noOfContent']			=	'';
 		endif;
 		
-		$allData 							= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
-		$data['ALLDATA'] 					= 	is_array($allData) ? $allData : array();
+		$data['ALLDATA'] 					= 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$perPage,$page);
 		// echo '<pre>';print_r($data['ALLDATA']);die();
 		$this->layouts->set_title('All Users | Users | UWINN');
 		$this->layouts->admin_view('users/allusers/index',array(),$data);
@@ -146,14 +204,28 @@ class Allusers extends CI_Controller {
 		$data['error'] 						= 	'';
 		$data['activeMenu'] 				= 	'users';
 		$data['activeSubMenu'] 				= 	'allusers';
+		$data['EDITDATA']                   =   array();
 		
 		if(!empty($editId)):
 			$this->admin_model->authCheck('edit_data');
-			$data['EDITDATA'] =	$this->common_model->getDataByParticularField('uw_users','users_id',(int)$editId);
-			// echo '<pre>';print_r($data['EDITDATA']);die;
+			$userData = false;
+			if (preg_match('/^[a-f0-9]{24}$/i', (string)$editId)):
+				$userData = $this->common_model->getDataByParticularField('uw_users', '_id', new MongoDB\BSON\ObjectId($editId));
+			elseif (ctype_digit((string)$editId)):
+				$userData = $this->common_model->getDataByParticularField('uw_users', 'users_id', (int)$editId);
+			endif;
+			if (!empty($userData)):
+				$data['EDITDATA'] = json_decode(json_encode($userData), true);
+			else:
+				$this->session->set_flashdata('alert_error', 'User not found.');
+				redirect(getCurrentControllerPath('index'));
+			endif;
 		else:
 			$this->admin_model->authCheck('add_data');
 		endif;
+
+		$data['IS_EDIT'] = !empty($editId);
+		$this->_user_attach_internal_balance($data);
 		
 		if($this->input->post('SaveChanges')):
 			$error =	'NO';
@@ -162,7 +234,7 @@ class Allusers extends CI_Controller {
 			$this->form_validation->set_rules('users_name', 'First Name', 'trim|required');
 			$this->form_validation->set_rules('last_name', 'Last Name', 'trim|required');
 			$this->form_validation->set_rules('country_code', 'Country Code', 'trim|required');
-			$this->form_validation->set_rules('users_mobile', 'Mobile', 'trim|required|is_unique[uw_users.users_mobile]');
+			$this->form_validation->set_rules('users_mobile', 'Mobile', 'trim|required|callback__validate_users_mobile_unique');
 			//$this->form_validation->set_rules('email', 'Email', 'trim|is_unique[uw_users.users_email]');
 			$this->form_validation->set_rules('totalArabianPoints', 'Arabian Points', 'trim');
 			$this->form_validation->set_rules('availableArabianPoints', 'Arabian Points', 'trim');
@@ -194,6 +266,7 @@ class Allusers extends CI_Controller {
 					$this->form_validation->set_rules('recharge_commission_percentage', 'Recharge Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('redeeming_commission_percentage', 'Redeeming Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('hourly_games_commission_percentage', 'Hourly Games Commission Percentage', 'trim|required' );
+					$this->form_validation->set_rules('ding_commission_percentage', 'International (Ding) Commission Percentage', 'trim|required' );
 
 				endif;
 
@@ -203,7 +276,7 @@ class Allusers extends CI_Controller {
 				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
 			}
 
-			$this->form_validation->set_rules('sim_no', 'Sim No', 'required|min_length[19]|max_length[19]');
+			$this->form_validation->set_rules('sim_no', 'Sim No', 'trim');
 			$this->form_validation->set_rules('pickup_point_holder', 'Pickup Point Holder', 'trim|required');
 			$this->form_validation->set_rules('show_lotto_campaign', 'Show Lotto Campaign', 'trim|required');
 			$this->form_validation->set_rules('show_raffle_campaign', 'Show Raffle Campaign', 'trim|required');
@@ -211,6 +284,7 @@ class Allusers extends CI_Controller {
 			$this->form_validation->set_rules('enable_summary_otp', 'Enable Summary OTP', 'trim|required');
 			$this->form_validation->set_rules('enable_tambola_games', 'Enable Tambola Games', 'trim|required');
 			$this->form_validation->set_rules('enable_hourly_games', 'Enable Hourly Games', 'trim|required');
+			$this->form_validation->set_rules('enable_ding', 'Enable International (Ding)', 'trim|required');
 
 			if($this->form_validation->run() && $error == 'NO'): 
 
@@ -230,7 +304,8 @@ class Allusers extends CI_Controller {
 				$param['enable_tambola_games']	 = $this->input->post('enable_tambola_games');
 				$param['sim_no']	             = substr(preg_replace('/\D/', '', (string)$this->input->post('sim_no')), 0, 19);
 				$param['enable_hourly_games']	 = $this->input->post('enable_hourly_games');
-
+				$enableDing = $this->input->post('enable_ding');
+				$param['enable_ding'] = $enableDing;
 				$bind_with_person_name = $this->input->post('bind_with_person_name');
 				if(!empty($bind_with_person_name)):
 				   $sales_person  = explode('|',$bind_with_person_name);
@@ -238,9 +313,10 @@ class Allusers extends CI_Controller {
 				//Adding bindwith as per user type.
 				if( $this->input->post('user_type') != 'Users'):
 					$param['commission_percentage']	 		  = $this->input->post('commission_percentage');
-					$param['recharge_commission_percentage']  = $this->input->post('recharge_commission_percentage');
+		 			$param['recharge_commission_percentage']  = $this->input->post('recharge_commission_percentage');
 					$param['redeeming_commission_percentage'] = $this->input->post('redeeming_commission_percentage');
 					$param['hourly_games_commission_percentage'] = $this->input->post('hourly_games_commission_percentage');
+					$param['ding_commission_percentage'] = $this->input->post('ding_commission_percentage');
 
 					$param['store_name']	    	 = addslashes($this->input->post('store_name'));
 					$param['bind_person_id']		 = (int)$sales_person['0'];
@@ -414,6 +490,7 @@ class Allusers extends CI_Controller {
 		endif;
 
 		$data['countryCodeData']  = countryCodeList();
+		$this->_user_attach_internal_balance($data);
 
 		// echo "<pre>";
 		// print_r($data);
@@ -1498,6 +1575,36 @@ class Allusers extends CI_Controller {
 			print_r($error );
 			die();
 		}
+	}
+
+	public function _validate_users_mobile_unique($mobile)
+	{
+		$mobile = (int) preg_replace('/\D/', '', (string) $mobile);
+		if ($mobile <= 0) {
+			return true;
+		}
+
+		$currentUserId = (int) $this->input->post('CurrentDataID');
+		if ($currentUserId <= 0) {
+			$currentUserId = (int) $this->input->post('CurrentIdForUnique');
+		}
+
+		$whereCon = array(
+			'where' => array(
+				'users_mobile' => $mobile,
+			),
+		);
+		if ($currentUserId > 0) {
+			$whereCon['where']['users_id'] = array('$ne' => $currentUserId);
+		}
+
+		$existing = $this->common_model->getData('single', 'uw_users', $whereCon);
+		if ($existing) {
+			$this->form_validation->set_message('_validate_users_mobile_unique', 'The %s is already taken');
+			return false;
+		}
+
+		return true;
 	}
 
 }

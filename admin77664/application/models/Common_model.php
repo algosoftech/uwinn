@@ -3157,9 +3157,46 @@ class Common_model extends CI_Model
 	        );
 
 	        $tblName = "uw_hourly_orders";
-	        $groupBy = '';
+	        $query = array();
 
-	        $hourlyGameData = $this->getAggregateData2( $tblName, $SelectFields, $whereCondition, $groupBy, $shortField, $lookup, $unwind, $resultType, $startIndex, $itemsPerPage );
+	        if (!empty($whereCondition)):
+	            $query[] = array('$match' => $whereCondition);
+	        endif;
+
+	        if ($shortField):
+	            $query[] = array('$sort' => $shortField);
+	        endif;
+
+	        if ($resultType == 'multiple' || $resultType == 'single' || $resultType == 'count'):
+	            foreach ($lookup as $lookupItem):
+	                $query[] = array('$lookup' => $lookupItem);
+	            endforeach;
+	            foreach ($unwind as $item):
+	                $query[] = array('$unwind' => $item);
+	            endforeach;
+	        endif;
+
+	        $query[] = array('$project' => $SelectFields);
+
+	        if ($resultType == 'count'):
+	            $query[] = array('$count' => 'totalCount');
+	        endif;
+
+	        if ($itemsPerPage):
+	            $query[] = array('$skip' => (int)$startIndex);
+	            $query[] = array('$limit' => (int)$itemsPerPage);
+	        endif;
+
+	        $aggOpts = array('batchSize' => 128);
+	        $hourlyGameData = $this->mongo_db->aggregate($tblName, $query, $aggOpts);
+
+	        if ($resultType == 'count'):
+	            if (empty($hourlyGameData) || !isset($hourlyGameData[0]['totalCount'])):
+	                return 0;
+	            endif;
+	            return (int)$hourlyGameData[0]['totalCount'];
+	        endif;
+
 	        return $hourlyGameData;
 
 	    } catch (Exception $e) {
@@ -3269,7 +3306,34 @@ class Common_model extends CI_Model
 	    // Sort latest batch first
 	    $sortBy  = array('_id' => -1);
 	    $tblName = "uw_hourly_orders";
-	    $result  = $this->common_model->getAggregateData2( $tblName, $SelectFields, $whereCondition, $groupBy, $sortBy, [], /*lookup*/  [], /*unwind*/ $resultType, $page, $skip );
+
+	    $query = array();
+	    if (!empty($whereCondition)):
+	        $query[] = array('$match' => $whereCondition);
+	    endif;
+	    $query[] = array('$group' => $groupBy);
+	    $query[] = array('$sort' => $sortBy);
+	    $query[] = array('$project' => $SelectFields);
+
+	    if ($resultType == 'count'):
+	        $query[] = array('$count' => 'totalCount');
+	    endif;
+
+	    if ($skip):
+	        $query[] = array('$skip' => (int)$page);
+	        $query[] = array('$limit' => (int)$skip);
+	    endif;
+
+	    $aggOpts = array('batchSize' => 128);
+	    $result = $this->mongo_db->aggregate($tblName, $query, $aggOpts);
+
+	    if ($resultType == 'count'):
+	        if (empty($result) || !isset($result[0]['totalCount'])):
+	            return 0;
+	        endif;
+	        return (int)$result[0]['totalCount'];
+	    endif;
+
 	    return $result;
 	}
 

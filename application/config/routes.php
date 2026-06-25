@@ -302,3 +302,5 @@ $route['api/ding/plan/list'] 		       = 'api/ding/getPlanList';
 $route['api/ding/plan/recharge/create']    = 'api/ding/createRecharge';
 $route['api/ding/plan/recharge/history']   = 'api/ding/rechargeHistory';
 $route['api/ding/plan/recharge/summary']   = 'api/ding/rechargeSummary';
+$route['api/ding/recharge/history']        = 'api/ding/rechargeHistory';
+$route['api/ding/recharge/summary']        = 'api/ding/rechargeSummary';

@@ -1,31 +1,12 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
-use PhpOffice\PhpSpreadsheet\Helper\Sample;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\RichText\RichText;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Font;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use PhpOffice\PhpSpreadsheet\Style\Protection;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
-use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
-use PhpOffice\PhpSpreadsheet\Worksheet\ColumnDimension;
-use PhpOffice\PhpSpreadsheet\Worksheet;
-
 class Allrecharge extends CI_Controller {
 
 	public function  __construct() 
 	{ 
 		parent:: __construct();
-		error_reporting(E_ALL ^ E_NOTICE);  
+		error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 		$this->load->model(array('admin_model','emailtemplate_model','sms_model','notification_model'));
 		$this->lang->load('statictext', 'admin');
 		$this->load->helper('common');
@@ -45,6 +26,7 @@ class Allrecharge extends CI_Controller {
 		$data['error'] 		   = "";
 		$data['activeMenu']    = "recharge";
 		$data['activeSubMenu'] = "allrecharge";
+		$whereCon              = array();
 
 		$searchField = $this->input->get('searchField');
 		$searchValue = $this->input->get('searchValue');
@@ -137,8 +119,11 @@ class Allrecharge extends CI_Controller {
 		$suffix			= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
 		
 		$tblName 		= 	'uw_loadBalance';
+		$dingWhereCon   =   $this->_buildDingRechargeWhereCon($whereCon);
 		$shortField 	= 	array('created_at'=> -1);
-		$totalRows 		=   $this->common_model->getRechargeTopupData('count',$whereCon,$startIndex,$itemsPerPage,$tblName);
+		$uwCount        =   (int) $this->common_model->getRechargeTopupData('count', $whereCon, 0, 0, $tblName);
+		$dingCount      =   (int) $this->common_model->getRechargeTopupData('count', $dingWhereCon, 0, 0, 'uw_loadBalance');
+		$totalRows 		=   $uwCount + $dingCount;
 		// echo "<pre>";print_r($totalRows);die();
 
 		if($this->input->get('showLength') == 'All'):
@@ -179,7 +164,14 @@ class Allrecharge extends CI_Controller {
 			$data['noOfContent']			=	'';
 		endif;
 		
-		$data['ALLDATA'] 					=   $this->common_model->getRechargeTopupData('',$whereCon,$page,$perPage,$tblName);
+		$data['ALLDATA'] = array();
+		if ($totalRows > 0) {
+			$fetchLimit = max((int) $totalRows, 1);
+			$uwList     = $this->common_model->getRechargeTopupData('', $whereCon, 0, $fetchLimit, $tblName);
+			$dingList   = $this->common_model->getRechargeTopupData('', $dingWhereCon, 0, $fetchLimit, 'uw_loadBalance');
+			$merged     = $this->_mergeRechargeHistoryLists($uwList, $dingList);
+			$data['ALLDATA'] = array_slice($merged, (int) $page, (int) $perPage);
+		}
 		// echo "<pre>";print_r($data['ALLDATA']);die();
 		$this->layouts->set_title('All Recharge | Recharge | UWINN');
 		$this->layouts->admin_view('recharge/allrecharge/index',array(),$data);
@@ -197,13 +189,15 @@ class Allrecharge extends CI_Controller {
 	{		
 		$data['error'] 						= 	'';
 		$data['activeMenu'] 				= 	'recharge';
-		$data['activeSubMenu'] 				= 	'addeditdata';
+		$data['activeSubMenu'] 				= 	'allrechargeUser';
 
 		if($editId):
 			$this->admin_model->authCheck('edit_data');
-			$data['EDITDATA']				=	$this->common_model->getDataByParticularField('uw_loadBalance','load_balance_id',(int)$editId);
+			$editData = $this->common_model->getDataByParticularField('uw_loadBalance','load_balance_id',(int)$editId);
+			$data['EDITDATA'] = is_array($editData) ? $editData : array();
 		else:
 			$this->admin_model->authCheck('add_data');
+			$data['EDITDATA'] = array();
 		endif;
 		if($this->input->post('SaveChanges')):
 			$error					=	'NO';
@@ -222,16 +216,16 @@ class Allrecharge extends CI_Controller {
 					$user_data = $this->common_model->getDataByParticularField('uw_users', 'users_email', $user);
 				}
 				// echo '<pre>';print_r($user_data);die();
-				if($user_data['status'] == 'I'):
+				if(empty($user_data)):
+					$this->session->set_flashdata('alert_error', 'Email ID / Mobile is not registered.');
+				elseif($user_data['status'] == 'I'):
 					$this->session->set_flashdata('alert_error',lang('ACCOUNT_BLOCKED'));
 				elseif(!empty($user_data)):
-					//echo $this->input->post('percentage');die();
+					$isDingRecharge = ($this->input->post('recharge_type') == 'recharge_point' || $this->input->post('ding_recharge') == '1');
 					if($this->input->post('percentage')):
 						$percentage 				=	$this->input->post('percentage');
 						$percentageAmt				=	$addpoints*$percentage/100;
 						$totalRechargeAmount		=	$addpoints + $percentageAmt;
-						$totalPoints 				=	$user_data['totalArabianPoints'] + $totalRechargeAmount;
-						$avlPoints					=	$user_data['totalArabianPoints'] + $totalRechargeAmount;
 						$rechargeDetails 			=	array(
 															'percentage'	=>	(float)$percentage,
 															'amount'		=>	(float)$percentageAmt,
@@ -240,6 +234,42 @@ class Allrecharge extends CI_Controller {
 						$totalRechargeAmount		=	$addpoints;
 					endif;
 
+					if($isDingRecharge):
+						$remarks = $this->input->post('remarks');
+						if($remarks == ''):
+							$remarks = 'Ding Recharge topup of '.$totalRechargeAmount.' points to '.$user_data['users_name'];
+						endif;
+
+						$param['load_balance_id']	  	= (int)$this->common_model->getNextSequence('uw_loadBalance');
+						$param['users_id']			    = (int)$user_data['users_id'];
+						$param['users_oid'] 			= new MongoDB\BSON\ObjectId($user_data['_id']->{'$id'});
+						$param['user_id_cred'] 			= (int)$user_data['users_id'];
+						$param['user_id_deb']			= (int)0;
+						$param['upoints']				= (float)$totalRechargeAmount;
+						$param['availableArabianPoints']= (float)$user_data['availableArabianPoints'];
+						$param['end_balance'] 			= (float)$user_data['availableArabianPoints'];
+						$param['availableReachargePoints'] = (float)($user_data['availableReachargePoints'] ?? 0);
+						$param['end_balance_recharge']  = (float)($user_data['availableReachargePoints'] ?? 0) + (float)$totalRechargeAmount;
+						$param['record_type']			= 'Credit';
+						$param['narration'] 			= 'Ding Recharge Topup';
+						$param['remarks']				= $remarks;
+						if($this->input->post('percentage')):
+							$param['rechargeDetails']	= $rechargeDetails;
+						endif;
+						$param['creation_ip']		    = currentIp();
+						$param['created_at']		    = strtotime(date('Y-m-d H:i:s'));
+						$param['created_by']			= (int)$this->session->userdata('UW_ADMIN_ID');
+						$param['status']				= 'A';
+						$alastInsertId					= $this->common_model->addData('uw_loadBalance', $param);
+
+						if(!empty($alastInsertId)):
+							$udateData = array(
+								'totalReachargePoints'      => (float)($user_data['totalReachargePoints'] ?? 0) + (float)$totalRechargeAmount,
+								'availableReachargePoints'  => (float)($user_data['availableReachargePoints'] ?? 0) + (float)$totalRechargeAmount,
+							);
+							$this->common_model->editData('uw_users', $udateData, '_id', new MongoDB\BSON\ObjectID($user_data['_id']->{'$id'}));
+						endif;
+					else:
 					$param["user_oid"] 				=	new MongoDB\BSON\ObjectId($user_data['_id']->{'$id'});
 					$param["user_id_cred"] 			=	(int)$user_data['users_id'];
 					$param['user_id_deb']			=	(int)$this->session->userdata('UW_ADMIN_ID');
@@ -259,7 +289,6 @@ class Allrecharge extends CI_Controller {
 					$param['created_by']		=	'ADMIN';
 					$param['status']			=	'A';
 					$param["created_user_id"] 	=	(int)$this->session->userdata('UW_ADMIN_ID');
-					$param['device_type']		=	'ios';
 					$alastInsertId				=	$this->common_model->addData('uw_loadBalance',$param);
 
 					if(!empty($alastInsertId)):
@@ -282,6 +311,7 @@ class Allrecharge extends CI_Controller {
 							'availableArabianPoints'	=>	$avlPoints
 						);
 						$isEdit = $this->common_model->editData('uw_users', $udateData, 'users_id', $user_data['users_id']);
+					endif;
 					endif;
 					
 					//Send Creadited Notification to user
@@ -442,8 +472,11 @@ class Allrecharge extends CI_Controller {
 		$baseUrl 	  = getCurrentControllerPath('exportexcel');
 		// $totalRows    = $this->common_model->getData('count','uw_coupon_code_only',$whereCon);
 		$tblName 	  = 'uw_loadBalance';
+		$dingWhereCon = $this->_buildDingRechargeWhereCon($whereCon);
 		$shortField   =  array('created_at'=> -1);
-		$totalRows 	  =  count($this->common_model->getRechargeTopupData('',$whereCon,$startIndex,$itemsPerPage,$tblName));
+		$uwCount      = (int) $this->common_model->getRechargeTopupData('count',$whereCon,0,0,$tblName);
+		$dingCount    = (int) $this->common_model->getRechargeTopupData('count',$dingWhereCon,0,0,$tblName);
+		$totalRows 	  =  $uwCount + $dingCount;
 		// $totalRows 	  =  $this->common_model->getRechargeTopupData('',$whereCon,$startIndex,$itemsPerPage,$tblName);
 		// echo "<pre>";print_r($totalRows);die();
 
@@ -595,8 +628,13 @@ class Allrecharge extends CI_Controller {
 
 
  		$tblName 	  = 'uw_loadBalance';
+		$dingWhereCon = $this->_buildDingRechargeWhereCon($whereCon);
 		$shortField   =  array('created_at'=> -1);
-		$rechagreData =  $this->common_model->getRechargeTopupData('',$whereCon,$startIndex,$itemsPerPage,$tblName);
+		$fetchLimit   = max((int)($startIndex + $itemsPerPage), 1);
+		$uwList       = $this->common_model->getRechargeTopupData('',$whereCon,0,$fetchLimit,$tblName);
+		$dingList     = $this->common_model->getRechargeTopupData('',$dingWhereCon,0,$fetchLimit,$tblName);
+		$merged       = $this->_mergeRechargeHistoryLists($uwList, $dingList);
+		$rechagreData = array_slice($merged, $startIndex, $itemsPerPage);
 		// echo "<pre>";print_r($rechagreData);die();
 
 		$CSVData = array();
@@ -641,20 +679,26 @@ class Allrecharge extends CI_Controller {
 
 
 public function checkDeplicacy(){
-	//echo $_POST['user']; die();
-
-	$user 	= $_POST['user'];
+	$user = $_POST['user'];
+	$isDingRecharge = (!empty($_POST['recharge_type']) && $_POST['recharge_type'] == 'recharge_point') || !empty($_POST['ding_recharge']);
 
 	if (is_numeric($user)) {
 		$user_data = $this->common_model->getDataByParticularField('uw_users', 'users_mobile', (int)$user);
 	}else{		
 		$user_data = $this->common_model->getDataByParticularField('uw_users', 'users_email', $user);	
 	}
-	if($user_data['availableArabianPoints'] !== false){
-		echo $user_data['users_name'].' (' .strtolower($user_data['users_type']). ') available arabian points is '.number_format($user_data['availableArabianPoints'],2).'__'.$user_data['users_id']; 
-	}else{
+	if(!empty($user_data)):
+		if($isDingRecharge):
+			$rechargePoints = isset($user_data['availableReachargePoints']) ? (float)$user_data['availableReachargePoints'] : 0;
+			echo $user_data['users_name'].' (' .strtolower($user_data['users_type']). ') available recharge points is '.number_format($rechargePoints, 2).'__'.$user_data['users_id'];
+		elseif($user_data['availableArabianPoints'] !== false):
+			echo $user_data['users_name'].' (' .strtolower($user_data['users_type']). ') available arabian points is '.number_format($user_data['availableArabianPoints'],2).'__'.$user_data['users_id']; 
+		else:
+			echo "Email ID / Mobile is not registered.";
+		endif;
+	else:
 		echo "Email ID / Mobile is not registered.";
-	}
+	endif;
 
 	die();
 
@@ -668,13 +712,19 @@ public function checkDeplicacy(){
 	** Updated Date 	: 
 	** Updated By   	: 
 	************************************************************************/
-	public function reverse($id=''){
+	public function reverse($id='', $type='upoint'){
 		
 		$error = 'NO';
 		if($id == ''):
 			$this->session->set_flashdata('alert_error','Data not found.');
 			redirect('recharge/allrecharge/index');
 		endif;
+
+		if ($type === 'ding') {
+			$this->_reverseDingRecharge((int) $id);
+			return;
+		}
+
 		$wcon['where']  = array('load_balance_id'=>(int)$id,'narration'=>'Recharge');
 		$data			= $this->common_model->getData('single','uw_loadBalance',$wcon);
 		if(!empty($data)):
@@ -850,8 +900,14 @@ public function checkDeplicacy(){
 	{	
 		$this->admin_model->authCheck();
 		$data['error'] 						= '';
-		$data['activeMenu'] 				= 'sub_winners';
-		$data['activeSubMenu'] 				= 'voucher';
+		$data['activeMenu'] 				= 'recharge';
+		$data['activeSubMenu'] 				= 'allrecharge';
+		$rechargeList                       = array();
+		$rechargeType                       = $this->input->post('recharge_type');
+		if ($rechargeType !== 'recharge_point') {
+			$rechargeType = 'upoint';
+		}
+		$data['recharge_type']              = $rechargeType;
 
 		if(!empty($_FILES["csvFile"])):
 		    // Check if a file was uploaded
@@ -865,20 +921,21 @@ public function checkDeplicacy(){
 		            $param = array();
 
 		            $rechargeList  = array();
-		            while(($data = fgetcsv($handle, 1000, ",")) !== false) {
+		            while(($csvRow = fgetcsv($handle, 1000, ",")) !== false) {
 		            	//if date is not pass than picking current date & time... 
-		            	$date = $data[6]?$data[6]:date('d M Y h:i A');
+		            	$date = !empty($csvRow[6]) ? $csvRow[6] : date('d M Y h:i A');
 		            	$timestamp = strtotime(str_replace('/', '-',$date));
 						$formatted_date = date('d M Y h:i A', $timestamp);
 
 		            	if($i > 0):
-		            		$param['sl_no']      	=	$data[0];
-		            		$param['pos_id']        =	$data[1];
-		            		$param['store_name']    =	$data[2];
-		            		$param['bind_with'] 	=	$data[3];
-		            		$param['mobile_no'] 	=	$data[4];
-		            		$param['topup'] 	    =	$data[5];
+		            		$param['sl_no']      	=	$csvRow[0];
+		            		$param['pos_id']        =	$csvRow[1];
+		            		$param['store_name']    =	$csvRow[2];
+		            		$param['bind_with'] 	=	$csvRow[3];
+		            		$param['mobile_no'] 	=	$csvRow[4];
+		            		$param['topup'] 	    =	$csvRow[5];
 		            		$param['created_date'] 	=	$formatted_date;
+		            		$param['recharge_type'] =	$rechargeType;
 		            		array_push($rechargeList, $param);
 		            	endif;
 		                $i++;
@@ -924,8 +981,8 @@ public function checkDeplicacy(){
  		$bind_with    = $this->input->post('bind_with');
  		$mobile_no    = $this->input->post('mobile_no');
  		$topup        = $this->input->post('topup');
- 		// $created_date = $this->input->post('created_date');
- 		$created_date = date('Y-m-d H:i');
+ 		$rechargeType = $this->input->post('recharge_type');
+ 		$isDingRecharge = ($rechargeType === 'recharge_point');
 
  		if($mobile_no):
 			$user_data = $this->common_model->getDataByParticularField('uw_users', 'users_mobile', (int)$mobile_no);
@@ -933,17 +990,49 @@ public function checkDeplicacy(){
 		
 		if(!empty($user_data)):
 			$this->admin_model->authCheck('add_data');
+			$topupAmount = (float) $topup;
+
+			if ($isDingRecharge) {
+				$param['load_balance_id']          = (int) $this->common_model->getNextSequence('uw_loadBalance');
+				$param['users_id']                 = (int) $user_data['users_id'];
+				$param['users_oid']                = new MongoDB\BSON\ObjectId($user_data['_id']->{'$id'});
+				$param['user_id_cred']             = (int) $user_data['users_id'];
+				$param['user_id_deb']              = (int) 0;
+				$param['upoints']                  = $topupAmount;
+				$param['availableArabianPoints']   = (float) ($user_data['availableArabianPoints'] ?? 0);
+				$param['end_balance']              = (float) ($user_data['availableArabianPoints'] ?? 0);
+				$param['availableReachargePoints'] = (float) ($user_data['availableReachargePoints'] ?? 0);
+				$param['end_balance_recharge']     = (float) ($user_data['availableReachargePoints'] ?? 0) + $topupAmount;
+				$param['record_type']              = 'Credit';
+				$param['narration']                = 'Ding Recharge Topup';
+				$param['remarks']                  = 'Bulk ding recharge amount is ' . $topupAmount . ' AED';
+				$param['store_name']               = $store_name;
+				$param['bind_with']                = $bind_with;
+				$param['creation_ip']              = currentIp();
+				$param['created_at']               = strtotime(date('Y-m-d H:i:s'));
+				$param['created_by']               = (int) $this->session->userdata('UW_ADMIN_ID');
+				$param['status']                   = 'A';
+				$alastInsertId                     = $this->common_model->addData('uw_loadBalance', $param);
+
+				if (!empty($alastInsertId)) {
+					$udateData = array(
+						'totalReachargePoints'     => (float) ($user_data['totalReachargePoints'] ?? 0) + $topupAmount,
+						'availableReachargePoints' => (float) ($user_data['availableReachargePoints'] ?? 0) + $topupAmount,
+					);
+					$this->common_model->editData('uw_users', $udateData, '_id', new MongoDB\BSON\ObjectID($user_data['_id']->{'$id'}));
+				}
+			} else {
 			$param['load_balance_id']        =	(int)$this->common_model->getNextSequence('uw_loadBalance');
 			$param["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_data['_id']->{'$id'});
 			$param["user_id_cred"] 			 =	(int)$user_data['users_id'];
 			$param['user_id_deb']			 =	(int)0;
-			$param['upoints']				 =	(float)$topup;
-			$param['sum_arabian_points']	 =	(float)$topup;
+			$param['upoints']				 =	$topupAmount;
+			$param['sum_arabian_points']	 =	$topupAmount;
 			$param["availableArabianPoints"] =	(float)$user_data["availableArabianPoints"];
-			$param["end_balance"] 			 =	(float)$user_data["availableArabianPoints"] + (float)$topup ;
+			$param["end_balance"] 			 =	(float)$user_data["availableArabianPoints"] + $topupAmount ;
 			$param['record_type']			 =	'Credit';
 			$param["narration"] 			 =	'Recharge';
-			$param['remarks']				 =  'Recharge amount is ' .(float)$topup .' AED' ;
+			$param['remarks']				 =  'Recharge amount is ' .$topupAmount .' AED' ;
 			$param['store_name']			 =	$store_name;
 			$param['bind_with']				 =	$bind_with;
 			$param['creation_ip']		     =	currentIp();
@@ -964,21 +1053,192 @@ public function checkDeplicacy(){
 					'availableArabianPoints'	=>	$avlPoints
 				);
 				$isEdit = $this->common_model->editData('uw_users', $udateData, 'users_id', $user_data['users_id']);
-
-				//Send Creadited Notification to user
-				// if($user_data['users_id']):
-				// 	$data 		=	array(
-				// 		'arabianpoint'	=>	(int)$totalRechargeAmount,
-				// 		'name'			=>	'DealzArabia',
-				// 		'user_id'		=>	$user_data["users_id"],
-				// 		'device_id'		=>	$user_data["device_id"]
-				// 		);
-				// 	$rtn = $this->notification_model->rceivedArabianPointNotification($data);
-				// endif;
 			endif;
+			}
 		endif;
-	    $successMessage = $successCount . " items uploaded successfully.";
-	    return $successMessage;
+	    echo 'OK';
+	    die();
+	}
+
+	private function _getRechargeHistorySortTime($row)
+	{
+		$createdAt = isset($row['created_at']) ? $row['created_at'] : 0;
+		if (is_numeric($createdAt)) {
+			return (int) $createdAt;
+		}
+		return (int) strtotime((string) $createdAt);
+	}
+
+	private function _mergeRechargeHistoryLists($uwList, $dingList)
+	{
+		$uwList   = is_array($uwList) ? $uwList : array();
+		$dingList = is_array($dingList) ? $dingList : array();
+
+		foreach ($uwList as &$row) {
+			$row['recharge_type']       = 'upoint';
+			$row['recharge_type_label'] = 'UPOINT';
+		}
+		unset($row);
+
+		foreach ($dingList as &$row) {
+			$row['recharge_type']       = 'ding';
+			$row['recharge_type_label'] = 'Ding';
+			if (!isset($row['created_user_id']) && isset($row['created_by'])) {
+				$row['created_user_id'] = (int) $row['created_by'];
+			}
+			$row['created_by'] = 'ADMIN';
+		}
+		unset($row);
+
+		$merged = array_merge($uwList, $dingList);
+		usort($merged, function ($a, $b) {
+			return $this->_getRechargeHistorySortTime($b) - $this->_getRechargeHistorySortTime($a);
+		});
+		return $merged;
+	}
+
+	private function _buildDingRechargeWhereCon($uwWhereCon)
+	{
+		$dingWhereCon = array(
+			'where' => array(
+				'$or' => array(
+					array(
+						'record_type' => 'Credit',
+						'narration'   => 'Ding Recharge Topup',
+					),
+					array(
+						'record_type' => 'Debit',
+						'narration'   => 'Reverse Ding Recharge Topup',
+					),
+				),
+			),
+		);
+
+		if (empty($uwWhereCon['where']) || !is_array($uwWhereCon['where'])) {
+			return $dingWhereCon;
+		}
+
+		foreach ($uwWhereCon['where'] as $key => $value) {
+			if ($key === 'narration' || $key === '$or') {
+				continue;
+			}
+			if ($key === 'record_type') {
+				$dingWhereCon['where']['$or'] = $this->_getDingRechargeNarrationFiltersByRecordType($value);
+				continue;
+			}
+			if ($key === 'created_at') {
+				if (isset($value['$gte'])) {
+					$dingWhereCon['where']['created_at']['$gte'] = is_numeric($value['$gte']) ? (int) $value['$gte'] : strtotime($value['$gte']);
+				}
+				if (isset($value['$lte'])) {
+					$dingWhereCon['where']['created_at']['$lte'] = is_numeric($value['$lte']) ? (int) $value['$lte'] : strtotime($value['$lte']);
+				}
+				continue;
+			}
+			if ($key === 'user_id_deb') {
+				$dingWhereCon['where']['created_by'] = (int) $value;
+				continue;
+			}
+			$dingWhereCon['where'][$key] = $value;
+		}
+
+		return $dingWhereCon;
+	}
+
+	private function _getDingRechargeNarrationFiltersByRecordType($recordType)
+	{
+		if ($recordType === 'Credit') {
+			return array(
+				array(
+					'record_type' => 'Credit',
+					'narration'   => 'Ding Recharge Topup',
+				),
+			);
+		}
+		if ($recordType === 'Debit') {
+			return array(
+				array(
+					'record_type' => 'Debit',
+					'narration'   => 'Reverse Ding Recharge Topup',
+				),
+			);
+		}
+
+		return array(
+			array(
+				'record_type' => 'Credit',
+				'narration'   => 'Ding Recharge Topup',
+			),
+			array(
+				'record_type' => 'Debit',
+				'narration'   => 'Reverse Ding Recharge Topup',
+			),
+		);
+	}
+
+	private function _reverseDingRecharge($id)
+	{
+		$this->admin_model->authCheck('edit_data');
+
+		$wcon['where'] = array(
+			'load_balance_id' => (int) $id,
+			'narration'       => 'Ding Recharge Topup',
+			'record_type'     => 'Credit',
+			'status'          => 'A',
+		);
+		$data = $this->common_model->getData('single', 'uw_loadBalance', $wcon);
+		if (empty($data)) {
+			$this->session->set_flashdata('alert_error', 'Data not found.');
+			redirect('recharge/allrecharge/index');
+			return;
+		}
+
+		$reverseAmount = (float) $data['upoints'];
+		$tblName         = 'uw_users';
+		$whereCon        = array('where' => array('users_id' => (int) $data['user_id_cred']));
+		$userdata        = $this->common_model->getData('single', $tblName, $whereCon);
+
+		if (empty($userdata)) {
+			$this->session->set_flashdata('alert_error', 'User not found');
+			redirect('recharge/allrecharge/index');
+			return;
+		}
+
+		$this->common_model->editMultipleDataByMultipleCondition('uw_loadBalance', array('status' => 'R'), array(
+			'load_balance_id' => (int) $id,
+			'narration'       => 'Ding Recharge Topup',
+		));
+
+		$availableRecharge = (float) ($userdata['availableReachargePoints'] ?? 0);
+		$totalRecharge     = (float) ($userdata['totalReachargePoints'] ?? 0);
+		$this->common_model->editData('uw_users', array(
+			'availableReachargePoints' => max(0, $availableRecharge - $reverseAmount),
+			'totalReachargePoints'     => max(0, $totalRecharge - $reverseAmount),
+		), '_id', new MongoDB\BSON\ObjectID($userdata['_id']->{'$id'}));
+
+		$param = array(
+			'load_balance_id'            => (int) $this->common_model->getNextSequence('uw_loadBalance'),
+			'users_id'                   => (int) $userdata['users_id'],
+			'users_oid'                  => new MongoDB\BSON\ObjectId($userdata['_id']->{'$id'}),
+			'user_id_cred'               => (int) 0,
+			'user_id_deb'                => (int) $userdata['users_id'],
+			'upoints'                    => $reverseAmount,
+			'availableArabianPoints'     => (float) ($userdata['availableArabianPoints'] ?? 0),
+			'end_balance'                => (float) ($userdata['availableArabianPoints'] ?? 0),
+			'availableReachargePoints'   => max(0, $availableRecharge - $reverseAmount),
+			'end_balance_recharge'       => max(0, $availableRecharge - $reverseAmount),
+			'record_type'                => 'Debit',
+			'narration'                  => 'Reverse Ding Recharge Topup',
+			'remarks'                    => 'Ding recharge reversed for ' . $userdata['users_mobile'],
+			'creation_ip'                => currentIp(),
+			'created_at'                 => strtotime(date('Y-m-d H:i:s')),
+			'created_by'                 => (int) $this->session->userdata('UW_ADMIN_ID'),
+			'status'                     => 'R',
+		);
+		$this->common_model->addData('uw_loadBalance', $param);
+
+		$this->session->set_flashdata('alert_success', 'Ding Recharge Reverse Successfully.');
+		redirect('recharge/allrecharge/index');
 	}
 
 

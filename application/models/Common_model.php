@@ -5129,14 +5129,9 @@ class Common_model extends CI_Model
 	public function getAggregateData($tblName='',$SelectFields='',$whereCondition='',$groupBy='',$sortBy='',$lookup='',$unwind='',$resultType="",$page='',$per_page='')
 	{  
 		$query = array();
-		
 
-		if($groupBy):
-			$query[] = array('$group' => $groupBy);
-		endif;
-
-		if($sortBy):
-			$query[] = array('$sort' => $sortBy);
+		if($whereCondition):
+			$query[] = array('$match' => $whereCondition);
 		endif;
 
 		if($lookup):
@@ -5151,8 +5146,12 @@ class Common_model extends CI_Model
 			endforeach;
 		endif;
 
-		if($whereCondition):
-			$query[] = array('$match' => $whereCondition);
+		if($groupBy):
+			$query[] = array('$group' => $groupBy);
+		endif;
+
+		if($sortBy):
+			$query[] = array('$sort' => $sortBy);
 		endif;
 
 		if($SelectFields):

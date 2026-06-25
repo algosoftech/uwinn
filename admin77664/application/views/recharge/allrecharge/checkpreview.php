@@ -56,13 +56,17 @@
                 <h5>Manage Voucher Preview List</h5>
                <!-- <form method="post" action="<?=base_url('uwin/voucher/uploadVoucher')?>"> -->
                <form  id="allwinners">
+                  <input type="hidden" name="recharge_type" id="bulk_preview_recharge_type" value="<?php echo !empty($recharge_type) ? $recharge_type : 'upoint'; ?>">
 
                   <div class=" pull-right">
                      <input type="submit" class="btn btn-sm btn-primary pull-right" onclick="return confirm('Do you want to uplaod?')" style="margin-left: 5px;" value="Upload"> 
                      <a href="javascript:coid(0)" class="btn btn-sm btn-primary pull-right" id="delete-selected-orders" style="margin-left: 5px;">Delete Check Orders</a>
                   </div>
                   <div class=" pull-left">
-                    <b><label class="btn btn-sm btn-primary pull-left total-upload" data-count="<?=count($ALLDATA);?>" >Total Data To Uplaod : <?=count($ALLDATA);?></label></b>
+                    <b><label class="btn btn-sm btn-primary pull-left total-upload" data-count="<?php echo !empty($ALLDATA) ? count($ALLDATA) : 0; ?>" >Total Data To Uplaod : <?php echo !empty($ALLDATA) ? count($ALLDATA) : 0; ?></label></b>
+                    <label class="btn btn-sm btn-<?php echo (!empty($recharge_type) && $recharge_type == 'recharge_point') ? 'info' : 'secondary'; ?> pull-left ml-2">
+                      Type : <?php echo (!empty($recharge_type) && $recharge_type == 'recharge_point') ? 'Recharge Point (Ding)' : 'UPOINT'; ?>
+                    </label>
                   </div>
                
               </div>
@@ -91,12 +95,14 @@
                                   <th width="20%">Bind With</th>
                                   <th width="20%">Mobile No.</th>
                                   <th width="20%">Topup</th>
+                                  <th width="15%">Type</th>
                                   <th width="20%">Created Date</th>
                                 </tr>
                               </thead>
                               <tbody style="text-align: center;">
-                                <?php if($ALLDATA <> ""): $i=$first; $j=0; foreach($ALLDATA as $key => $ALLDATAINFO ): 
+                                <?php if(!empty($ALLDATA) && is_array($ALLDATA)): $i=isset($first)?$first:1; $j=0; foreach($ALLDATA as $key => $ALLDATAINFO ): 
                                 if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
+                                $rowRechargeType = !empty($ALLDATAINFO['recharge_type']) ? $ALLDATAINFO['recharge_type'] : (!empty($recharge_type) ? $recharge_type : 'upoint');
                                 ?>
                                 <tr role="row" class="<?php echo $rowClass; ?>">
                                   <td>
@@ -126,6 +132,10 @@
                                     <?=$ALLDATAINFO['topup'];?>
                                     <input type="hidden" name="topup[]" value="<?=$ALLDATAINFO['topup'];?>">
                                   </td>
+                                  <td>
+                                    <?php echo ($rowRechargeType === 'recharge_point') ? 'Recharge Point' : 'UPOINT'; ?>
+                                    <input type="hidden" name="recharge_type_row[]" value="<?=$rowRechargeType;?>">
+                                  </td>
                                   
                                   <td>
                                     <?=$ALLDATAINFO['created_date'];?>
@@ -134,7 +144,7 @@
                                 </tr>
                                 <?php $j++; endforeach; else: ?>
                                 <tr>
-                                  <td colspan="6" style="text-align:center;">No Data Available In Table</td>
+                                  <td colspan="9" style="text-align:center;">No Data Available In Table</td>
                                 </tr>
                                 <?php endif; ?>
                               </tbody>
@@ -215,6 +225,7 @@
       var mobile_no   = row.find('input[name^="mobile_no"]').val();
       var topup       = row.find('input[name^="topup"]').val();
       var created_date= row.find('input[name^="created_date"]').val();
+      var recharge_type = $('#bulk_preview_recharge_type').val();
 
       $.ajax({
         url: '<?= base_url('recharge/allrecharge/uploadVoucher') ?>',
@@ -227,6 +238,7 @@
           mobile_no  : mobile_no,
           topup      : topup,
           created_date: created_date,
+          recharge_type: recharge_type,
         },
         success: function(response) {
           uploadedCount++;

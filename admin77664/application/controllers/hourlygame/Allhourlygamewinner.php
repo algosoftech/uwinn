@@ -27,13 +27,21 @@ class Allhourlygamewinner extends CI_Controller {
 		$data['error'] 		   = '';
 		$data['activeMenu']    = 'hourlygame';
 		$data['activeSubMenu'] = 'hourlygamewinner';
-		
-		if($this->input->get('searchField') && $this->input->get('searchValue')):
+		$whereCon              = array('where' => array());
+		$data['fromDate']      = $this->input->get('fromDate') ? $this->input->get('fromDate') : '';
+		$data['isOrderSearch'] = false;
+
+		if($this->input->get('searchField') && $this->input->get('searchValue') !== '' && $this->input->get('searchValue') !== null):
 			$sField				  = $this->input->get('searchField');
-			$sValue				  = $this->input->get('searchValue');
+			$sValue				  = trim($this->input->get('searchValue'));
 			$data['searchField']  = $sField;
 			$data['searchValue']  = $sValue;
-			$whereCon['where'][$sField] = is_numeric($sValue)?(int)$sValue:$sValue;
+			if($sField == 'order_id'):
+				$data['isOrderSearch'] = true;
+				$whereCon['where']['order_id'] = $sValue;
+			else:
+				$whereCon['where'][$sField] = is_numeric($sValue) ? (int)$sValue : $sValue;
+			endif;
 		else:
 			$data['searchField'] 		= '';
 			$data['searchValue'] 		= '';
@@ -43,7 +51,7 @@ class Allhourlygamewinner extends CI_Controller {
 			$fromDate = $this->input->get('fromDate');
 			$hours = $this->input->get('hours');
 			if($hours == '00:00'):
-				$data['fromDate'] 				=   date('Y-m-d', strtotime($fromDate));  //2023-03-16 15:13
+				$data['fromDate'] 				=   date('Y-m-d', strtotime($fromDate));
 				$whereCon['where']["created_at"]  = array('$gte' => $data['fromDate'].' 00:01' , '$lte' => $data['fromDate'].' 23:59') ;
 			else:
 				$whereCon['where']["created_at"]  = array('$eq' => $data['fromDate']) ;
@@ -51,15 +59,27 @@ class Allhourlygamewinner extends CI_Controller {
 
 			$data['fromDate'] =   $fromDate;
 		endif;
-		$whereCon['where']['is_winner'] = "Y";
-		
+		if(empty($data['isOrderSearch'])):
+			$whereCon['where']['is_winner'] = "Y";
+		endif;
+
 		$baseUrl 							= 	getCurrentControllerPath('index');
 		$this->session->set_userdata('ALLLHOURLYGAMEDATA',currentFullUrl());
 		$qStringdata						=	explode('?',currentFullUrl());
 		$suffix								= 	$qStringdata[1]?'?'.$qStringdata[1]:'';
-		$con 								= 	'';
-		$resultType   = 'count'; 
-		$totalRows     				   =  $this->common_model->getHourlyGameGroupByData($whereCon,$resultType);
+		$shortField                         = array('_id' => -1);
+		$tblName                            = 'uw_hourly_orders';
+
+		if($data['isOrderSearch']):
+			$countWhere = $whereCon;
+			$totalRows = $this->common_model->getHourlyGameOrderData('count', $tblName, $countWhere, $shortField, 0, 0);
+			if(!is_numeric($totalRows)):
+				$totalRows = 0;
+			endif;
+		else:
+			$resultType   = 'count';
+			$totalRows    = $this->common_model->getHourlyGameGroupByData($whereCon, $resultType);
+		endif;
 
 		if($this->input->get('showLength') == 'All'):
 			$perPage	 					= 	$totalRows;
@@ -80,22 +100,31 @@ class Allhourlygamewinner extends CI_Controller {
        else:
            $page = 0;
        endif;
-		
-		$resultType = "multiple";
-		$allRows = $this->common_model->getHourlyGameGroupByData($whereCon,$resultType);
-		if(!empty($allRows) && is_array($allRows)):
-			usort($allRows, function($a, $b){
-				$aTime = isset($a['winner_uploaded_at']) ? $a['winner_uploaded_at'] : (isset($a['created_at']) ? $a['created_at'] : 0);
-				$bTime = isset($b['winner_uploaded_at']) ? $b['winner_uploaded_at'] : (isset($b['created_at']) ? $b['created_at'] : 0);
 
-				$aTs = is_numeric($aTime) ? (int)$aTime : strtotime((string)$aTime);
-				$bTs = is_numeric($bTime) ? (int)$bTime : strtotime((string)$bTime);
+		if($data['isOrderSearch']):
+			$pageData = ($data['perpage'] == 'All') ? $totalRows : $data['perpage'];
+			$allRows = $totalRows
+				? $this->common_model->getHourlyGameOrderData('multiple', $tblName, $whereCon, $shortField, $pageData, $page)
+				: array();
+		else:
+			$resultType = "multiple";
+			$allRows = $this->common_model->getHourlyGameGroupByData($whereCon,$resultType);
+			if(!empty($allRows) && is_array($allRows)):
+				usort($allRows, function($a, $b){
+					$aTime = isset($a['winner_uploaded_at']) ? $a['winner_uploaded_at'] : (isset($a['created_at']) ? $a['created_at'] : 0);
+					$bTime = isset($b['winner_uploaded_at']) ? $b['winner_uploaded_at'] : (isset($b['created_at']) ? $b['created_at'] : 0);
 
-				return $bTs <=> $aTs; // latest date first
-			});
+					$aTs = is_numeric($aTime) ? (int)$aTime : strtotime((string)$aTime);
+					$bTs = is_numeric($bTime) ? (int)$bTime : strtotime((string)$bTime);
+
+					return $bTs <=> $aTs;
+				});
+			endif;
+			$totalRows = !empty($allRows) && is_array($allRows) ? count($allRows) : 0;
+			$pageData = ($data['perpage'] == 'All') ? $totalRows : $data['perpage'];
+			$allRows = $totalRows ? array_slice($allRows, (int)$page, (int)$pageData) : array();
 		endif;
-		$totalRows = !empty($allRows) && is_array($allRows) ? count($allRows) : 0;
-
+		
 		$data['forAction'] 					= 	$baseUrl; 
 		if($totalRows):
 			$first							=	(int)($page)+1;
@@ -114,8 +143,7 @@ class Allhourlygamewinner extends CI_Controller {
 			$data['noOfContent']			=	'';
 		endif;
 		
-		$data['ALLDATA'] = $totalRows ? array_slice($allRows, (int)$page, (int)$pageData) : array();
-		// echo '<pre>';print_r($data);die();
+		$data['ALLDATA'] = !empty($allRows) ? $allRows : array();
 
 		$this->layouts->set_title('Hourly Game Winner List | UWINN');
 		$this->layouts->admin_view('hourlygame/allhourlygamewinner/index',array(),$data);

@@ -1,5 +1,6 @@
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<?php if (!isset($EDITDATA) || !is_array($EDITDATA)) { $EDITDATA = array(); } ?>
 <script>
 $(function(){
    $("#date").datepicker({dateFormat:'yy-mm-dd',changeMonth: true,changeYear: true,yearRange:"1970:<?php echo date('Y')?>"});
@@ -23,7 +24,7 @@ $(function(){
                         <ul class="breadcrumb">
                             <li class="breadcrumb-item"><a href="<?php echo getCurrentDashboardPath('dashboard/index'); ?>"><i class="feather icon-home"></i></a></li>
                             <li class="breadcrumb-item"><a href="<?php echo correctLink('ALLRECHARGEDATA',getCurrentControllerPath('index')); ?>">Recharge</a></li>
-                            <li class="breadcrumb-item"><a href="javascript:void(0);"><?=$EDITDATA?'Edit':'Add'?> Recharge</a></li>
+                            <li class="breadcrumb-item"><a href="javascript:void(0);"><?=!empty($EDITDATA)?'Edit':'Add'?> Recharge</a></li>
                         </ul>
                     </div>
                 </div>
@@ -35,7 +36,7 @@ $(function(){
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5><?=$EDITDATA?'Edit':'Add'?> Recharge</h5>
+                        <h5><?=!empty($EDITDATA)?'Edit':'Add'?> Recharge</h5>
                         <a href="<?php echo correctLink('ALLRECHARGEDATA',getCurrentControllerPath('index')); ?>" class="btn btn-sm btn-primary pull-right">Back</a>
                         <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right mr-2" data-toggle="modal" data-target="#bulkRecharge">Bulk Recharge</a>
                     </div>
@@ -43,9 +44,9 @@ $(function(){
                         <div class="basic-login-inner">
                             <form id="currentPageForm" name="currentPageForm" class="form-auth-small" method="post" action="" enctype="multipart/form-data">
                                 <input type="hidden" name="CurrentFieldForUnique" id="CurrentFieldForUnique" value="recharge_id"/>
-                                <input type="hidden" name="CurrentIdForUnique" id="CurrentIdForUnique" value="<?=$EDITDATA['recharge_id']?>"/>
-                                <input type="hidden" name="CurrentDataID" id="CurrentDataID" value="<?=$EDITDATA['recharge_id']?>"/>
-                                <input type="hidden" name="userID" id="userID" value="<?=$EDITDATA['userID']?>"/>
+                                <input type="hidden" name="CurrentIdForUnique" id="CurrentIdForUnique" value="<?php echo isset($EDITDATA['recharge_id']) ? $EDITDATA['recharge_id'] : ''; ?>"/>
+                                <input type="hidden" name="CurrentDataID" id="CurrentDataID" value="<?php echo isset($EDITDATA['recharge_id']) ? $EDITDATA['recharge_id'] : ''; ?>"/>
+                                <input type="hidden" name="userID" id="userID" value="<?php echo isset($EDITDATA['userID']) ? $EDITDATA['userID'] : ''; ?>"/>
                                 <input type="hidden" name="<?php echo $this->security->get_csrf_token_name();?>" value="<?php echo $this->security->get_csrf_hash();?>">
 
                                 <div class="row">
@@ -61,15 +62,15 @@ $(function(){
                                     </div>
                                     <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('user')): ?>error<?php endif; ?>">
                                         <label class="rechare_for_label">Email ID<span class="required">*</span></label>
-                                        <input type="text" name="user" id="user" class="form-control required" value="<?php if(set_value('user')): echo set_value('user'); else: echo stripslashes($EDITDATA['user']);endif; ?>" placeholder="Email Id / Mobile No. ">
+                                        <input type="text" name="user" id="user" class="form-control required" value="<?php if(set_value('user')): echo set_value('user'); else: echo stripslashes(isset($EDITDATA['user']) ? $EDITDATA['user'] : '');endif; ?>" placeholder="Email Id / Mobile No. ">
                                         <span id="availableArabianPoints" style="color: blue;"></span>
                                         <?php if(form_error('user')): ?>
                                         <span for="user" generated="user" class="help-inline"><?php echo form_error('user'); ?></span>
                                         <?php endif; ?>
                                     </div>
                                     <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('ipoints')): ?>error<?php endif; ?>">
-                                        <label>Add UPOINT <span class="required">*</span></label>
-                                        <input type="number" min="1" name="addUpoints" id="addUpoints" class="form-control required" value="<?php if(set_value('addUpoints')): echo set_value('addUpoints'); else: echo stripslashes($EDITDATA['addUpoints']);endif; ?>" placeholder="Add UPOINT">
+                                        <label id="add_points_label">Add UPOINT <span class="required">*</span></label>
+                                        <input type="number" min="1" name="addUpoints" id="addUpoints" class="form-control required" value="<?php if(set_value('addUpoints')): echo set_value('addUpoints'); else: echo stripslashes(isset($EDITDATA['addUpoints']) ? $EDITDATA['addUpoints'] : '');endif; ?>" placeholder="Add UPOINT">
                                         <?php if(form_error('addUpoints')): ?>
                                         <span for="addUpoints" generated="true" class="help-inline"><?php echo form_error('addUpoints'); ?></span>
                                         <?php endif; ?>
@@ -84,9 +85,16 @@ $(function(){
                                         <input type="number" name="percentage" id="percentage" class="form-control" value="<?php if(set_value('percentage')): echo set_value('percentage'); endif;  ?>"/>
                                     </div>
 
+                                    <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                                        <label>Recharge Type <span class="required">*</span></label>
+                                        <select class="form-control required" name="recharge_type" id="recharge_type">
+                                            <option value="upoint" <?php if(set_value('recharge_type', 'upoint') == 'upoint'): ?>selected="selected"<?php endif; ?>>Add UPOINT</option>
+                                            <option value="recharge_point" <?php if(set_value('recharge_type') == 'recharge_point'): ?>selected="selected"<?php endif; ?>>Recharge Point</option>
+                                        </select>
+                                    </div>
                                     <div class="form-group-inner col-lg-12 col-md-12 col-sm-12 col-xs-12 <?php if(form_error('remarks')): ?>error<?php endif; ?>">
                                         <label>Remarks </label>
-                                        <textarea name="remarks" id="remarks" class="form-control"><?php if(set_value('remarks')): echo set_value('remarks'); else: echo stripslashes($EDITDATA['remarks']);endif; ?></textarea>
+                                        <textarea name="remarks" id="remarks" class="form-control"><?php if(set_value('remarks')): echo set_value('remarks'); else: echo stripslashes(isset($EDITDATA['remarks']) ? $EDITDATA['remarks'] : '');endif; ?></textarea>
                                         <?php if(form_error('remarks')): ?>
                                         <span for="remarks" generated="true" class="help-inline"><?php echo form_error('remarks'); ?></span>
                                         <?php endif; ?>
@@ -124,6 +132,13 @@ $(function(){
       <form action="<?=getCurrentControllerPath('checkpreview');?>" method="post" enctype="multipart/form-data" autocomplete="off">
           <div class="modal-body">
            <div class="row">
+                <div class="col-sm-12 col-md-12 mb-3">
+                    <label>Recharge Type <span class="required">*</span></label>
+                    <select class="form-control" name="recharge_type" id="bulk_recharge_type">
+                        <option value="upoint">Add UPOINT</option>
+                        <option value="recharge_point">Recharge Point</option>
+                    </select>
+                </div>
                 <div class="col-sm-12 col-md-12">
                     <h6>
                       Uplaod Draw List CSV 
@@ -146,6 +161,45 @@ $(function(){
  
 <script>
 
+    function isRechargePointType(){
+        return $('#recharge_type').val() === 'recharge_point';
+    }
+
+    function updateRechargeTypeUI(){
+        if(isRechargePointType()){
+            $('#add_points_label').html('Add Recharge Point <span class="required">*</span>');
+            $('#addUpoints').attr('placeholder', 'Add Recharge Point');
+        }else{
+            $('#add_points_label').html('Add UPOINT <span class="required">*</span>');
+            $('#addUpoints').attr('placeholder', 'Add UPOINT');
+        }
+    }
+
+    function fetchUserBalance(){
+        var user = $('#user').val();
+        if(user === ''){
+            return;
+        }
+        var ur = '<?=base_url().'/recharge/allrecharge/checkDeplicacy'?>';
+        $.ajax({
+            url : ur,
+            method: "POST",
+            data: {
+                user: user,
+                recharge_type: $('#recharge_type').val(),
+                ding_recharge: isRechargePointType() ? 1 : 0
+            },
+            success: function(data){
+                var data1 = data.split("__");
+                if(data1[1] != ""){
+                    $('#availableArabianPoints').empty().append(data1[0]);
+                    $('.recharge_btn').attr("disabled", false);
+                    $('#userID').val(data1[1]);
+                }
+            }
+        });
+    }
+
      $('#csvFile').on('change', function(){
        let file = $(this).val();
        $('#recharge-upload-btn').attr('disabled' , false);
@@ -155,6 +209,20 @@ $(function(){
         var percentage = $(this).data('percentage');
         $('#percentage').val(percentage);
     });
+
+    $('#recharge_type').on('change', function(){
+        updateRechargeTypeUI();
+        $('#availableArabianPoints').empty();
+        fetchUserBalance();
+        $('#bulk_recharge_type').val($(this).val());
+    });
+
+    $('#bulk_recharge_type').on('change', function(){
+        $('#recharge_type').val($(this).val()).trigger('change');
+    });
+
+    $('#bulk_recharge_type').val($('#recharge_type').val());
+    updateRechargeTypeUI();
 
     $(".rechange_for").on('change' , function(){
         var rechange_for = $(this).val();
@@ -210,7 +278,11 @@ $(function(){
                 $.ajax({
                     url : ur,
                     method: "POST", 
-                    data: {user: user},
+                    data: {
+                        user: user,
+                        recharge_type: $('#recharge_type').val(),
+                        ding_recharge: isRechargePointType() ? 1 : 0
+                    },
                     success: function(data){
                     var data1 = data.split("__");
 
@@ -252,7 +324,11 @@ $(function(){
                 $.ajax({
                     url : ur,
                     method: "POST", 
-                    data: {user: user},
+                    data: {
+                        user: user,
+                        recharge_type: $('#recharge_type').val(),
+                        ding_recharge: isRechargePointType() ? 1 : 0
+                    },
                     success: function(data){
                     var data1 = data.split("__");
 

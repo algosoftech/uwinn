@@ -25,7 +25,7 @@ class Walletarchive_statements extends CI_Controller {
 	public function  __construct() 
 	{ 
 		parent:: __construct();
-		error_reporting(E_ALL ^ E_NOTICE);  
+		error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);  
 		$this->load->model(array('admin_model','emailtemplate_model','sms_model','notification_model','order_model'));
 		$this->lang->load('statictext', 'admin');
 		$this->load->helper('common');
@@ -45,6 +45,13 @@ class Walletarchive_statements extends CI_Controller {
 		$data['error'] 				= 	'';
 		$data['activeMenu'] 		= 	'wallet';
 		$data['activeSubMenu'] 		= 	'walletarchive_statements';
+		$data['fromDate']           =   '';
+		$data['toDate']             =   '';
+		$walletwhereCon             =   array();
+		$walletstatements           =   array();
+		$userdetails                =   false;
+		$start_date                 =   '';
+		$end_date                   =   '';
 
 		$searchField = $this->input->get('searchField');
 		$searchValue = $this->input->get('searchValue');
@@ -86,6 +93,7 @@ class Walletarchive_statements extends CI_Controller {
 			$tblName 	  = 'uw_users';
 			$userdetails  = $this->common_model->getData('single',$tblName, $whereCon, $shortField);
 			// echo "<pre>"; print_r($userdetails); die();
+			if(!empty($userdetails)):
 			$user_OId     = $userdetails['_id']->{'$id'};
 			$walletwhereCon['where']  = array('user_oid' => new MongoDB\BSON\ObjectId($user_OId));
 
@@ -95,6 +103,7 @@ class Walletarchive_statements extends CI_Controller {
 			endif;
 			if($end_date):
 				$walletwhereCon['where_lte'] = 	array(array('0' => 'created_at', '1' => trim($end_date)));
+			endif;
 			endif;
 		endif;
 
@@ -154,8 +163,8 @@ class Walletarchive_statements extends CI_Controller {
 			$walletstatements	  = $this->common_model->getData('multiple',$tblName,$walletwhereCon,$shortField,$perPage,$page);
 		endif;
 
-		$data['ALLDATA']      = $walletstatements;
-		$data['users_type']   = $userdetails['users_type'];
+		$data['ALLDATA']      = is_array($walletstatements) ? $walletstatements : array();
+		$data['userData']     = !empty($userdetails) ? $userdetails : false;
 		// echo "<pre>";print_r($data);die();
 		
 		$this->layouts->set_title('Wallet Statements | UWINN');

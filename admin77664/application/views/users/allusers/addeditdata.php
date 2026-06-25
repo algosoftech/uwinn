@@ -40,8 +40,8 @@ $(function(){
 
                             <form id="currentPageForm" name="currentPageForm" class="form-auth-small" method="post" action="" enctype="multipart/form-data">
                                 <input type="hidden" name="CurrentFieldForUnique" id="CurrentFieldForUnique" value="users_id"/>
-                                <input type="hidden" name="CurrentIdForUnique" id="CurrentIdForUnique" value="<?=$EDITDATA['users_id']?>"/>
-                                <input type="hidden" name="CurrentDataID" id="CurrentDataID" value="<?=$EDITDATA['users_id']?>"/>
+                                <input type="hidden" name="CurrentIdForUnique" id="CurrentIdForUnique" value="<?= isset($EDITDATA['users_id']) ? htmlspecialchars((string) $EDITDATA['users_id'], ENT_QUOTES, 'UTF-8') : '' ?>"/>
+                                <input type="hidden" name="CurrentDataID" id="CurrentDataID" value="<?= isset($EDITDATA['users_id']) ? htmlspecialchars((string) $EDITDATA['users_id'], ENT_QUOTES, 'UTF-8') : '' ?>"/>
                                 <input type="hidden" name="<?php echo $this->security->get_csrf_token_name();?>" value="<?php echo $this->security->get_csrf_hash();?>">
 
                                 <div class="row">
@@ -166,8 +166,8 @@ $(function(){
                                     $simNoValue = substr(preg_replace('/\D/', '', (string)$simNoValue), 0, 19);
                                     ?>
                                     <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('sim_no')): ?>error<?php endif; ?>" id="sim_no_block">
-                                        <label>SIM No <span class="required">*</span></label>
-                                        <input type="text" name="sim_no" id="sim_no" class="form-control" maxlength="19" inputmode="numeric" pattern="[0-9]{19}" value="<?php echo htmlspecialchars($simNoValue, ENT_QUOTES, 'UTF-8'); ?>" placeholder="SIM No (exactly 19 digits)">
+                                        <label>SIM No</label>
+                                        <input type="text" name="sim_no" id="sim_no" class="form-control" maxlength="19" inputmode="numeric" value="<?php echo htmlspecialchars($simNoValue, ENT_QUOTES, 'UTF-8'); ?>" placeholder="SIM No (optional)">
                                         <?php if(form_error('sim_no')): ?>
                                         <span for="sim_no" generated="true" class="help-inline"><?php echo form_error('sim_no'); ?></span>
                                         <?php endif; ?>
@@ -208,11 +208,19 @@ $(function(){
                                                 <?php endif; ?>
                                             </div>
 
-                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('redeeming_commission_percentage')): ?>error<?php endif; ?>" id="redeeming_commission_percentage_block">
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('hourly_games_commission_percentage')): ?>error<?php endif; ?>" id="hourly_games_commission_percentage_block">
                                                 <label>Hourly Games Commission Percentage<span class="required">*</span></label>
                                                 <input type="text" name="hourly_games_commission_percentage" id="hourly_games_commission_percentage" class="form-control" value="<?php if(set_value('hourly_games_commission_percentage')): echo set_value('hourly_games_commission_percentage'); else: echo stripslashes($EDITDATA['hourly_games_commission_percentage']?$EDITDATA['hourly_games_commission_percentage']:'10');endif; ?>" placeholder="Hourly Games Commission Percentage">
                                                 <?php if(form_error('hourly_games_commission_percentage')): ?>
                                                 <span for="name" generated="true" class="help-inline"><?php echo form_error('hourly_games_commission_percentage'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('ding_commission_percentage')): ?>error<?php endif; ?>" id="ding_commission_percentage_block">
+                                                <label>International (Ding) Commission Percentage<span class="required">*</span></label>
+                                                <input type="text" name="ding_commission_percentage" id="ding_commission_percentage" class="form-control" value="<?php if(set_value('ding_commission_percentage')): echo set_value('ding_commission_percentage'); else: echo stripslashes(isset($EDITDATA['ding_commission_percentage']) && $EDITDATA['ding_commission_percentage'] !== '' ? $EDITDATA['ding_commission_percentage'] : '0');endif; ?>" placeholder="International (Ding) Commission Percentage">
+                                                <?php if(form_error('ding_commission_percentage')): ?>
+                                                <span for="ding_commission_percentage" generated="true" class="help-inline"><?php echo form_error('ding_commission_percentage'); ?></span>
                                                 <?php endif; ?>
                                             </div>
 
@@ -278,6 +286,14 @@ $(function(){
                                         <span for="availableArabianPoints" generated="true" class="help-inline"><?php echo form_error('availableArabianPoints'); ?></span>
                                         <?php endif; ?>
                                     </div>
+
+                                    <?php if (!empty($IS_EDIT)): ?>
+                                    <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                                        <label>International Balance</label>
+                                        <input type="text" class="form-control" readonly value="<?php echo number_format((float) ($EDITDATA['availableReachargePoints'] ?? 0), 2, '.', ''); ?>" placeholder="International Balance">
+                                    </div>
+                                    <?php endif; ?>
+
                                     <div class="form-group-inner col-lg-6 col-md-6 col-sm-6 col-xs-12 <?php if(form_error('users_otp')): ?>error<?php endif; ?>">
                                         <label>OTP Numbers</label>
                                         <input type="number" min="0" name="users_otp" id="users_otp" class="form-control" value="<?php if(set_value('users_otp')): echo set_value('users_otp'); else: echo stripslashes($EDITDATA['users_otp']);endif; ?>" placeholder="OTP Numbers" <?php 
@@ -396,7 +412,17 @@ $(function(){
                                                 <span for="enable_hourly_games" generated="true" class="help-inline"><?php echo form_error('enable_hourly_games'); ?></span>
                                                 <?php endif; ?>
                                             </div>
-                                            
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('enable_ding')): ?>error<?php endif; ?>">
+                                                <label>Enable International (Ding)<span class="required">*</span></label>
+                                                <select name="enable_ding" id="enable_ding" class="form-control required">
+                                                    <?php $enableDingValue = (!empty($EDITDATA['enable_ding']) && $EDITDATA['enable_ding'] == 'Y') ? 'Y' : 'N'; ?>
+                                                    <option value="N" <?php if ($enableDingValue == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($enableDingValue == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('enable_ding')): ?>
+                                                <span for="enable_ding" generated="true" class="help-inline"><?php echo form_error('enable_ding'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                 </fieldset>
                                
@@ -502,7 +528,7 @@ else{ $("#store").hide(); }
         $('#bind_with_list_block ,.commission_container , #bind_with_section , #store_name_block , #pos_section , #contract_given_by_section').addClass('d-none');
 
         // Showing EditData..
-        let current_userType = "<?=$EDITDATA['users_type'];?>";
+        let current_userType = "<?= isset($EDITDATA['users_type']) ? $EDITDATA['users_type'] : '' ?>";
 
         if(current_userType == 'Sales Person' || current_userType == 'Freelancer' ){
             $('#pos_section , #bind_with_section , #bind_with_list_block').removeClass('d-none');
@@ -534,7 +560,7 @@ else{ $("#store").hide(); }
         }
 
 
-        let bind_person_id = "<?=$EDITDATA['bind_person_id'];?>";
+        let bind_person_id = "<?= isset($EDITDATA['bind_person_id']) ? $EDITDATA['bind_person_id'] : '' ?>";
 
         if(bind_person_id != ""){
             let bind_user_type = $('#bind_user_type').val();
@@ -566,7 +592,7 @@ else{ $("#store").hide(); }
 
             let userType      = $(this).val();
             let POSNumber     = $('#pos_number').val();
-            var existingPOSNO = "<?=$EDITDATA['pos_number'];?>";
+            var existingPOSNO = "<?= isset($EDITDATA['pos_number']) ? $EDITDATA['pos_number'] : '' ?>";
             if(userType != 'Users' && POSNumber == "" && existingPOSNO == ''){
                 var path      = '<?=getCurrentDashboardPath('allusers/generatePosNumber');?>';
                 $.ajax({

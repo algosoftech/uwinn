@@ -61,9 +61,10 @@
                                                 <option value="">Select Field</option>
                                                 <option value="transaction_id" <?php if (isset($searchField) && $searchField == 'transaction_id') echo 'selected="selected"'; ?>>Transaction ID</option>
                                                 <option value="provider_name" <?php if (isset($searchField) && $searchField == 'provider_name') echo 'selected="selected"'; ?>>Provider Name</option>
-                                                <option value="account_number" <?php if ($searchField == 'account_number') echo 'selected="selected"'; ?>>Account Number</option>
+                                                <option value="account_number" <?php if ($searchField == 'account_number') echo 'selected="selected"'; ?>>Recharge Number</option>
+                                                <option value="cancel_narration" <?php if ($searchField == 'cancel_narration') echo 'selected="selected"'; ?>>Cancel Narration</option>
                                                 <option value="recharge_state" <?php if ($searchField == 'recharge_state') echo 'selected="selected"'; ?>>Recharge State</option>
-                                                <option value="recharge_state" <?php if ($searchField == 'recharge_state') echo 'selected="selected"'; ?>>POS Number</option>
+                                                <option value="seller_users_pos_number" <?php if ($searchField == 'seller_users_pos_number') echo 'selected="selected"'; ?>>POS Number</option>
                                                 <option value="seller_users_mobile" <?php if ($searchField == 'seller_users_mobile') echo 'selected="selected"'; ?>>Seller Mobile no</option>
                                                 <option value="seller_users_type" <?php if ($searchField == 'seller_users_type') echo 'selected="selected"'; ?>>Seller User Type</option>
                                             </select>
@@ -91,13 +92,14 @@
                                                     <th width="5%">S.No.</th>
                                                     <th width="15%">Transaction ID</th>
                                                     <th width="15%">Provider </th>
-                                                    <th width="15%">Mobile Number</th>
-                                                    <th width="15%">Selling Amount</th>
-                                                    <th width="12%">Commission</th>
-                                                    <th width="15%">Seller Details</th>
-                                                    <th width="15%">Created At</th>
-                                                    <th width="12%">Status</th>
-                                                    <th width="12%">Action</th>
+                                                    <th width="12%">Recharge Number</th>
+                                                    <th width="12%">Selling Amount</th>
+                                                    <th width="10%">Agent Commission</th>
+                                                    <th width="14%">Seller Details</th>
+                                                    <th width="12%">Created At</th>
+                                                    <th width="8%">Status</th>
+                                                    <th width="14%">Cancel Narration</th>
+                                                    <th width="8%">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody style="text-align: center;">
@@ -134,8 +136,8 @@
                                                                 <br><span><?php echo htmlspecialchars((string) ($row['provider_name'] ?? '')); ?></span>
                                                             </td>
                                                             <td><?php echo htmlspecialchars((string) ($row['account_number'] ?? '')); ?></td>
-                                                            <td><?php echo htmlspecialchars((string) ($row['amount'] ?? '')); ?> <?php echo htmlspecialchars((string) ($row['send_currency_iso'] ?? '')); ?></td>
-                                                            <td><?php echo number_format((float) ($row['commission_amount'] ?? 0), 2, '.', ''); ?></td>
+                                                            <td><?php echo htmlspecialchars((string) ($row['display_amount'] ?? $row['amount'] ?? '')); ?> <?php echo htmlspecialchars((string) ($row['send_currency_iso'] ?? '')); ?></td>
+                                                            <td><?php echo htmlspecialchars((string) ($row['display_commission_amount'] ?? '0.00')); ?></td>
                                                             <td>
                                                                 POS Number: <?php echo htmlspecialchars((string) ($row['seller_users_pos_number'] ?? '')); ?><br>
                                                                 Type: <?php echo htmlspecialchars((string) ($row['seller_users_type'] ?? '')); ?><br>
@@ -151,12 +153,19 @@
                                                                     <span class="text-muted"><?php echo htmlspecialchars($rechargeState !== '' ? $rechargeState : '—'); ?></span>
                                                                 <?php endif; ?>
                                                             </td>
+                                                            <td class="text-left" style="max-width:200px;word-break:break-word;">
+                                                                <?php if ($isReversed && !empty($row['cancel_narration'])): ?>
+                                                                    <?php echo htmlspecialchars((string) $row['cancel_narration']); ?>
+                                                                <?php else: ?>
+                                                                    <span class="text-muted">—</span>
+                                                                <?php endif; ?>
+                                                            </td>
                                                             <td class="ding-action-dd">
                                                                 <?php if ($canReverse && $histMongoId !== ''): ?>
                                                                     <div class="btn-group">
                                                                         <button type="button" class="btn btn-sm btn-outline-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
                                                                         <div class="dropdown-menu dropdown-menu-right">
-                                                                            <a class="dropdown-item" href="<?php echo htmlspecialchars(getCurrentControllerPath('cancel/' . $histMongoId)); ?>" onclick="return confirm('Cancel this Ding recharge? The user recharge balance and commission will be reversed.');">
+                                                                            <a class="dropdown-item ding-cancel-trigger" href="javascript:void(0);" data-cancel-url="<?php echo htmlspecialchars(getCurrentControllerPath('cancel/' . $histMongoId)); ?>" data-txn-id="<?php echo htmlspecialchars((string) ($row['transaction_id'] ?? '')); ?>">
                                                                                 <i class="fas fa-undo-alt"></i> Cancelled
                                                                             </a>
                                                                         </div>
@@ -169,10 +178,10 @@
                                                                     <span class="text-muted">—</span>
                                                                 <?php endif; ?>
                                                             </td>
-                                                        </tr>
+                                                        </tr> 
                                                     <?php $j++; endforeach; else: ?>
                                                         <tr>
-                                                            <td colspan="10" style="text-align:center;">No Ding recharge history found.</td>
+                                                            <td colspan="11" style="text-align:center;">No Ding recharge history found.</td>
                                                         </tr>
                                                 <?php endif; ?>
                                             </tbody>
@@ -222,7 +231,8 @@ $exportToValue = isset($toDate) && trim((string) $toDate) !== '' ? (string) $toD
             <select name="searchField" id="export_modal_searchField" class="custom-select custom-select-sm form-control form-control-sm">
                 <option value="">Select Field</option>
                 <option value="provider_name" <?php if (isset($searchField) && $searchField == 'provider_name') echo 'selected="selected"'; ?>>Provider Name</option>
-                <option value="account_number" <?php if (isset($searchField) && $searchField == 'account_number') echo 'selected="selected"'; ?>>Account Number</option>
+                <option value="account_number" <?php if (isset($searchField) && $searchField == 'account_number') echo 'selected="selected"'; ?>>Recharge Number</option>
+                <option value="cancel_narration" <?php if (isset($searchField) && $searchField == 'cancel_narration') echo 'selected="selected"'; ?>>Cancel Narration</option>
                 <option value="recharge_state" <?php if (isset($searchField) && $searchField == 'recharge_state') echo 'selected="selected"'; ?>>Recharge State</option>
                 <option value="seller_users_pos_number" <?php if (isset($searchField) && $searchField == 'seller_users_pos_number') echo 'selected="selected"'; ?>>Seller POS Number</option>
                 <option value="seller_users_mobile" <?php if (isset($searchField) && $searchField == 'seller_users_mobile') echo 'selected="selected"'; ?>>Seller Mobile</option>
@@ -258,6 +268,33 @@ $exportToValue = isset($toDate) && trim((string) $toDate) !== '' ? (string) $toD
   </div>
 </div>
 
+<div class="modal fade" id="dingCancelModal" tabindex="-1" role="dialog" aria-labelledby="dingCancelModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dingCancelModalLabel">Cancel Ding Recharge</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="dingCancelForm" method="post" action="">
+        <div class="modal-body">
+          <p class="mb-2">Transaction: <strong id="dingCancelTxnId">—</strong></p>
+          <p class="text-muted small">The user recharge balance and commission will be reversed.</p>
+          <div class="form-group mb-0">
+            <label for="cancel_narration">Cancel narration <span class="text-danger">*</span></label>
+            <textarea name="cancel_narration" id="cancel_narration" class="form-control" rows="3" maxlength="500" required placeholder="Enter reason for cancellation"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js"></script>
 <script>
@@ -272,5 +309,15 @@ $(function () {
   $('#toDate').datetimepicker(dtOpts);
   $('#export_fromDate').datetimepicker(dtOpts);
   $('#export_toDate').datetimepicker(dtOpts);
+
+  $(document).on('click', '.ding-cancel-trigger', function (e) {
+    e.preventDefault();
+    var url = $(this).data('cancel-url') || '';
+    var txn = $(this).data('txn-id') || '—';
+    $('#dingCancelForm').attr('action', url);
+    $('#dingCancelTxnId').text(txn);
+    $('#cancel_narration').val('');
+    $('#dingCancelModal').modal('show');
+  });
 });
 </script>

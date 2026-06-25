@@ -1146,7 +1146,7 @@ class Users extends CI_Controller {
 					'bind_person_id','bind_person_name','bind_user_type','pos_number','pos_device_id','device_id','users_device_id','totalArabianPoints','availableArabianPoints',
 					'referral_code','users_id','users_seq_id','creation_ip','created_at','created_by','is_verify','status','update_date','update_ip','updated_by','app_version','device_type',
 					'latitude','login_token','longitude','token','redeemed_points','updated_at','users_otp','app_name','last_login','show_raffle_campaign','is_mobile_verified','is_email_verified',
-					'enable_raffle_entries','otp_generated_at','summarypin_verified_at','enable_summary_otp','enable_tambola_games','enable_hourly_games','show_lotto_campaign'
+					'enable_raffle_entries','otp_generated_at','summarypin_verified_at','enable_summary_otp','enable_tambola_games','enable_hourly_games','enable_ding','ding_commission_percentage','show_lotto_campaign'
 				);
 				$tblName 		= 'uw_users';
 				$userDetails 	= $this->common_model->getSingleDataByParticularField($Fieldslist,$tblName,'users_id', (int)$this->input->get('users_id'));

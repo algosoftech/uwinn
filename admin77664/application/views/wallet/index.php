@@ -50,6 +50,15 @@
 }
 </style>
 
+<?php
+if (!isset($fromDate)) { $fromDate = ''; }
+if (!isset($toDate)) { $toDate = ''; }
+if (!isset($searchValue)) { $searchValue = ''; }
+if (!isset($searchField)) { $searchField = ''; }
+if (!isset($ALLDATA) || !is_array($ALLDATA)) { $ALLDATA = array(); }
+if (!isset($userData)) { $userData = false; }
+?>
+
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css" />
@@ -172,37 +181,64 @@ $(function(){
                               </tr>
                             </thead>
                             <tbody style="text-align: center;">
-                              <?php if($ALLDATA): ?>
+                              <?php if(!empty($ALLDATA)): ?>
                                 <?php $i=1; foreach ($ALLDATA as $key => $items):?>
                                 <tr>
                                   <td width="10%"><?=$i?></td>
-                                  <td width="30%"> <?=$items['narration'] ?>  </td>
+                                  <td width="30%"> <?=isset($items['narration']) ? $items['narration'] : '' ?>  </td>
                                   <td width="50%">
-                                  <?php if($items['narration'] == "Redeem Prize"): ?>
-                                     Ticket ID :-  <?=$items['order_id'] ?> <br>
+                                  <?php if(isset($items['narration']) && $items['narration'] == "Redeem Prize"): ?>
+                                     Ticket ID :-  <?=isset($items['order_id']) ? $items['order_id'] : '' ?> <br>
                                   <?php endif; ?>
 
-                                   <?=$items['remarks'] ?></td>
+                                   <?=isset($items['remarks']) ? $items['remarks'] : '' ?></td>
                                   <td width="10%"> 
-                                    <span class="<?php if($items['record_type'] == 'Credit' ):?> green <?php else: ?>  red <?php endif;?>">  <?=$items['record_type'];?> </span>
+                                    <span class="<?php if(isset($items['record_type']) && $items['record_type'] == 'Credit' ):?> green <?php else: ?>  red <?php endif;?>">  <?=isset($items['record_type']) ? $items['record_type'] : '';?> </span>
                                   </td>
-                                  <td width="100%"><?=date('d M Y h:i:s A', strtotime($items['created_at'])); ?></td>
-                                  <td width="10%"><?=$items['availableArabianPoints'];?></td>
+                                  <td width="100%">
+                                    <?php
+                                      if (!empty($items['created_at']) && is_numeric($items['created_at'])) {
+                                        echo date('d M Y h:i:s A', (int)$items['created_at']);
+                                      } elseif (!empty($items['created_at'])) {
+                                        echo date('d M Y h:i:s A', strtotime($items['created_at']));
+                                      }
+                                    ?>
+                                  </td>
                                   <td width="10%">
-                                    <?php if($items['record_type'] == 'Credit' ):?>  
-                                      <?=$items['upoints'];?>
+                                    <?php
+                                      $walletNarration = isset($items['narration']) ? (string)$items['narration'] : '';
+                                      $isDingCommission = (strpos($walletNarration, 'Ding Recharge Commission') !== false);
+                                      $walletAmountDecimals = $isDingCommission ? 3 : 2;
+                                      if(isset($items['wallet_type']) && $items['wallet_type'] == 'ding'):
+                                        echo isset($items['availableReachargePoints']) ? number_format((float)$items['availableReachargePoints'], 2, '.', '') : '';
+                                      else:
+                                        echo isset($items['availableArabianPoints']) ? number_format((float)$items['availableArabianPoints'], 2, '.', '') : '';
+                                      endif;
+                                    ?>
+                                  </td>
+                                  <td width="10%">
+                                    <?php if(isset($items['record_type']) && $items['record_type'] == 'Credit' ):?>  
+                                      <?=isset($items['upoints']) ? number_format((float)$items['upoints'], $walletAmountDecimals, '.', '') : ''?>
                                     <?php else: ?>
                                       --
                                     <?php endif;?>
                                   </td>
                                   <td width="10%">
-                                    <?php if($items['record_type'] == 'Debit' ):?>  
-                                      <?=$items['upoints'];?>
+                                    <?php if(isset($items['record_type']) && $items['record_type'] == 'Debit' ):?>  
+                                      <?=isset($items['upoints']) ? number_format((float)$items['upoints'], $walletAmountDecimals, '.', '') : ''?>
                                     <?php else: ?>
                                       --
                                     <?php endif;?>
                                   </td>
-                                  <td width="10%"><?=$items['end_balance'];?></td>
+                                  <td width="10%">
+                                    <?php
+                                      if(isset($items['wallet_type']) && $items['wallet_type'] == 'ding'):
+                                        echo isset($items['end_balance_recharge']) ? number_format((float)$items['end_balance_recharge'], 2, '.', '') : '';
+                                      else:
+                                        echo isset($items['end_balance']) ? number_format((float)$items['end_balance'], 2, '.', '') : '';
+                                      endif;
+                                    ?>
+                                  </td>
                                 </tr>
                                 <?php $i++; endforeach; ?>
                               <?php else: ?>

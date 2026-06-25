@@ -11,7 +11,7 @@
       background-color: white;
       padding: 2px 10px;
       font-size: 16px;
-      min-width: 200px;
+      min-width: 200px; 
   }
 
   .upload-btn-wrapper input[type=file] {
@@ -127,6 +127,7 @@ $(function(){
                                     <option value="">Select Field</option>
                                     <option value="status" <?php if($searchField == 'status')echo 'selected="selected"'; ?>>Status (Active, Inactive )</option>
                                     <option value="batch_id" <?php if($searchField == 'batch_id')echo 'selected="selected"'; ?>>Batch ID </option>
+                                    <option value="order_id" <?php if($searchField == 'order_id')echo 'selected="selected"'; ?>>Order ID </option>
                                   </select>
                               </div>
                               <div class="col-sm-3 col-md-3">
@@ -149,6 +150,83 @@ $(function(){
                         <div class="col-sm-12">
                           <div class="table-responsive">
                             <table id="simpletable" class="table table-striped table-bordered nowrap dataTable" role="grid" aria-describedby="simpletable_info">
+                              <?php if(!empty($isOrderSearch)): ?>
+                              <thead style="text-align: center;">
+                                <tr role="row">
+                                  <th width="5%" style="text-align: center;">S.No.</th>
+                                  <th width="15%">Seller Name</th>
+                                  <th width="20%">Order ID</th>
+                                  <th width="15%">Store Name</th>
+                                  <th width="15%">Coupon Code</th>
+                                  <th width="10%">Matching Code</th>
+                                  <th width="10%">Amount</th>
+                                  <th width="15%">Created Date</th>
+                                  <th width="10%">Status</th>
+                                  <th width="10%">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody style="text-align: center;">
+                                <?php if($ALLDATA <> ""): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO):
+                                if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
+                                ?>
+                                <tr role="row" class="<?php echo $rowClass; ?>">
+                                  <td style="text-align: center;"><?=$i++?></td>
+                                  <td><?=stripslashes(($ALLDATAINFO['seller_users_name'] ?? '').' '.($ALLDATAINFO['seller_users_last_name'] ?? ''))?></td>
+                                  <td><?=stripslashes(!empty($ALLDATAINFO['order_id']) ? $ALLDATAINFO['order_id'] : 'N/A')?></td>
+                                  <td><?=$ALLDATAINFO['seller_store_name'] ?? ''?></td>
+                                  <td><?=$ALLDATAINFO['coupon_code'] ?? ''?></td>
+                                  <td><?=$ALLDATAINFO['matching_coupons'] ?? ''?></td>
+                                  <td><?=number_format((float)($ALLDATAINFO['winning_amount'] ?? 0), 2)?></td>
+                                  <td>
+                                    <?php
+                                      $createdAt = $ALLDATAINFO['winner_uploaded_at'] ?? '';
+                                      if (is_numeric($createdAt)) {
+                                          if ($createdAt > 1000000000000) {
+                                              $createdAt = $createdAt / 1000;
+                                          }
+                                          echo date('Y-m-d H:i:s', $createdAt);
+                                      } elseif (!empty($createdAt)) {
+                                          echo date('Y-m-d H:i:s', strtotime((string)$createdAt));
+                                      }
+                                    ?>
+                                  </td>
+                                  <td>
+                                    <div class="badge badge-light-<?=($ALLDATAINFO['winning_status'] ?? '') == 'paid' ? 'success' : 'danger';?>">
+                                      <?=$ALLDATAINFO['winning_status'] ?? ''?>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="btn-group">
+                                      <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
+                                      <ul class="dropdown-menu" role="menu">
+                                        <?php if(!empty($ALLDATAINFO['batch_id'])): ?>
+                                        <li>
+                                          <a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['batch_id'])?>" ><i class="fas fa-eye"></i>View Batch</a>
+                                        </li>
+                                        <?php endif; ?>
+                                        <li>
+                                          <?php if(($ALLDATAINFO['winning_status'] ?? '') == 'unpaid'): ?>
+                                            <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/I')?>" onClick="return confirm('Do you want to change status');" ><i class="fas fa-thumbs-down"></i>Inactive</a>
+                                          <?php elseif(($ALLDATAINFO['winning_status'] ?? '') == 'Inactive'): ?>
+                                            <a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/A')?>" onClick="return confirm('Do you want to change status');"><i class="fas fa-thumbs-up"></i> Active</a>
+                                          <?php endif; ?>
+                                        </li>
+                                        <?php if(($ALLDATAINFO['soft_delete'] ?? 0) == 0 && !empty($ALLDATAINFO['_id'])): ?>
+                                        <li>
+                                          <a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['_id']->{'$id'})?>" onClick="return confirm('Do you want to delete');" ><i class="fas fa-trash"></i>Delete</a>
+                                        </li>
+                                        <?php endif; ?>
+                                      </ul>
+                                    </div>
+                                  </td>
+                                </tr>
+                                <?php $j++; endforeach; else: ?>
+                                <tr>
+                                  <td colspan="10" style="text-align:center;">No Data Available In Table</td>
+                                </tr>
+                                <?php endif; ?>
+                              </tbody>
+                              <?php else: ?>
                               <thead style="text-align: center;">
                                 <tr role="row">
                                   <th width="5%" style="text-align: center;">S.No.</th>
@@ -231,6 +309,7 @@ $(function(){
                                 </tr>
                                 <?php endif; ?>
                               </tbody>
+                              <?php endif; ?>
                               </table>
                           </div>
                         </div>
