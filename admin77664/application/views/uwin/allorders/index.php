@@ -47,7 +47,6 @@
               <div class="card-header">
                 <h5>Manage Orders</h5>
                 <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#exportModal">Export excel</a>
-                <a href="javascript:void(0)" class="btn btn-sm btn-info pull-right mr-2" data-toggle="modal" data-target="#combinedExportModal">Combined Excel (Hourly + Big Winners)</a>
               </div>
               <div class="card-body">
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
@@ -443,47 +442,6 @@
   </div>
 </div>
 
-<div class="modal fade" id="combinedExportModal" tabindex="-1" role="dialog" aria-labelledby="combinedExportModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="combinedExportModalLabel">Download Combined Report</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <form action="<?=getCurrentControllerPath('combinedexportexcel')?>" method="post" autocomplete="off" id="combinedExportForm">
-        <input type="hidden" name="searchField" id="combinedSearchField" value="">
-        <input type="hidden" name="searchValue" id="combinedSearchValue" value="">
-        <input type="hidden" name="cancelled_order" id="combinedCancelledOrder" value="">
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-sm-12 col-md-6">
-              <label class="col-form-label">From:</label>
-              <input type="datetime-local" name="fromDate" id="combinedFromDate" value="<?php
-                $combinedFrom = !empty($combinedFromDate) ? $combinedFromDate : date('Y-m-d 16:00', strtotime('-1 day'));
-                echo date('Y-m-d\TH:i', strtotime(str_replace('T', ' ', $combinedFrom)));
-              ?>" class="form-control form-control-sm" placeholder="From Date">
-            </div>
-            <div class="col-sm-12 col-md-6">
-              <label class="col-form-label">To:</label>
-              <input type="datetime-local" name="toDate" id="combinedToDate" value="<?php
-                $combinedTo = !empty($combinedToDate) ? $combinedToDate : date('Y-m-d 22:00');
-                echo date('Y-m-d\TH:i', strtotime(str_replace('T', ' ', $combinedTo)));
-              ?>" class="form-control form-control-sm" placeholder="To Date">
-            </div>
-          </div>
-          <p class="text-muted small mt-2 mb-0">Hourly winners aur Big Winners — dono isi date range se export honge.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-info">Download Combined Report</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 <script>
   
 <?php /* $('#draw_time_one').on('change', function () {
@@ -532,7 +490,7 @@ $('#draw_time_two').on('change', function () {
 });
 */ ?>
 // Ensure only one checkbox with the same data-draw-time can be selected
-$(document).on('change', '#exportModal input[name="productIds[]"]', function() {
+$(document).on('change', 'input[name="productIds[]"]', function() {
 
   let drawTime  = $(this).attr('data-draw-time');  // get the draw-time of the current checkbox
 
@@ -546,7 +504,7 @@ $(document).on('change', '#exportModal input[name="productIds[]"]', function() {
 
   // disable other data-draw-time in group
   // Disable all product checkboxes that are not in the selected draw-time group
-  $('#exportModal input[name="productIds[]"]').each(function() {
+  $('input[name="productIds[]"]').each(function() {
     if ($(this).attr('data-draw-time') !== drawTime) {
       $(this).prop('disabled', true);
     } else {
@@ -555,8 +513,8 @@ $(document).on('change', '#exportModal input[name="productIds[]"]', function() {
   });
 
   // If no checkboxes are checked, re-enable all
-  if ($('#exportModal input[name="productIds[]"]:checked').length === 0) {
-    $('#exportModal input[name="productIds[]"]').prop('disabled', false);
+  if ($('input[name="productIds[]"]:checked').length === 0) {
+    $('input[name="productIds[]"]').prop('disabled', false);
 
     let fromDate1 = "<?= date('Y-m-d', strtotime('-1 day')) . 'T22:01'; ?>" ;
     let toDate1   = "<?= date('Y-m-d') . 'T22:00'; ?>";
@@ -578,15 +536,5 @@ $(document).on('change', '#exportModal input[name="productIds[]"]', function() {
       $('input[name="productIds[]"][data-draw-time="' + currentDrawTime + '"]').not(this).prop('checked', false);
   }
   */ ?>
-});
-
-$(document).on('submit', '#combinedExportForm', function() {
-  var $listForm = $('#Data_Form');
-  if ($listForm.length) {
-    $('#combinedSearchField').val($listForm.find('[name="searchField"]').val() || '');
-    $('#combinedSearchValue').val($listForm.find('[name="searchValue"]').val() || '');
-  }
-  var $exportCancelled = $('#exportModal input[name="cancelled_order"]:checked');
-  $('#combinedCancelledOrder').val($exportCancelled.length ? 'on' : '');
 });
 </script>

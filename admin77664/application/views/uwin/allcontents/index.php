@@ -26,7 +26,6 @@
             <div class="card">
               <div class="card-header">
                 <h5>Manage Contents</h5>
-                <button type="button" id="bulk-delete-btn" class="btn btn-sm btn-danger pull-right" style="margin-left: 5px;">Bulk Delete</button>
                 <a href="<?php echo getCurrentControllerPath('addeditdata'); ?>" class="btn btn-sm btn-primary pull-right">Add Contents</a>
               </div>
               <div class="card-body">
@@ -85,9 +84,6 @@
                               <thead style="text-align: center;">
                                 <tr role="row">
                                   <th width="3%"><i class="fas fa-grip-vertical"></i></th>
-                                  <th width="5%" style="text-align: center;">
-                                    <input type="checkbox" id="select-all" title="Select All">
-                                  </th>
                                   <th width="5%">S.No.</th>
                                   <th width="15%">Image</th>
                                   <th width="15%">Show On </th>
@@ -102,9 +98,6 @@
                                 ?>
                                 <tr role="row" class="<?php echo $rowClass; ?> sortable-row" data-id="<?=$ALLDATAINFO['_id']->{'$id'}?>" data-position="<?=$ALLDATAINFO['position']?>">
                                   <td class="drag-handle" style="cursor: move;"><i class="fas fa-grip-vertical text-muted"></i></td>
-                                  <td style="text-align: center;">
-                                    <input type="checkbox" name="delete[]" class="delete-row" value="<?=$ALLDATAINFO['_id']->{'$id'}?>">
-                                  </td>
                                   <td class="sno-cell"><?=$i++?></td>
                                   <td>
                                     <?php if($ALLDATAINFO['link_thumbnail']): ?>
@@ -119,14 +112,7 @@
                                           Your browser does not support the video tag.
                                       </video>
                                     <?php endif;?>
-                                  </td>
-                                  <td>
-                                      <?php if(!empty($ALLDATAINFO['added_for'])): ?>
-                                        <b>Used For:</b> <?=htmlspecialchars(implode(' , ', $ALLDATAINFO['added_for']));?><br>
-                                      <?php endif; ?>
-                                      <?php if(isset($ALLDATAINFO['position']) && $ALLDATAINFO['position'] !== ''): ?>
-                                        <b>Position:</b> <?=htmlspecialchars((string)$ALLDATAINFO['position']);?><br>
-                                      <?php endif; ?>
+                                   <td>
                                       <?=ucwords(str_replace('_', ' ', $ALLDATAINFO['upload_type']));?>
                                       <hr>
                                       <!-- <div class="row">
@@ -157,6 +143,10 @@
                                             </div>
                                         </div>
                                       </div> -->
+                                      <?php if(!empty($ALLDATAINFO['added_for'])): ?>
+                                        <b>Added For : </b> <?=implode(' , ',$ALLDATAINFO['added_for'])?> </br>
+                                      <?php endif; ?>
+
                                       <?php if(!empty($ALLDATAINFO['added_for_top_banner'])): ?>
                                         <b>show on (Top Banner) : </b> <?=implode(' , ',$ALLDATAINFO['added_for_top_banner'])?> </br>
                                       <?php endif; ?>
@@ -171,9 +161,6 @@
 
                                       <?php if(!empty($ALLDATAINFO['added_for_winner_gallery'])): ?>
                                         <b>show on (Winner Gallery): </b> <?=implode(' , ',$ALLDATAINFO['added_for_winner_gallery'])?> </br>
-                                      <?php endif; ?>
-                                      <?php if(!empty($ALLDATAINFO['original_file_name'])): ?>
-                                        <b>Original file name:</b> <?=htmlspecialchars($ALLDATAINFO['original_file_name']);?><br>
                                       <?php endif; ?>
                                   </td>
                                   <td><?=showStatus($ALLDATAINFO['status'])?></td>
@@ -195,7 +182,7 @@
                                 </tr>
                                 <?php $j++; endforeach; else: ?>
                                  <tr>
-                                  <td colspan="8" style="text-align:center;">No Data Available In Table</td>
+                                  <td colspan="7" style="text-align:center;">No Data Available In Table</td>
                                  </tr>
                                 <?php endif; ?>
                                </tbody>
@@ -301,54 +288,6 @@
       $('.drag-handle').on('selectstart', function(e) {
           e.preventDefault();
           return false;
-      });
-  });
-
-  $('#select-all').on('change', function() {
-      $('.delete-row').prop('checked', $(this).is(':checked'));
-  });
-
-  $(document).on('change', '.delete-row', function() {
-      var totalRows = $('.delete-row').length;
-      var checkedRows = $('.delete-row:checked').length;
-      $('#select-all').prop('checked', totalRows > 0 && totalRows === checkedRows);
-  });
-
-  $('#bulk-delete-btn').on('click', function() {
-      var selectedIds = [];
-      $('.delete-row:checked').each(function() {
-          selectedIds.push($(this).val());
-      });
-
-      if(selectedIds.length === 0) {
-          alert('Please select at least one row to delete.');
-          return;
-      }
-
-      if(!confirm('Do you want to delete ' + selectedIds.length + ' selected item(s)?')) {
-          return;
-      }
-
-      var $btn = $(this);
-      $btn.prop('disabled', true);
-
-      $.ajax({
-          type: 'POST',
-          url: '<?php echo getCurrentControllerPath("bulkdeletedata"); ?>',
-          data: { ids: selectedIds },
-          dataType: 'json',
-          success: function(response) {
-              if(response.status === true) {
-                  window.location.reload();
-              } else {
-                  alert(response.message || 'Failed to delete selected items.');
-                  $btn.prop('disabled', false);
-              }
-          },
-          error: function() {
-              alert('Failed to delete selected items. Please try again.');
-              $btn.prop('disabled', false);
-          }
       });
   });
 

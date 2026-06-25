@@ -1,3 +1,5 @@
-**/mongo_db.php
-application/logs/*
-assets/uwinn_db.zip
+.htaccess
+/application/config/
+/application/logs
+/admin77664/application/config/
+/admin77664/application/logs/

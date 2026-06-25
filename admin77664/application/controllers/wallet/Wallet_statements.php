@@ -60,9 +60,9 @@ class Wallet_statements extends CI_Controller {
 		 	$fromDate = $this->input->get('fromDate');
 			$hours = date('H:i',strtotime($fromDate));
 			if($hours == '00:00'):
-				$start_date   = date( "Y-m-d 00:01" ,strtotime($fromDate));
+				$start_date   = date( "Y-m-d 00:00:00" ,strtotime($fromDate));
 			else:
-				$start_date   = date( "Y-m-d H:i" ,strtotime($fromDate));
+				$start_date   = date( "Y-m-d H:i:00" ,strtotime($fromDate));
 			endif;
 			$data['fromDate'] =   $start_date;  //2023-03-16 15:13
 		endif;
@@ -71,9 +71,9 @@ class Wallet_statements extends CI_Controller {
 			$toDate = $this->input->get('toDate');
 			$hours = date('H:i',strtotime($toDate));
 			if($hours == '00:00'):
-				$end_date          = date( "Y-m-d 23:59" ,strtotime($toDate));
+				$end_date          = date( "Y-m-d 23:59:59" ,strtotime($toDate));
 			else:
-				$end_date          = date( "Y-m-d H:i" ,strtotime($toDate));
+				$end_date          = date( "Y-m-d H:i:59" ,strtotime($toDate));
 			endif;
 			$data['toDate']        = $end_date;  //2023-03-16 15:13
 		endif;
@@ -196,10 +196,10 @@ class Wallet_statements extends CI_Controller {
 		$this->common_model->generateLogs();
 		// ---------------------------------Date query start---------------------------------//
 		if($this->input->post('fromDate')):
-			$fromDate	 = date('Y-m-d H:i', strtotime($this->input->post('fromDate')));
+			$fromDate	 = date('Y-m-d H:i:00', strtotime($this->input->post('fromDate')));
 		endif;
 		if($this->input->post('toDate')):
-			$toDate	 	 = date('Y-m-d H:i', strtotime($this->input->post('toDate')));
+			$toDate	 	 = date('Y-m-d H:i:59', strtotime($this->input->post('toDate')));
 		endif;
 		
 		if($fromDate):
@@ -290,10 +290,10 @@ class Wallet_statements extends CI_Controller {
 
 		// ---------------------------------Date query start---------------------------------//
 		if($this->input->post('fromDate')):
-			$fromDate	 = date('Y-m-d H:i', strtotime($this->input->post('fromDate')));
+			$fromDate	 = date('Y-m-d H:i:00', strtotime($this->input->post('fromDate')));
 		endif;
 		if($this->input->post('toDate')):
-			$toDate	 	 = date('Y-m-d H:i', strtotime($this->input->post('toDate')));
+			$toDate	 	 = date('Y-m-d H:i:59', strtotime($this->input->post('toDate')));
 		endif;
 		
 		if($fromDate):

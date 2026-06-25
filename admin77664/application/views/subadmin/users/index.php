@@ -81,33 +81,33 @@
                               </tr>
                             </thead>
                             <tbody>
-                              <?php if(!empty($ALLDATA) && is_array($ALLDATA)): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
+                              <?php if($ALLDATA <> ""): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
                                 if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
                               ?>
                                 <tr role="row" class="<?php echo $rowClass; ?>">
                                   <td><?=$i++?></td>
-                                  <td><?=stripslashes($ALLDATAINFO['department_name'] ?? '')?></td>
-                                  <td><?=stripslashes($ALLDATAINFO['designation_name'] ?? '')?></td>
-                                  <td><?=stripslashes($ALLDATAINFO['admin_title'] ?? '')?></td>
-                                  <td><?=stripslashes(($ALLDATAINFO['admin_first_name'] ?? '').' '.($ALLDATAINFO['admin_middle_name'] ?? '').' '.($ALLDATAINFO['admin_last_name'] ?? ''))?></td>
-                                  <td><?=stripslashes($ALLDATAINFO['admin_email'] ?? '')?></td>
-                                  <td><?=stripslashes($ALLDATAINFO['admin_phone'] ?? '')?></td>
-                                  <td><?=showStatus($ALLDATAINFO['status'] ?? '')?></td>
+                                  <td><?=stripslashes($ALLDATAINFO['department_name'])?></td>
+                                  <td><?=stripslashes($ALLDATAINFO['designation_name'])?></td>
+                                  <td><?=stripslashes($ALLDATAINFO['admin_title'])?></td>
+                                  <td><?=stripslashes($ALLDATAINFO['admin_first_name'].' '.$ALLDATAINFO['admin_middle_name'].' '.$ALLDATAINFO['admin_last_name'])?></td>
+                                  <td><?=stripslashes($ALLDATAINFO['admin_email'])?></td>
+                                  <td><?=stripslashes($ALLDATAINFO['admin_phone'])?></td>
+                                  <td><?=showStatus($ALLDATAINFO['status'])?></td>
                                   <td>
                                     <div class="btn-group">
                                       <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
                                       <ul class="dropdown-menu" role="menu">
-                                        <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.($ALLDATAINFO['admin_id'] ?? ''))?>"><i class="fas fa-edit"></i> Edit Details</a></li>
-                                        <?php if(($ALLDATAINFO['status'] ?? '') == 'A'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['admin_id'] ?? '').'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['admin_id'] ?? '').'/B')?>" onClick="return confirm('Want to block!');"><i class="fas fa-trash"></i> Block</a></li>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['admin_id'] ?? '').'/D')?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
-                                        <?php elseif(($ALLDATAINFO['status'] ?? '') == 'I'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['admin_id'] ?? '').'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
-                                        <?php elseif(($ALLDATAINFO['status'] ?? '') == 'B'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['admin_id'] ?? '').'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
-                                        <?php elseif(($ALLDATAINFO['status'] ?? '') == 'D'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['admin_id'] ?? '').'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
+                                        <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['admin_id'])?>"><i class="fas fa-edit"></i> Edit Details</a></li>
+                                        <?php if($ALLDATAINFO['status'] == 'A'): ?>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['admin_id'].'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['admin_id'].'/B')?>" onClick="return confirm('Want to block!');"><i class="fas fa-trash"></i> Block</a></li>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['admin_id'].'/D')?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
+                                        <?php elseif($ALLDATAINFO['status'] == 'I'): ?>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['admin_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
+                                        <?php elseif($ALLDATAINFO['status'] == 'B'): ?>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['admin_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
+                                        <?php elseif($ALLDATAINFO['status'] == 'D'): ?>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['admin_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
                                         <?php endif; ?>
                                       </ul>
                                     </div>

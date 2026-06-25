@@ -34,7 +34,6 @@ $(function(){
                <!-- Edit Product settings -->
 
                <!-- Add U Product start -->
-                <button type="button" id="bulk-delete-btn" class="btn btn-sm btn-danger pull-right mr-2">Bulk Delete</button>
                 <a href="<?php echo getCurrentControllerPath('addeditdata'); ?>" class="btn btn-sm btn-primary pull-right mr-2">Add Daily Result</a>
                 <a href="<?php echo getCurrentControllerPath('settings'); ?>" class="btn btn-sm btn-primary pull-right mr-2">Settings</a>
                <!-- Add U Product end -->
@@ -78,9 +77,6 @@ $(function(){
                             <table id="simpletable" class="table table-striped table-bordered nowrap dataTable" role="grid" aria-describedby="simpletable_info">
                               <thead style="text-align: center;">
                                 <tr role="row">
-                                <th width="5%" style="text-align: center;">
-                                  <input type="checkbox" id="select-all" title="Select All">
-                                </th>
                                 <th width="5%" style="text-align: center;">S.No.</th>
                                 <th width="25%">Result Date</th>
                                 <th width="25%">total Result Count</th>
@@ -92,9 +88,6 @@ $(function(){
                                 if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
                                 ?>
                                 <tr role="row" class="<?php echo $rowClass; ?>">
-                                    <td style="text-align: center;">
-                                      <input type="checkbox" name="delete[]" class="delete-row" value="<?=$ALLDATAINFO['_id'];?>">
-                                    </td>
                                     <td><?=$i++;?></td>
                                     <td><?=date("Y-m-d",$ALLDATAINFO['_id']);?></td>
                                     <td><?=$ALLDATAINFO['count'];?></td>
@@ -112,7 +105,7 @@ $(function(){
                                 </tr>
                                 <?php $j++; endforeach; else: ?>
                                 <tr>
-                                  <td colspan="5" style="text-align:center;">No Data Available In Table</td>
+                                  <td colspan="11" style="text-align:center;">No Data Available In Table</td>
                                 </tr>
                                 <?php endif; ?>
                               </tbody>
@@ -140,55 +133,3 @@ $(function(){
         <!-- [ Main Content ] end -->
     </div>
 </div>
-
-<script>
-$(function() {
-  $('#select-all').on('change', function() {
-    $('.delete-row').prop('checked', $(this).is(':checked'));
-  });
-
-  $(document).on('change', '.delete-row', function() {
-    var totalRows = $('.delete-row').length;
-    var checkedRows = $('.delete-row:checked').length;
-    $('#select-all').prop('checked', totalRows > 0 && totalRows === checkedRows);
-  });
-
-  $('#bulk-delete-btn').on('click', function() {
-    var selectedIds = [];
-    $('.delete-row:checked').each(function() {
-      selectedIds.push($(this).val());
-    });
-
-    if(selectedIds.length === 0) {
-      alert('Please select at least one row to delete.');
-      return;
-    }
-
-    if(!confirm('Delete all results for ' + selectedIds.length + ' selected date(s)?')) {
-      return;
-    }
-
-    var $btn = $(this);
-    $btn.prop('disabled', true);
-
-    $.ajax({
-      type: 'POST',
-      url: '<?php echo getCurrentControllerPath("bulkdeletedata"); ?>',
-      data: { ids: selectedIds },
-      dataType: 'json',
-      success: function(response) {
-        if(response.status === true) {
-          window.location.reload();
-        } else {
-          alert(response.message || 'Failed to delete selected items.');
-          $btn.prop('disabled', false);
-        }
-      },
-      error: function() {
-        alert('Failed to delete selected items. Please try again.');
-        $btn.prop('disabled', false);
-      }
-    });
-  });
-});
-</script>

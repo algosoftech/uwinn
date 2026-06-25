@@ -55,22 +55,25 @@ $route['404_override'] 			= 	'';
 $route['translate_uri_dashes'] 	= 	FALSE;
 
 //$curUrl						=	explode('/',$_SERVER['REQUEST_URI']);  print_r($curUrl); die;
-$uriPath					=	parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uriParts					=	array_values(array_filter(explode('/', (string) $uriPath), 'strlen'));
-$adminIdx					=	array_search('admin77664', $uriParts, true);
-if ($adminIdx !== false) {
-	$firstSlug				=	$uriParts[$adminIdx + 1] ?? '';
-	$secondSlug				=	$uriParts[$adminIdx + 2] ?? '';
-	$thirdSlug				=	$uriParts[$adminIdx + 3] ?? '';
-	$fourthlug				=	$uriParts[$adminIdx + 4] ?? '';
-	$extractData			=	'/' . implode('/', array_slice($uriParts, 0, $adminIdx + 1)) . '/';
-} else {
-	$firstSlug				=	'';
-	$secondSlug				=	'';
-	$thirdSlug				=	'';
-	$fourthlug				=	'';
-	$extractData			=	'/admin77664/';
-}$functionArray 				=	array('getsubcategoryData','getnotificationuser','exportexcel','exportshopexcel','exportshopexcelApi','exportshopexcelDownload','combinedexportexcel','combinedexportexcelDownload','combinedexportexcelApi','videoDelete','index','addeditdata','addprize','deletedata','bulkdeletedata','changestatus','imageUpload','imageDelete','deleteContent','memberDelete','viewdata','changedatastatus','getdatabyajax','getCityData','getStatisticsByUserID','registrationListByEmail','getmaratArea','checkRetailer','users_list','exportAllUsers','getTicketData','getCampaignSalesData','getSponsoredData','getRefferalData','getSignupBonusData','getMembershipData','getRechargeData','checkDeplicacy','generatecoupons','userdetails','addOption','upload_subwinners','settings','subwinner','imagePrizeDelete','generatePosNumber','checkpreview','uploadVoucher','exportexcelApi','changestatusByorderID','checkInactivepreview','rejectrequest','adminRecharges','test','getbindwith','multiplechangestatus','sendsms','getAllusers','getSummaryByDate','getUsers');
+$curUrl						=	strpos($_SERVER['REQUEST_URI'],'/?')?explode('/?',$_SERVER['REQUEST_URI']):explode('?',$_SERVER['REQUEST_URI']); 
+$curUrl						=	explode('/',$curUrl[0]); //print_r($curUrl); die;
+/////////////   Localhost 		/////////////////
+if($_SERVER['SERVER_NAME']=='localhost'):
+	$firstSlug				=	isset($curUrl[3])?$curUrl[3]:'';
+	$secondSlug				=	isset($curUrl[4])?$curUrl[4]:'';
+	$thirdSlug				=	isset($curUrl[5])?$curUrl[5]:'';
+	$fourthlug				=	isset($curUrl[6])?$curUrl[6]:'';
+	$extractData 			=	'/admin77664/';
+
+/////////////   SERVER		/////////////////	
+else: 
+	$firstSlug				=	isset($curUrl[2])?$curUrl[2]:'';
+	$secondSlug				=	isset($curUrl[3])?$curUrl[3]:'';
+	$thirdSlug				=	isset($curUrl[4])?$curUrl[4]:'';
+	$fourthlug				=	isset($curUrl[5])?$curUrl[5]:'';
+	$extractData 			=	'/admin77664/';
+endif;
+$functionArray 				=	array('getsubcategoryData','exportexcel','videoDelete','index','addeditdata','addprize','deletedata','changestatus','imageUpload','imageDelete','deleteContent','memberDelete','viewdata','changedatastatus','getdatabyajax','getCityData','getStatisticsByUserID','registrationListByEmail','getmaratArea','checkRetailer','users_list','exportAllUsers','getTicketData','getCampaignSalesData','getSponsoredData','getRefferalData','getSignupBonusData','getMembershipData','getRechargeData','checkDeplicacy','generatecoupons','userdetails','addOption','upload_subwinners','settings','subwinner','imagePrizeDelete','generatePosNumber','checkpreview','uploadVoucher','exportexcelApi','changestatusByorderID','checkInactivepreview','rejectrequest','adminRecharges','getnotificationuser','multiplechangestatus','getUserTicketList','getUserActiveTicketList','getUserNotificationList','getTopupsVouchersList','deleteOldNotificationsData','getbindwith','getUsers','uploadVoucher');
 
 if($firstSlug == 'login'):  
 	$route['login'] 											= 	'login/index';
@@ -139,7 +142,8 @@ elseif($secondSlug == 'subwinner'):
 elseif($secondSlug == 'allinventory'):  
 	$route['emirate/allinventory/addeditdata'] 					= 	'emirate/allinventory/addeditdata';
 else: 
-	$mngConf		= 	new MongoDB\Driver\Manager("mongodb://192.168.1.7:27017");
+	// $mngConf		= 	new MongoDB\Driver\Manager("mongodb://192.168.1.7:27017");
+	$mngConf		= 	new MongoDB\Driver\Manager("mongodb://localhost:27017");
 	if(in_array($fourthlug,$functionArray)):
 	    $filter 	= 	['module_name'=>$firstSlug,'first_data.module_name'=>$secondSlug,'first_data.second_data.module_name'=>$thirdSlug]; 
 	elseif(in_array($thirdSlug,$functionArray)):	
@@ -148,16 +152,18 @@ else:
 		 $filter 	= 	['module_name'=>'urlerror'];
 	endif;
     $queryConf	= 	new MongoDB\Driver\Query($filter);     
-    $resConf	= 	$mngConf->executeQuery($mongoDbName.".uw_admin_module", $queryConf);
+    $resConf	= 	$mngConf->executeQuery("uwin_db.uw_admin_module", $queryConf);
     $resData	= 	current($resConf->toArray()); 
     if($resData):  
 		$newCurUrl				=	explode($extractData,$_SERVER['REQUEST_URI']);
 		$classFunction			=	isset($newCurUrl[1])?$newCurUrl[1]:'';
 		$classFunction			=	strpos($classFunction,'/?')?explode('/?',$classFunction):explode('?',$classFunction);
 		if($classFunction[0]):	 
-			$route[$classFunction[0]] 						= 	$classFunction[0]; 
-		elseif($firstSlug && $secondSlug && $thirdSlug):
-			$route[$firstSlug.'/'.$secondSlug.'/'.$thirdSlug]	= 	$firstSlug.'/'.$secondSlug.'/'.$thirdSlug;
+			if(in_array($fourthlug,$functionArray)):	 
+				$route[$classFunction[0]] 						= 	str_replace($secondSlug.'/','',$classFunction[0]); 
+			else:	
+				$route[$classFunction[0]] 						= 	$classFunction[0]; 
+			endif;
 		endif;
 	else:
 		$route['campaignsales/sales/index'] 					= 	'campaignsales/sales/index';
@@ -177,12 +183,7 @@ else:
 
 		$route['recharge/allrechargevoucher/viewredeemcoupons'] = 	'recharge/allrechargevoucher/viewredeemcoupons';
 
-		if($firstSlug && $secondSlug):
-			if($thirdSlug && in_array($thirdSlug, $functionArray)):
-				$route[$firstSlug.'/'.$secondSlug.'/'.$thirdSlug]	= 	$firstSlug.'/'.$secondSlug.'/'.$thirdSlug;
-			endif;
-			$route[$firstSlug.'/'.$secondSlug.'/(:any)']			= 	$firstSlug.'/'.$secondSlug.'/$1';
-		endif;
+		$route[$firstSlug.'/'.$secondSlug.'/(:any)']			= 	'account/maindashboard';
 	endif;
 endif;
 // echo '<pre>';  print_r($route); die;

@@ -22,12 +22,12 @@
         </li>
         <?php 
             $menuData   =   $this->admin_model->getMenuModuleNew(); 
-            if(!empty($menuData) && is_array($menuData)): foreach($menuData as $menuDInfo): 
+            if($menuData <> ""): foreach($menuData as $menuDInfo): 
                 $menuChildData          =   $menuDInfo['first_data'];
                 if($menuChildData):
         ?>
             <li class="nav-item pcoded-hasmenu <?php if(strtolower($activeMenu) == $menuDInfo['module_name']):?> active pcoded-trigger<?php endif; ?>">
-                <a href="javascript:void(0);" class="nav-link "><span class="pcoded-micon"><?php echo render_module_icon($menuDInfo['module_icone']); ?></span><span class="pcoded-mtext"><?php echo stripslashes($menuDInfo['module_display_name']); ?></span></a>
+                <a href="javascript:void(0);" class="nav-link "><span class="pcoded-micon"><?php echo stripslashes($menuDInfo['module_icone']); ?></span><span class="pcoded-mtext"><?php echo stripslashes($menuDInfo['module_display_name']); ?></span></a>
                 <ul class="pcoded-submenu">
                     <?php foreach($menuChildData as $menuChildDInfo): ?>
                       <?php if($menuChildDInfo->module_name == 'allrechargeUser'): ?>
@@ -41,7 +41,7 @@
         <?php else: ?> 
             <li class="nav-item <?php if(strtolower($activeMenu) == $menuDInfo['module_name']):?> active<?php endif; ?>">
                 <a href="{FULL_SITE_URL}<?php echo stripslashes($menuDInfo['module_name']); ?>/index" class="nav-link ">
-                    <span class="pcoded-micon"><?php echo render_module_icon($menuDInfo['module_icone']); ?></span>
+                    <span class="pcoded-micon"><?php echo stripslashes($menuDInfo['module_icone']); ?></i></span>
                     <span class="pcoded-mtext"><?php echo stripslashes($menuDInfo['module_display_name']); ?></span>
                 </a>
             </li>

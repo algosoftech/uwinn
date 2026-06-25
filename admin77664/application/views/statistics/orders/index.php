@@ -12,7 +12,6 @@ $productIds = $productIds ?? array();
 $ALLHOURLYGAME = $ALLHOURLYGAME ?? array();
 $hourlyGameIds = $hourlyGameIds ?? array();
 $HourReport = $HourReport ?? array();
-$searchMode = $searchMode ?? 'default';
 $j = 0;
 
 $formatReportTime = function($value, $format = 'd-m-Y H:i') {
@@ -124,10 +123,10 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
                             <div class="col-sm-6 col-md-6">
                                 <div class="row" >
                                   <div class="col-sm-12 col-md-4">
-                                    <input type="datetime-local" name="fromDate" id="fromDate" step="1" autocomplete="off" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
+                                    <input type="datetime-local" name="fromDate" id="fromDate" autocomplete="off" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
                                   </div>
                                   <div class="col-sm-12 col-md-4">
-                                    <input type="datetime-local" name="toDate" id="toDate" step="1" autocomplete="off" value="<?php echo $toDate; ?>" class="form-control form-control-sm  mr-2" placeholder="To Date">
+                                    <input type="datetime-local" name="toDate" id="toDate" autocomplete="off" value="<?php echo $toDate; ?>" class="form-control form-control-sm  mr-2" placeholder="To Date">
                                   </div>
                                   <div class="col-sm-12 col-md-1">
                                     <input type="submit" name="Search" value="Search" class="btn btn-sm btn-primary ">
@@ -228,7 +227,6 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
                     <?php  
                      $sales = 0;
                      $total_order = 0;
-                     $total_winning_amount = 0;
                      $ReportRecord = array();
                      $ArrayHeading = array();
                      
@@ -239,7 +237,6 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
                             $ReportRecord[] = $ReportItems;
                             $sales          += $ReportItems['sales'] ?? 0;
                             $total_order    += $ReportItems['total_order'] ?? 0;
-                            $total_winning_amount += $ReportItems['winning_amount'] ?? 0;
                           endif;
                         endforeach;
                       endif;
@@ -292,23 +289,17 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
 
                       <div class="row">
                         <div class="col-sm-12 col-md-12 col-lg-12">
-                          <table id="simpletable" class="table table-striped table-bordered nowrap dataTable <?php echo ($searchMode === 'hourly') ? 'w-50' : 'w-25'; ?>" role="grid" aria-describedby="simpletable_info">
+                          <table id="simpletable" class="table table-striped table-bordered nowrap dataTable w-25" role="grid" aria-describedby="simpletable_info">
                             <thead style="text-align: center;">
                               <tr role="row">
                                 <th width="5%">Total Orders</th>
                                 <th width="5%">Total Sales</th>
-                                <?php if($searchMode === 'hourly'): ?>
-                                <th width="5%">Total Winning Amount</th>
-                                <?php endif; ?>
                               </tr>
                             </thead>
                             <tbody style="text-align: center;">
                               <tr>
                                 <td><?=$total_order; ?></td>
                                 <td><?=$sales; ?></td>
-                                <?php if($searchMode === 'hourly'): ?>
-                                <td><?=$total_winning_amount; ?></td>
-                                <?php endif; ?>
                               </tr>
                             </tbody>
                           </table>

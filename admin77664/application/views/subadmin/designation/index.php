@@ -71,25 +71,25 @@
                               </tr>
                             </thead>
                             <tbody>
-                              <?php if(!empty($ALLDATA) && is_array($ALLDATA)): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
+                              <?php if($ALLDATA <> ""): $i=$first; $j=0; foreach($ALLDATA as $ALLDATAINFO): 
                                 if($j%2==0): $rowClass = 'odd'; else: $rowClass = 'even'; endif;
                               ?>
                                <tr role="row" class="<?php echo $rowClass; ?>">
                                   <td><?=$i++?></td>
-                                  <td><?=stripslashes($ALLDATAINFO['designation_name'] ?? '')?></td>
-                                  <td><?=showStatus($ALLDATAINFO['status'] ?? '')?></td>
+                                  <td><?=stripslashes($ALLDATAINFO['designation_name'])?></td>
+                                  <td><?=showStatus($ALLDATAINFO['status'])?></td>
                                   <td>
                                     <div class="btn-group">
                                       <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
                                       <ul class="dropdown-menu" role="menu">
-                                        <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.($ALLDATAINFO['designation_id'] ?? ''))?>"><i class="fas fa-edit"></i> Edit Details</a></li>
-                                        <?php if(($ALLDATAINFO['status'] ?? '') == 'A'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['designation_id'] ?? '').'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
-                                        <?php elseif(($ALLDATAINFO['status'] ?? '') == 'I'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.($ALLDATAINFO['designation_id'] ?? '').'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
+                                        <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['designation_id'])?>"><i class="fas fa-edit"></i> Edit Details</a></li>
+                                        <?php if($ALLDATAINFO['status'] == 'A'): ?>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['designation_id'].'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
+                                        <?php elseif($ALLDATAINFO['status'] == 'I'): ?>
+                                          <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['designation_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
                                         <?php endif; ?>
-                                        <?php if(($ALLDATAINFO['designation_used'] ?? '') == 'N'): ?>
-                                          <li><a href="<?php echo getCurrentControllerPath('deletedata/'.($ALLDATAINFO['designation_id'] ?? ''))?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
+                                        <?php if($ALLDATAINFO['designation_used'] == 'N'): ?>
+                                          <li><a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['designation_id'])?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
                                         <?php endif; ?>
                                       </ul>
                                     </div>
