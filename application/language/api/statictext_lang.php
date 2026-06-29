@@ -390,3 +390,4 @@ $lang['EMPTY_PRODUCT_NAME']								= 'Product name is empty';
 $lang['HOURLY_GAME_DISABLED']						    = 'Campaign are diabled. Please contact customer support.';
 $lang['HOURLY_GAME_DRAW_ALERT']							= 'Draw scheduled for today will take place at ###DRAWTIME###. Please check back after the draw for results';
 $lang['ALREADY_ORDER_PLACED']							= 'Order already placed.';
+$lang['DRAW_TIME_REQUIRED']								= 'Draw time is required.';

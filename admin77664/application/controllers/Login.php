@@ -45,8 +45,8 @@ class Login extends CI_Controller {
 					elseif($result['status'] != 'A'):	
 						$data['error'] = lang('accountblock');	
 					else:	
-						// $param['admin_password_otp']		=	(int)'4321';//(int)generateRandomString(4,'n');
-						$param['admin_password_otp']		=	rand(1111,9999);
+						$param['admin_password_otp']		=	(int)'4321';//(int)generateRandomString(4,'n');
+						// $param['admin_password_otp']		=	rand(1111,9999);
 
 						$this->common_model->editData('uw_admin',$param,'admin_id',(int)$result['admin_id']);
 					   // $this->sms_model->sendForgotPinOtpSmsToUser($result['admin_email'],$param['admin_password_otp']);

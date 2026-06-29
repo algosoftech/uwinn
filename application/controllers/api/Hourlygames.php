@@ -124,6 +124,8 @@ class Hourlygames extends CI_Controller {
 				$appVersion      = $this->input->post('app_version');
 				$duplicateCheck  = $this->input->post('duplicate_check');
 				$txnID           = $this->input->post('txn_id');
+				$is24Hours       = $this->input->post('is_24_hours');
+				$drawTime        = $this->input->post('draw_time');
 
 				if(empty($usersId)):
 					throw new Exception(lang('USER_ID_EMPTY'), 1);
@@ -142,6 +144,8 @@ class Hourlygames extends CI_Controller {
 						throw new Exception(lang('ACCOUNT_BLOCKED'), 1);
 					elseif($userData['enable_hourly_games'] == "N"):
 						throw new Exception("HOURLY_GAME_DISABLED", 1);
+					elseif($is24Hours == "Y" && empty($drawTime)):
+						throw new Exception(lang('DRAW_TIME_REQUIRED'), 1);
 					else:
 						
 						$this->session->sess_regenerate();
@@ -230,6 +234,15 @@ class Hourlygames extends CI_Controller {
 
 							A :
 							$status = $isCouponsRequired == "Y" ? "A" : "INI";
+							$drawTime = $is24Hours == "Y" ? $drawTime : $gameData['draw_time'];
+							if(!empty($is24Hours) && $is24Hours == "Y" && !empty($drawTime)):
+								$drawTimeTs     = strtotime($drawTime);
+								$drawTimeString = date('Y-m-d H:i:s', $drawTimeTs);
+							else:
+								$drawTimeTs     = $gameData['draw_time'];
+								$drawTimeString = date('Y-m-d H:i:s', $gameData['draw_time']);
+							endif;
+
 
 							$orderSeq      = floor((microtime(true) * 1000)).rand(100,999);
 							$totalPrice    = $gameData['price'] * $qty;
@@ -240,8 +253,8 @@ class Hourlygames extends CI_Controller {
 							$param['products_name']   = $gameData['title'];
 							$param['start_date']      = $gameData['start_date'];
 							$param['expiry_date']     = $gameData['expiry_date'];
-							$param['draw_time']       = $gameData['draw_time'];
-							$param['draw_time_string']= date('Y-m-d H:i:s', $gameData['draw_time']);
+							$param['draw_time']       = $drawTimeTs;
+							$param['draw_time_string']= $drawTimeString;
 							$param['qty']             = (int)$qty;
 							$param['total_price']     = (float)$totalPrice;
 							$param['sms_type']           = $smsType;
