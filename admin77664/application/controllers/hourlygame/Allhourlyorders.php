@@ -42,14 +42,27 @@ class Allhourlyorders extends CI_Controller {
 		
 		$searchField = $this->input->get('searchField');
 		$searchValue = $this->input->get('searchValue');
-		$whereCon    = array('where' => array(
-			'created_at' => array(
-				'$gte' => (int) strtotime($fromDate),
-				'$lte' => (int) strtotime($toDate),
-			),
-		));
 
-		if (!empty($searchField) && $searchValue !== '' && $searchValue !== null) {
+		if ($searchField === 'draw_time_string' && $searchValue !== '' && $searchValue !== null) {
+			// $whereCon = array('where' => array(
+			// 	'draw_time_string' => (string)date('Y-m-d H:i:s', strtotime($searchValue)),
+			// ));
+			$whereCon = array('where' => array(
+			    '$or' => array(
+			        array('draw_time_string' => (string) date('Y-m-d H:i:s', strtotime($searchValue))),
+			        array('draw_time_string' => (string) date('Y-m-d H:i', strtotime($searchValue))),
+			    ),
+			));
+		} else {
+			$whereCon    = array('where' => array(
+				'created_at' => array(
+					'$gte' => (int) strtotime($fromDate),
+					'$lte' => (int) strtotime($toDate),
+				),
+			));
+		}
+
+		if (!empty($searchField) && $searchValue !== '' && $searchValue !== null && $searchField !== 'draw_time_string') {
 			if ($searchField === 'order_id' || $searchField === 'users.store_name') {
 				$whereCon['where'][$searchField] = array('$regex' => $searchValue, '$options' => 'i');
 			}elseif($searchField == 'winning_status'){
@@ -464,13 +477,27 @@ class Allhourlyorders extends CI_Controller {
 		}
 		$searchField = $this->input->post('searchField');
 		$searchValue = $this->input->post('searchValue');
-		$whereCondition = array('where' => array(
-			'created_at' => array(
-				'$gte' => (int) strtotime($fromDate),
-				'$lte' => (int) strtotime($toDate),
-			),
-		));
-		if (!empty($searchField) && $searchValue !== '' && $searchValue !== null) {
+
+		if ($searchField === 'draw_time_string' && $searchValue !== '' && $searchValue !== null) {
+			// $whereCondition = array('where' => array(
+			// 	'draw_time_string' => (string)date('Y-m-d H:i:s', strtotime($searchValue)),
+			// ));
+			$whereCondition = array('where' => array(
+			    '$or' => array(
+			        array('draw_time_string' => (string) date('Y-m-d H:i:s', strtotime($searchValue))),
+			        array('draw_time_string' => (string) date('Y-m-d H:i', strtotime($searchValue))),
+			    ),
+			));
+		} else {
+			$whereCondition    = array('where' => array(
+				'created_at' => array(
+					'$gte' => (int) strtotime($fromDate),
+					'$lte' => (int) strtotime($toDate),
+				),
+			));
+		}
+
+		if (!empty($searchField) && $searchValue !== '' && $searchValue !== null && $searchField !== 'draw_time_string') {
 			if ($searchField === 'order_id' || $searchField === 'users.store_name') {
 				$whereCondition['where'][$searchField] = array('$regex' => $searchValue, '$options' => 'i');
 			} elseif ($searchField == 'winning_status') {

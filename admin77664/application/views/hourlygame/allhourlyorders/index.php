@@ -60,10 +60,12 @@
                                               <option value="settler_mobile" <?php if ($searchField == 'settler_mobile') echo 'selected="selected"'; ?>>Settler Mobile</option>
                                               <option value="buyer_mobile" <?php if ($searchField == 'buyer_mobile') echo 'selected="selected"'; ?>>Buyer Mobile</option>
                                               <option value="buyer_email" <?php if ($searchField == 'buyer_email') echo 'selected="selected"'; ?>>Buyer Email</option>
+                                              <option value="draw_time_string" <?php if ($searchField == 'draw_time_string') echo 'selected="selected"'; ?>>Draw DateTime</option>
                                             </select>
                                         </div>
                                         <div class="col-sm-3 col-md-3">
-                                            <input type="text" name="searchValue" id="searchValue" value="<?php echo htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="Enter Search Text">
+                                            <!-- <input type="text" name="searchValue" id="searchValue" value="<?php echo htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="Enter Search Text"> -->
+                                            <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="searchValue" value="<?php echo ($searchField === 'draw_time_string' && !empty($searchValue)) ? date('Y-m-d\TH:i', strtotime($searchValue)) : htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
                                         </div>
                                         <div class="col-sm-6 col-md-6">
                                             <div class="row">
@@ -258,10 +260,12 @@
               <option value="settler_mobile" <?php if ($searchField == 'settler_mobile') echo 'selected="selected"'; ?>>Settler Mobile</option>
               <option value="buyer_mobile" <?php if ($searchField == 'buyer_mobile') echo 'selected="selected"'; ?>>Buyer Mobile</option>
               <option value="buyer_email" <?php if ($searchField == 'buyer_email') echo 'selected="selected"'; ?>>Buyer Email</option>
+              <option value="draw_time_string" <?php if ($searchField == 'draw_time_string') echo 'selected="selected"'; ?>>Draw DateTime</option>
             </select>
           </div>
           <div class="col-sm-12 col-md-6">
-            <input type="text" name="searchValue" id="searchValue" value="<?php echo $searchValue; ?>" class="form-control form-control-sm" placeholder="Enter Search Text">
+            <!-- <input type="text" name="searchValue" id="searchValue" value="<?php echo $searchValue; ?>" class="form-control form-control-sm" placeholder="Enter Search Text"> -->
+            <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="searchValue" value="<?php echo ($searchField === 'draw_time_string' && !empty($searchValue)) ? date('Y-m-d\TH:i', strtotime($searchValue)) : htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
           </div>
         </div>
           <div class="row">
@@ -289,6 +293,19 @@
 </div>
 
 <script>
+  (function () {
+    var searchField = document.getElementById('searchField');
+    var searchValue = document.getElementById('searchValue');
+    if (searchField && searchValue) {
+      searchField.addEventListener('change', function () {
+        var isDrawDateTime = searchField.value === 'draw_time_string';
+        searchValue.value = '';
+        searchValue.type = isDrawDateTime ? 'datetime-local' : 'text';
+        searchValue.placeholder = isDrawDateTime ? 'Select Draw DateTime' : 'Enter Search Text';
+      });
+    }
+  })();
+  
   (function () {
     var checkboxes = document.querySelectorAll('.export-type-checkbox');
     if (!checkboxes || !checkboxes.length) {
