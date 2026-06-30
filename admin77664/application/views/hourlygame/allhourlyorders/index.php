@@ -97,6 +97,7 @@
                                                     <th width="8%">Qty</th>
                                                     <th width="12%">Total Price</th>
                                                     <th width="15%">Created Date</th>
+                                                    <th width="15%">Draw Date & Time</th>
                                                     <th width="10%">Buyer Details</th>
                                                     <th width="10%">Winning Details</th>
                                                     <th width="10%">Status</th>
@@ -146,6 +147,16 @@
                                                     <td><?php echo (int) ($row['qty'] ?? 0); ?></td>
                                                     <td>AED <?php echo number_format((float) ($row['total_price'] ?? 0), 2); ?></td>
                                                     <td><?=date('d-m-Y H:i:s', $row['created_at']); ?></td>
+                                                    <td>
+                                                        <?php
+                                                          $ca = $row['draw_time'] ?? null;
+                                                          if ($ca) {
+                                                              echo is_numeric($ca) ? date('d M Y h:i:s A', $ca) : date('d M Y h:i:s A', strtotime($ca));
+                                                          } else {
+                                                              echo 'N/A';
+                                                          }
+                                                        ?>
+                                                    </td>
                                                     <td class="text-left">
                                                       <b>Sent via </b> : <?=htmlspecialchars($row['sms_type'] ?? 'N/A'); ?><br/>
                                                       <b>Mobile </b>   : <?=htmlspecialchars($row['buyer_mobile'] ?? 'N/A'); ?><br/>
@@ -240,6 +251,10 @@
             <div class="form-check form-check-inline">
               <input class="form-check-input export-type-checkbox" type="checkbox" name="exportType[]" id="exportTypeDraw" value="draw" checked>
               <label class="form-check-label" for="exportTypeDraw">Draw</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="includeDrawTime" id="includeDrawTime" value="1">
+              <label class="form-check-label" for="includeDrawTime">Draw Time</label>
             </div>
           </div>
         </div>

@@ -448,6 +448,7 @@ class Allhourlyorders extends CI_Controller {
 		} else {
 			$data['exportType'] = 'draw';
 		}
+		$data['includeDrawTime'] = ($this->input->post('includeDrawTime') == '1') ? '1' : '';
 		$this->layouts->set_title('Export CSV | Hourly Game Orders | UWINN');
 		$this->layouts->admin_view('hourlygame/allhourlyorders/exportexcel',array(),$data);
 	}	// END OF FUNCTION
@@ -559,6 +560,7 @@ class Allhourlyorders extends CI_Controller {
 		if (!in_array($exportType, array('accounts', 'winners', 'draw'), true)) {
 			$exportType = 'draw';
 		}
+		$includeDrawTime = ($this->input->post('includeDrawTime') == '1');
 		if ($exportType === 'draw') {
 			$whereCondition['where']['status'] = array('$nin' => array('CL', 'Cancelled'));
 		} elseif ($exportType === 'winners') {
@@ -593,6 +595,16 @@ class Allhourlyorders extends CI_Controller {
 				$baseRow['Payment Status']  = $status;
 				$purchaseDate = !empty($itemsArray['created_at']) ? date('d-m-Y H:i', $itemsArray['created_at']) : 'N/A';
 
+				$drawDateTime = 'N/A';
+				if (!empty($itemsArray['draw_time_string'])) {
+					$drawDateTime = $itemsArray['draw_time_string'];
+				} elseif (!empty($itemsArray['draw_time'])) {
+					$drawTimeValue = $itemsArray['draw_time'];
+					$drawDateTime = is_numeric($drawTimeValue)
+						? date('d-m-Y H:i', $drawTimeValue)
+						: date('d-m-Y H:i', strtotime($drawTimeValue));
+				}
+
 				if ($exportType === 'draw' && isset($itemsArray['status']) && in_array($itemsArray['status'], array('CL', 'Cancelled'), true)) {
 					continue;
 				}
@@ -626,6 +638,9 @@ class Allhourlyorders extends CI_Controller {
 							unset($csvRow['Payment Status']);
 							$csvRow['Payment Status'] = $paymentStatusValue;
 							$csvRow['Purchase Date'] = $purchaseDate;
+							if ($includeDrawTime) {
+								$csvRow['Draw date time'] = $drawDateTime;
+							}
 							$csvRow['Coupons'] = $ticketValue;
 							$ticketRows[] = $csvRow;
 						}
@@ -640,6 +655,9 @@ class Allhourlyorders extends CI_Controller {
 					unset($accountRow['Payment Status']);
 					$accountRow['Payment Status'] = $paymentStatusValue;
 					$accountRow['Purchase Date'] = $purchaseDate;
+					if ($includeDrawTime) {
+						$accountRow['Draw date time'] = $drawDateTime;
+					}
 					$accountRow['Total Amount'] = (float) $totalAmountValue;
 					$CSVData[] = $accountRow;
 				} elseif ($exportType === 'winners') {
@@ -655,6 +673,9 @@ class Allhourlyorders extends CI_Controller {
 					$winnerRow['Redeemed POS ID']  = !empty($itemsArray['settler_pos_number']) ? $itemsArray['settler_pos_number'] : 'N/A';
 					$winnerRow['Redeemed Date']    = !empty($redeemingDate) ? $redeemingDate : 'N/A';
 					$winnerRow['Purchase Date']    = $purchaseDate;
+					if ($includeDrawTime) {
+						$winnerRow['Draw date time'] = $drawDateTime;
+					}
 					$winnerRow['Area']    = !empty($itemsArray['area']) ? $itemsArray['area'] : 'N/A';;
 					$CSVData[] = $winnerRow;
 				} elseif (!empty($ticketRows)) {

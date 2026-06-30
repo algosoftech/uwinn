@@ -78,6 +78,7 @@
     var toDate            = <?=json_encode($toDate);?>;
     var cancelled_order   = <?=json_encode($cancelled_order);?>;
     var exportType        = <?=json_encode(isset($exportType) ? $exportType : 'draw');?>;
+    var includeDrawTime   = <?=json_encode(isset($includeDrawTime) ? $includeDrawTime : '0');?>;
     let timeLeft          = totalPage == 1 ? 5 : 5 * totalPage + 5;
     var allData           = [];
     var responsesReceived = 0;
@@ -87,7 +88,7 @@
             $.ajax({
                 url: "<?=getCurrentControllerPath('exportexcelApi');?>",  
                 type: 'POST',
-                data: { pageno: currentPage, searchField: searchField, searchValue: searchValue, fromDate: fromDate, toDate: toDate , cancelled_order :cancelled_order, exportType: exportType },
+                data: { pageno: currentPage, searchField: searchField, searchValue: searchValue, fromDate: fromDate, toDate: toDate , cancelled_order :cancelled_order, exportType: exportType, includeDrawTime: includeDrawTime },
                 success: function(data) {
                     allData = allData.concat(JSON.parse(data)); // Store the data
                     responsesReceived++;
