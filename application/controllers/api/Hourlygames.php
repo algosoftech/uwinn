@@ -264,6 +264,7 @@ class Hourlygames extends CI_Controller {
 							$param['created_at']      = strtotime(date('Y-m-d H:i:s'));
 							$param['created_by']      = (int)$usersId;
 							// $param['status']       = 'A';
+							$param['is_24_hours']     = $is24Hours?$is24Hours:"N";
 							$param['status']          = $status;
 							$result = $this->common_model->addData('uw_hourly_orders',$param);
 							if(empty($result)):
@@ -1805,5 +1806,148 @@ class Hourlygames extends CI_Controller {
 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result); 
 		} 
 	}
-	
+
+	/* * *********************************************************************
+	 * * Function name : drawSlots
+	 * * Developed By  : Dilip Halder
+	 * * Purpose  	   : This function used to drawSlots
+	 * * Date 		   : 29 June 2026
+	 * * **********************************************************************/
+	public function drawSlots()
+	{
+		$apiHeaderData = getApiHeaderData();
+		$this->generatelogs->putLog('APP',logOutPut($_GET));
+		$result = array();
+		try {
+			if(requestAuthenticate(APIKEY,'GET')):
+				$drawConfig = $this->common_model->getData(
+					'single',
+					'uw_hourly_draw_time',
+					array('where' => array('status' => 'A')),
+					array('creation_date' => -1)
+				);
+
+				if(empty($drawConfig)):
+					throw new Exception(lang('DATA_NOT_FOUND'), 1);
+				endif;
+
+				$timeStart        = $drawConfig['draw_time_start'];
+				$timeEnd          = $drawConfig['draw_time_end'];
+				$currentTs        = strtotime(date('Y-m-d H:i:s'));
+				$currentHourStart = strtotime(date('Y-m-d H:00:00', $currentTs));
+				$today            = date('Y-m-d', $currentTs);
+				$currentTime      = date('H:i:s', $currentTs);
+				$isOvernight      = strtotime($timeEnd) <= strtotime($timeStart);
+				$isAtEndHour      = (date('H:i', $currentTs) === date('H:i', strtotime('1970-01-01 ' . $timeEnd)));
+				$isInOvernightTail = $isOvernight
+					&& strtotime($currentTime) < strtotime($timeStart)
+					&& !$isAtEndHour;
+
+				if(!$isOvernight):
+					$currentDrawDate = $today;
+				elseif($isAtEndHour):
+					$currentDrawDate = $today;
+				elseif(strtotime($currentTime) <= strtotime($timeEnd)):
+					$currentDrawDate = date('Y-m-d', strtotime($today . ' -1 day'));
+				else:
+					$currentDrawDate = $today;
+				endif;
+
+				
+				
+
+				$slots     = array();
+				$cycleStart = strtotime($currentDrawDate . ' ' . $timeStart);
+				if($isOvernight):
+					$cycleEnd = strtotime(date('Y-m-d', strtotime($currentDrawDate . ' +1 day')) . ' ' . $timeEnd);
+				else:
+					$cycleEnd = strtotime($currentDrawDate . ' ' . $timeEnd);
+				endif;
+				$nextDayTs = strtotime($currentDrawDate . ' +1 day');
+
+				for($ts = $cycleStart; $ts <= $cycleEnd; $ts += 3600):
+					if($ts <= $currentHourStart):
+						continue;
+					endif;
+					$slots[] = array(
+						'draw_date'        => $currentDrawDate,
+						'draw_time'        => $ts,
+						'draw_time_string' => date('Y-m-d H:i', $ts),
+						'slot_time'        => date('H:i', $ts),
+						'slot_date'        => date('Y-m-d', $ts),
+						'is_next_day_slot' => ($ts >= $nextDayTs) ? 'Y' : 'N',
+					);
+				endfor;
+
+				
+
+				if(!$isInOvernightTail && !($isOvernight && $isAtEndHour)):
+					$nextDrawDate = date('Y-m-d', strtotime($currentDrawDate . ' +1 day'));
+					$currentDayTimes = array();
+					foreach($slots as $slot):
+						if($slot['slot_date'] === $currentDrawDate):
+							$currentDayTimes[$slot['slot_time']] = true;
+						endif;
+					endforeach;
+ 
+					$nextCycleStart = strtotime($nextDrawDate . ' ' . $timeStart);
+					// echo '<pre>';
+					// print_r(date('Y-m-d H:i:s', $nextCycleStart));
+					// die();
+					
+					if($isOvernight):
+						$nextCycleEnd = strtotime(date('Y-m-d', strtotime($nextDrawDate . ' +1 day')) . ' ' . $timeEnd);
+					else:
+						$nextCycleEnd = strtotime($nextDrawDate . ' ' . $timeEnd);
+					endif;
+
+					for($ts = $nextCycleStart; $ts <= $nextCycleEnd; $ts += 3600):
+						if($ts <= $currentHourStart):
+							continue;
+						endif;
+						$slotTime = date('H:i', $ts);
+						$slotDate = date('Y-m-d', $ts);
+						if($slotDate !== $nextDrawDate):
+							continue;
+						endif;
+						if(isset($currentDayTimes[$slotTime])):
+							continue;
+						endif;
+						$slots[] = array(
+							'draw_date'        => $nextDrawDate,
+							'draw_time'        => $ts,
+							'draw_time_string' => date('Y-m-d H:i', $ts),
+							'slot_time'        => $slotTime,
+							'slot_date'        => $slotDate,
+							'is_next_day_slot' => 'Y',
+						);
+					endfor;
+				endif;
+
+				$seen = array();
+				$finalSlots = array();
+				foreach($slots as $slot):
+					if(isset($seen[$slot['draw_time']])):
+						continue;
+					endif;
+					$seen[$slot['draw_time']] = true;
+					$finalSlots[] = $slot;
+				endforeach;
+
+				if(empty($finalSlots)):
+					throw new Exception(lang('DATA_NOT_FOUND'), 1);
+				endif;
+
+				$result['draw_time_start'] = $timeStart;
+				$result['draw_time_end']   = $timeEnd;
+				$result['draw_date']       = $currentDrawDate;
+				$result['slots']           = $finalSlots;
+				echo outPut(1, lang('SUCCESS_CODE'), lang('SUCCESS_ACTION'), (object) $result);
+			else:
+				throw new Exception(lang('FORBIDDEN_MSG'),1);
+			endif;
+		} catch (Exception $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+		}
+	}
 }
