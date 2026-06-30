@@ -132,6 +132,7 @@ class allhourlygames extends CI_Controller {
 			$this->form_validation->set_rules('seq_order'        , 'Sequence Order'   , 'trim|required');
 			$this->form_validation->set_rules('show_on[]'        , 'Show On'          , 'trim|required');
 			$this->form_validation->set_rules('start_date'       , 'Start Date'       , 'trim|required');
+			$this->form_validation->set_rules('is_24_hours'      , 'Is 24 Hours'      , 'trim|required');
 			$this->form_validation->set_rules('expiry_date'      , 'Expiry Date'      , 'trim|required');
 			$this->form_validation->set_rules('SaveChanges'      , 'SaveChanges'      , 'trim|required');
 			if($this->form_validation->run() && $error == 'NO'):
@@ -171,6 +172,7 @@ class allhourlygames extends CI_Controller {
 				$param['number_range_end']	 = (int)$this->input->post('number_range_end');
 				$param['seq_order']			 = (int)$this->input->post('seq_order');
 				$param['show_on']			 = $this->input->post('show_on');
+				$param['is_24_hours']		 = $this->input->post('is_24_hours');
 				$param['start_date']		 = strtotime($this->input->post('start_date'));
 				$param['expiry_date']		 = strtotime($this->input->post('expiry_date'));
 				if(empty($editId)):
@@ -525,4 +527,92 @@ class allhourlygames extends CI_Controller {
 		endif;
 	}
 
+	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	+ + Function name  : manageDrawTime
+	+ + Developed By   : Dilip Halder
+	+ + Purpose  	   : Manage hourly draw time slots for a product.
+	+ + Date 		   : 29 June 2026
+	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+	public function manageDrawTime($productOid='', $editId='')
+	{
+		$this->admin_model->authCheck('view_data');
+		$data['error'] 		   = '';
+		$data['activeMenu']    = 'hourlygame';
+		$data['activeSubMenu'] = 'allhourlygames';
+		$data['EDITDATA']      = array();
+		$drawTblName           = 'uw_hourly_draw_time';
+		$gameTblName           = 'uw_hourly_games';
+
+		$campaignWhere['where'] = array('is_24_hours' => 'Y');
+		$shortField             = array('creation_date' => -1);
+		$data['CAMPAIGNS24H']   = $this->common_model->getData('multiple', $gameTblName, $campaignWhere, $shortField);
+
+		if($editId):
+			$this->admin_model->authCheck('edit_data');
+			$data['EDITDATA'] = $this->common_model->getDataByParticularField($drawTblName, '_id', new MongoDB\BSON\ObjectID($editId));
+		else:
+			$this->admin_model->authCheck('add_data');
+			$existingDrawTimes = $this->common_model->getData('multiple', $drawTblName, array(), array('creation_date' => -1), 1);
+			if(!empty($existingDrawTimes)):
+				$data['EDITDATA'] = $existingDrawTimes[0];
+			endif;
+		endif;
+
+		if($this->input->post('SaveChanges')):
+			$error = 'NO';
+			$this->form_validation->set_rules('draw_time_start', 'Draw Time Start', 'trim|required');
+			$this->form_validation->set_rules('draw_time_end', 'Draw Time End', 'trim|required');
+			$this->form_validation->set_rules('SaveChanges', 'SaveChanges', 'trim|required');
+
+			if($this->form_validation->run() && $error == 'NO'):
+				$param['draw_time_start'] = stripslashes($this->input->post('draw_time_start'));
+				$param['draw_time_end']   = stripslashes($this->input->post('draw_time_end'));
+
+				if($this->input->post('CurrentDataID') == ''):
+					$param['creation_ip']   = currentIp();
+					$param['creation_date'] = (int)$this->timezone->utc_time();
+					$param['created_by']    = (int)$this->session->userdata('UW_ADMIN_ID');
+					$param['status']        = 'A';
+					$this->common_model->addData($drawTblName, $param);
+					$this->session->set_flashdata('alert_success', lang('addsuccess'));
+				else:
+					$param['update_ip']   = currentIp();
+					$param['update_date'] = (int)$this->timezone->utc_time();
+					$param['updated_by']  = (int)$this->session->userdata('UW_ADMIN_ID');
+					$this->common_model->editData($drawTblName, $param, '_id', new MongoDB\BSON\ObjectID($this->input->post('CurrentDataID')));
+					$this->session->set_flashdata('alert_success', lang('updatesuccess'));
+				endif;
+
+				redirect(getCurrentControllerPath('manageDrawTime'));
+			endif;
+		endif;
+
+		$this->layouts->set_title('Manage Draw Time | Hourly Games | UWINN');
+		$this->layouts->admin_view('hourlygame/allhourlygames/managedrawtimes', array(), $data);
 	}
+
+	/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	+ + Function name  : deleteDrawTime
+	+ + Developed By   : Dilip Halder
+	+ + Purpose  	   : Delete hourly draw time slot.
+	+ + Date 		   : 29 June 2026
+	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+	public function deleteDrawTime($productOid='', $deleteId='')
+	{
+		$this->admin_model->authCheck('edit_data');
+
+		if($deleteId):
+			$this->common_model->deleteData('uw_hourly_draw_time', '_id', new MongoDB\BSON\ObjectID($deleteId));
+			$this->session->set_flashdata('alert_success', lang('deletesuccess'));
+		endif;
+
+		redirect(getCurrentControllerPath('manageDrawTime'));
+	}
+
+
+
+}

@@ -280,6 +280,7 @@ $route['api/hourlygame/list'] 				     = 'api/hourlygames/getGameList';
 $route['api/hourlygame/order/create'] 			 = 'api/hourlygames/orderCreate';
 $route['api/hourlygame/order/update']            = 'api/hourlygames/updateOrder';
 $route['api/hourlygame/order/cancel']            = 'api/hourlygames/cancellationOrder';
+$route['api/hourlygame/draw/slots']              = 'api/hourlygames/drawSlots';
 
 $route['api/hourlygame/order/history'] 		     = 'api/hourlygames/OrderHistory';
 $route['api/hourlygame/order/check-winner'] 	 = 'api/hourlygames/checkWinner';

@@ -390,6 +390,10 @@ $lang['EMPTY_PRODUCT_NAME']								= 'Product name is empty';
 $lang['HOURLY_GAME_DISABLED']						    = 'Campaign are diabled. Please contact customer support.';
 $lang['HOURLY_GAME_DRAW_ALERT']							= 'Draw scheduled for today will take place at ###DRAWTIME###. Please check back after the draw for results';
 $lang['ALREADY_ORDER_PLACED']							= 'Order already placed.';
+<<<<<<< HEAD
 $lang['DING_RECHARGE_FAILED']							= 'Ding recharge failed. Please try again.';
 $lang['INVALID_SKU_CODE']								= 'Invalid SKU code.';
 $lang['INSUFFICIENT_BALANCE']							= 'Insufficient recharge balance.';
+=======
+$lang['DRAW_TIME_REQUIRED']								= 'Draw time is required.';
+>>>>>>> d101972db1f81a9d001d6290e69b3e673e38d71c

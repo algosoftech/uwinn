@@ -23,6 +23,7 @@
             <div class="card">
               <div class="card-header">
                 <h5>Manage Lotto Games</h5>
+                <a href="<?=getCurrentControllerPath('manageDrawTime'); ?>" class="btn btn-sm btn-primary pull-right mr-2">Manage Draw Time</a>
                 <a href="<?=getCurrentControllerPath('addeditdata'); ?>" class="btn btn-sm btn-primary pull-right mr-2">Add New</a>
               </div>
               <div class="card-body">
@@ -103,6 +104,7 @@
                                           <i class="fas fa-cog"></i> Settings
                                         </a>
                                       </li>
+
                                       <li>
                                         <a href="<?php echo getCurrentControllerPath('updateDraw/'.$ALLDATAINFO['_id']->{'$id'})?>">
                                           <i class="fas fa-calendar-alt"></i> Draw Data

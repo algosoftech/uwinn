@@ -184,23 +184,45 @@
                                         <?php endif; ?>
                                     </div>
                                     
-                                    <div class="form-group-inner col-lg-2 col-md-2 col-sm-2 col-xs-12 <?php if(form_error('start_date')): ?>error<?php endif; ?>">
-                                        <?php $start_date = date('Y-m-d H:i:s',$EDITDATA['start_date'] ?? strtotime(date('Y-m-d H:i:01'))); ?>
-                                        <label>Start Date<span class="required">*</span></label>
-                                        <input type="text" name="start_date" id="start_date" class="form-control required" value="<?php if(set_value('start_date')): echo set_value('start_date'); else:  echo $start_date;endif; ?>">
-                                        <?php if(form_error('start_date')): ?>
-                                            <span for="start_date" generated="true" class="help-inline"><?php echo form_error('start_date'); ?></span>
-                                        <?php endif; ?>
-                                    </div>
+                                  
 
-                                    <div class="form-group-inner col-lg-2 col-md-2 col-sm-2 col-xs-12 <?php if(form_error('expiry_date')): ?>error<?php endif; ?>">
-                                        <?php $expiry_date = date('Y-m-d H:i:s',$EDITDATA['expiry_date'] ?? strtotime(date('Y-m-d H:i:59',strtotime('+1 hour')))); ?>
-                                        <label>Expiry Date<span class="required">*</span></label>
-                                        <input type="text" name="expiry_date" id="expiry_date" class="form-control required" value="<?php if(set_value('expiry_date')): echo set_value('expiry_date'); else:  echo $expiry_date;endif; ?>">
-                                        <?php if(form_error('expiry_date')): ?>
-                                            <span for="expiry_date" generated="true" class="help-inline"><?php echo form_error('expiry_date'); ?></span>
-                                        <?php endif; ?>
-                                    </div>
+                                    
+
+
+                                    <fieldset>
+                                        <legend>Game Mode Settings</legend>
+                                        <div class="row">
+                                            <div class="form-group-inner col-lg-2 col-md-2 col-sm-2 col-xs-12 <?php if(form_error('is_24_hours')): ?>error<?php endif; ?>">
+                                                <label>Enable/Disable 24 Hours ?</label>
+                                                <select name="is_24_hours" id="is_24_hours" class="form-control">
+                                                    <option value="N" <?php if(set_value('is_24_hours')): echo set_value('is_24_hours'); else:  echo $EDITDATA['is_24_hours'] == 'N' ? 'selected' : ''; endif; ?>>No</option>
+                                                    <option value="Y" <?php if(set_value('is_24_hours')): echo set_value('is_24_hours'); else:  echo $EDITDATA['is_24_hours'] == 'Y' ? 'selected' : ''; endif; ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('is_24_hours')): ?>
+                                                    <span for="is_24_hours" generated="true" class="help-inline"><?php echo form_error('is_24_hours'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                             
+                                            <div class="form-group-inner col-lg-2 col-md-2 col-sm-2 col-xs-12 <?php if(form_error('start_date')): ?>error<?php endif; ?>">
+                                                <?php $start_date = date('Y-m-d H:i:s',$EDITDATA['start_date'] ?? strtotime(date('Y-m-d H:i:01'))); ?>
+                                                <label>Draw Start Date<span class="required">*</span></label>
+                                                <input type="text" name="start_date" id="start_date" class="form-control required" value="<?php if(set_value('start_date')): echo set_value('start_date'); else:  echo $start_date;endif; ?>">
+                                                <?php if(form_error('start_date')): ?>
+                                                    <span for="start_date" generated="true" class="help-inline"><?php echo form_error('start_date'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-2 col-md-2 col-sm-2 col-xs-12 <?php if(form_error('expiry_date')): ?>error<?php endif; ?>">
+                                                <?php $expiry_date = date('Y-m-d H:i:s',$EDITDATA['expiry_date'] ?? strtotime(date('Y-m-d H:i:59',strtotime('+1 hour')))); ?>
+                                                <label>Draw Expiry Date<span class="required">*</span></label>
+                                                <input type="text" name="expiry_date" id="expiry_date" class="form-control required" value="<?php if(set_value('expiry_date')): echo set_value('expiry_date'); else:  echo $expiry_date;endif; ?>">
+                                                <?php if(form_error('expiry_date')): ?>
+                                                    <span for="expiry_date" generated="true" class="help-inline"><?php echo form_error('expiry_date'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                                    
+                                        </div>
+                                    </fieldset>         
                                 
                                     <div class="form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('show_on')): ?>error<?php endif; ?>">
                                         <label>Show ON <sub class="text-danger"> ( Website, App , POS ) </sub></label>
