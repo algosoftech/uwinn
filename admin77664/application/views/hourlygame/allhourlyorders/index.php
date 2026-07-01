@@ -65,7 +65,7 @@
                                         </div>
                                         <div class="col-sm-3 col-md-3">
                                             <!-- <input type="text" name="searchValue" id="searchValue" value="<?php echo htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="Enter Search Text"> -->
-                                            <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="searchValue" value="<?php echo ($searchField === 'draw_time_string' && !empty($searchValue)) ? date('Y-m-d\TH:i', strtotime($searchValue)) : htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
+                                             <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="searchValue" step="3600" value="<?php if ($searchField === 'draw_time_string') { echo !empty($searchValue) ? date('Y-m-d\TH:i', strtotime($searchValue)) : date('Y-m-d') . 'T17:00'; } else { echo htmlspecialchars($searchValue ?? ''); } ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
                                         </div>
                                         <div class="col-sm-6 col-md-6">
                                             <div class="row">
@@ -260,7 +260,7 @@
         </div>
       <div class="row mt-2">
           <div class="col-sm-12 col-md-6">
-            <select name="searchField" id="searchField" class="custom-select custom-select-sm form-control form-control-sm">
+            <select name="searchField" id="exportSearchField" class="custom-select custom-select-sm form-control form-control-sm">
               <option value="">Select Field</option>
               <option value="order_id" <?php if ($searchField == 'order_id') echo 'selected="selected"'; ?>>Order ID</option>
               <option value="products_name" <?php if ($searchField == 'products_name') echo 'selected="selected"'; ?>>Game Name</option>
@@ -280,7 +280,7 @@
           </div>
           <div class="col-sm-12 col-md-6">
             <!-- <input type="text" name="searchValue" id="searchValue" value="<?php echo $searchValue; ?>" class="form-control form-control-sm" placeholder="Enter Search Text"> -->
-            <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="searchValue" value="<?php echo ($searchField === 'draw_time_string' && !empty($searchValue)) ? date('Y-m-d\TH:i', strtotime($searchValue)) : htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
+             <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="exportSearchValue" step="3600" value="<?php if ($searchField === 'draw_time_string') { echo !empty($searchValue) ? date('Y-m-d\TH:i', strtotime($searchValue)) : date('Y-m-d') . 'T17:00'; } else { echo htmlspecialchars($searchValue ?? ''); } ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
           </div>
         </div>
           <div class="row">
@@ -309,18 +309,42 @@
 
 <script>
   (function () {
-    var searchField = document.getElementById('searchField');
-    var searchValue = document.getElementById('searchValue');
-    if (searchField && searchValue) {
+  function getDefaultDrawDateTime() {
+      var now = new Date();
+      var month = String(now.getMonth() + 1);
+      var day = String(now.getDate());
+      if (month.length < 2) month = '0' + month;
+      if (day.length < 2) day = '0' + day;
+      return now.getFullYear() + '-' + month + '-' + day + 'T17:00';
+    }
+
+    function setupDrawDateTimeSearch(fieldId, valueId) {
+      var searchField = document.getElementById(fieldId);
+      var searchValue = document.getElementById(valueId);
+      if (!searchField || !searchValue) {
+        return;
+      }
+
       searchField.addEventListener('change', function () {
         var isDrawDateTime = searchField.value === 'draw_time_string';
-        searchValue.value = '';
-        searchValue.type = isDrawDateTime ? 'datetime-local' : 'text';
-        searchValue.placeholder = isDrawDateTime ? 'Select Draw DateTime' : 'Enter Search Text';
+        if (isDrawDateTime) {
+          searchValue.type = 'datetime-local';
+          searchValue.step = '3600';
+          searchValue.value = getDefaultDrawDateTime();
+          searchValue.placeholder = 'Select Draw DateTime';
+        } else {
+          searchValue.value = '';
+          searchValue.type = 'text';
+          searchValue.removeAttribute('step');
+          searchValue.placeholder = 'Enter Search Text';
+        }
       });
     }
+
+    setupDrawDateTimeSearch('searchField', 'searchValue');
+    setupDrawDateTimeSearch('exportSearchField', 'exportSearchValue');
   })();
-  
+
   (function () {
     var checkboxes = document.querySelectorAll('.export-type-checkbox');
     if (!checkboxes || !checkboxes.length) {
