@@ -446,6 +446,16 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
     $('#toDate').val(formatDateTimeLocal(toDate)).trigger('change');
   }
 
+  function applyHourlyDateRangeToday() {
+    var today = new Date();
+    var fromDateObj = new Date(today);
+    fromDateObj.setHours(0, 0, 0, 0);
+    var toDateObj = new Date(today);
+    toDateObj.setHours(23, 59, 0, 0);
+    $('#fromDate').val(formatDateTimeLocal(fromDateObj)).trigger('change');
+    $('#toDate').val(formatDateTimeLocal(toDateObj)).trigger('change');
+  }
+
   function applyProductDrawTimeLock() {
     var $checkedProducts = $('input[name="productIds[]"]:checked');
     var $productChecks = $('input[name="productIds[]"]');
@@ -491,13 +501,7 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
       var startDate = $(this).attr('data-start-date') || '';
       var endDate = $(this).attr('data-end-date') || '';
 
-      if (startDate.indexOf(' ') > -1) startDate = startDate.replace(' ', 'T');
-      if (endDate.indexOf(' ') > -1) endDate = endDate.replace(' ', 'T');
-
-      if (startDate && endDate) {
-        $('#fromDate').val(startDate).trigger('change');
-        $('#toDate').val(endDate).trigger('change');
-      }
+      applyHourlyDateRangeToday();
 
       // Hourly mode: do not use product selection in search.
       $('input[name="productIds[]"]').prop('checked', false).prop('disabled', true);

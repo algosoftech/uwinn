@@ -490,7 +490,7 @@ $('#draw_time_two').on('change', function () {
 });
 */ ?>
 // Ensure only one checkbox with the same data-draw-time can be selected
-$(document).on('change', 'input[name="productIds[]"]', function() {
+$(document).on('change', '#exportModal input[name="productIds[]"]', function() {
 
   let drawTime  = $(this).attr('data-draw-time');  // get the draw-time of the current checkbox
 
@@ -504,7 +504,7 @@ $(document).on('change', 'input[name="productIds[]"]', function() {
 
   // disable other data-draw-time in group
   // Disable all product checkboxes that are not in the selected draw-time group
-  $('input[name="productIds[]"]').each(function() {
+  $('#exportModal input[name="productIds[]"]').each(function() {
     if ($(this).attr('data-draw-time') !== drawTime) {
       $(this).prop('disabled', true);
     } else {
@@ -513,8 +513,8 @@ $(document).on('change', 'input[name="productIds[]"]', function() {
   });
 
   // If no checkboxes are checked, re-enable all
-  if ($('input[name="productIds[]"]:checked').length === 0) {
-    $('input[name="productIds[]"]').prop('disabled', false);
+  if ($('#exportModal input[name="productIds[]"]:checked').length === 0) {
+    $('#exportModal input[name="productIds[]"]').prop('disabled', false);
 
     let fromDate1 = "<?= date('Y-m-d', strtotime('-1 day')) . 'T22:01'; ?>" ;
     let toDate1   = "<?= date('Y-m-d') . 'T22:00'; ?>";
@@ -537,4 +537,5 @@ $(document).on('change', 'input[name="productIds[]"]', function() {
   }
   */ ?>
 });
+
 </script>

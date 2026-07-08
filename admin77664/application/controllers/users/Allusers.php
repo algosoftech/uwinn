@@ -80,6 +80,26 @@ class Allusers extends CI_Controller {
 		return $value;
 	}
 
+	private function _default_redeeming_amount_limit()
+	{
+		return 499;
+	}
+
+	private function _user_display_redeem_limit($row)
+	{
+		$row = is_array($row) ? $row : array();
+		if (!isset($row['redeeming_amount_limit']) || $row['redeeming_amount_limit'] === '' || $row['redeeming_amount_limit'] === null) {
+			return $this->_default_redeeming_amount_limit();
+		}
+		return $this->_user_money_value($row['redeeming_amount_limit']);
+	}
+
+	private function _normalize_redeem_limit_mode($mode)
+	{
+		$mode = strtolower(trim((string) $mode));
+		return ($mode === 'global') ? 'global' : 'fixed';
+	}
+
 	private function _user_attach_internal_balance(&$data)
 	{
 		if (empty($data['IS_EDIT']) || empty($data['EDITDATA']) || !is_array($data['EDITDATA'])) {
@@ -250,27 +270,31 @@ class Allusers extends CI_Controller {
 			if($userType == 'Freelancer'){
 				$this->form_validation->set_rules('bind_user_type', 'Bind with User Type', 'trim|required');
 				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
+				$this->form_validation->set_rules('redeeming_amount_limit', 'Redeeming Amount Limit', 'trim|required|numeric|greater_than[0]');
+				$this->form_validation->set_rules('redeem_limit_mode', 'Redeem Limit Mode', 'trim|required|in_list[global,fixed]');
 			}
 			elseif($userType == 'Sales Person'){
 				$this->form_validation->set_rules('bind_user_type', 'Bind with User Type', 'trim|required');
 				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
+				$this->form_validation->set_rules('redeeming_amount_limit', 'Redeeming Amount Limit', 'trim|required|numeric|greater_than[0]');
+				$this->form_validation->set_rules('redeem_limit_mode', 'Redeem Limit Mode', 'trim|required|in_list[global,fixed]');
 			}
-			elseif($userType == 'Retailer' ||$userType == 'Promoter' ){
+			elseif($userType == 'Retailer' || $userType == 'Promoter'){
 				$this->form_validation->set_rules('store_name', 'Store Name', 'trim|required');
 				$this->form_validation->set_rules('bind_user_type', 'Bind with User Type', 'trim|required');
 				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
 				$this->form_validation->set_rules('pos_number', 'Pos Number', 'trim|required');
 				$this->form_validation->set_rules('pos_device_id', 'Pos Device ID', 'trim');
+				$this->form_validation->set_rules('redeeming_amount_limit', 'Redeeming Amount Limit', 'trim|required|numeric|greater_than[0]');
+				$this->form_validation->set_rules('redeem_limit_mode', 'Redeem Limit Mode', 'trim|required|in_list[global,fixed]');
 				if($userType == 'Retailer'):
 					$this->form_validation->set_rules('commission_percentage', 'Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('recharge_commission_percentage', 'Recharge Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('redeeming_commission_percentage', 'Redeeming Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('hourly_games_commission_percentage', 'Hourly Games Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('ding_commission_percentage', 'International (Ding) Commission Percentage', 'trim|required' );
-
 				endif;
-
-			} 
+			}
 			elseif($userType == 'Manager'){
 				$this->form_validation->set_rules('bind_user_type', 'Bind with User Type', 'trim|required');
 				$this->form_validation->set_rules('bind_with_person_name', 'Binded person', 'trim|required');
@@ -317,6 +341,9 @@ class Allusers extends CI_Controller {
 					$param['redeeming_commission_percentage'] = $this->input->post('redeeming_commission_percentage');
 					$param['hourly_games_commission_percentage'] = $this->input->post('hourly_games_commission_percentage');
 					$param['ding_commission_percentage'] = $this->input->post('ding_commission_percentage');
+					$redeemLimit = trim((string) $this->input->post('redeeming_amount_limit'));
+					$param['redeeming_amount_limit'] = $redeemLimit !== '' ? (float) $redeemLimit : (float) $this->_default_redeeming_amount_limit();
+					$param['redeem_limit_mode'] = $this->_normalize_redeem_limit_mode($this->input->post('redeem_limit_mode'));
 
 					$param['store_name']	    	 = addslashes($this->input->post('store_name'));
 					$param['bind_person_id']		 = (int)$sales_person['0'];
@@ -1008,7 +1035,8 @@ class Allusers extends CI_Controller {
 			$CSVData[$index]['CREATION DATE']            = !empty($itemsArray['created_at'])    ? date('d-M-Y', strtotime($itemsArray['created_at'])) : 'N/A';
 			$CSVData[$index]['DEVICE TYPE']              = !empty($itemsArray['device_type'])   ? $itemsArray['device_type'] : 'N/A';
 			$CSVData[$index]['APP VERSION']              = !empty($itemsArray['app_version'])   ? $itemsArray['app_version'] : 'N/A';
-			$CSVData[$index]['SIM No']                   = !empty($itemsArray['sim_no']) ? $itemsArray['sim_no'] : 'N/A';
+			$simNo = substr(preg_replace('/\D/', '', (string)($itemsArray['sim_no'] ?? '')), 0, 19);
+			$CSVData[$index]['SIM No']                   = $simNo !== '' ? $simNo : 'N/A';
 			$CSVData[$index]['POS DEVICE ID']            = !empty($itemsArray['pos_device_id']) ? $itemsArray['pos_device_id'] : 'N/A';
 			$CSVData[$index]['STATUS']                   = !empty($status) ? $status : 'N/A';
 		endforeach;
@@ -1491,6 +1519,75 @@ class Allusers extends CI_Controller {
 	}
 
 	/***********************************************************************
+	** Function name 	: redeeminglimits
+	** Purpose  		: List customers and their fixed redeem limits
+	************************************************************************/
+	public function redeeminglimits()
+	{
+		$this->admin_model->authCheck('view_data');
+		$data['error'] = '';
+		$data['activeMenu'] = 'users';
+		$data['activeSubMenu'] = 'allusers';
+		$data['defaultRedeemLimit'] = $this->_default_redeeming_amount_limit();
+
+		$whereCon = array('like' => '');
+		if ($this->input->get('searchField') && $this->input->get('searchValue')) {
+			$searchField = $this->input->get('searchField');
+			$searchValue = $this->input->get('searchValue');
+			$data['searchField'] = $searchField;
+			$data['searchValue'] = $searchValue;
+			if (is_numeric($searchValue)) {
+				$whereCon['where'][$searchField] = (int) $searchValue;
+			} else {
+				$whereCon['like'] = array('0' => trim($searchField), '1' => trim($searchValue));
+			}
+		} else {
+			$data['searchField'] = '';
+			$data['searchValue'] = '';
+		}
+
+		$whereCon['where']['users_type'] = array('$ne' => 'Users');
+		$whereCon['where']['status'] = 'A';
+		$shortField = array('_id' => -1);
+		$tblName = 'uw_users';
+		$baseUrl = getCurrentControllerPath('redeeminglimits');
+		$this->session->set_userdata('REDEEMINGLIMITSLIST', currentFullUrl());
+		$qStringdata = explode('?', currentFullUrl());
+		$suffix = isset($qStringdata[1]) && $qStringdata[1] !== '' ? '?' . $qStringdata[1] : '';
+		$totalRows = (int) $this->common_model->getData('count', $tblName, $whereCon, $shortField, '0', '0');
+
+		if ($this->input->get('showLength') == 'All') {
+			$perPage = $totalRows > 0 ? $totalRows : 1;
+			$data['perpage'] = $this->input->get('showLength');
+		} elseif ($this->input->get('showLength')) {
+			$perPage = (int) $this->input->get('showLength');
+			$data['perpage'] = $this->input->get('showLength');
+		} else {
+			$perPage = (int) SHOW_NO_OF_DATA;
+			$data['perpage'] = SHOW_NO_OF_DATA;
+		}
+
+		$uriSegment = getUrlSegment();
+		$data['PAGINATION'] = adminPagination($baseUrl, $suffix, $totalRows, $perPage, $uriSegment);
+		$page = $this->uri->segment(getUrlSegment()) ? $this->uri->segment(getUrlSegment()) : 0;
+		$data['forAction'] = $baseUrl;
+		if ($totalRows) {
+			$first = (int) ($page) + 1;
+			$data['first'] = $first;
+			$pageData = ($data['perpage'] == 'All') ? $totalRows : $data['perpage'];
+			$last = ((int) ($page) + $pageData) > $totalRows ? $totalRows : ((int) ($page) + $pageData);
+			$data['noOfContent'] = 'Showing ' . $first . '-' . $last . ' of ' . $totalRows . ' items';
+		} else {
+			$data['first'] = 1;
+			$data['noOfContent'] = '';
+		}
+
+		$data['ALLDATA'] = $this->common_model->getData('multiple', $tblName, $whereCon, $shortField, $perPage, $page);
+		$this->layouts->set_title('Customer Redeem Limits | Users | UWINN');
+		$this->layouts->admin_view('users/allusers/redeeminglimits', array(), $data);
+	}
+
+	/***********************************************************************
 	** Function name 	: redeeminglimit
 	** Developed By 	: Dilip Halder
 	** Purpose  		: This function used for change status
@@ -1498,46 +1595,56 @@ class Allusers extends CI_Controller {
 	************************************************************************/
 	function redeeminglimit($editId='')
 	{		
-		//echo $editId; die();
 		$data['error'] 		    = '';
 		$data['activeMenu'] 	= 'users';
 		$data['activeSubMenu']  = 'allusers';
-		
-		if($editId):
-			$this->admin_model->authCheck('edit_data');
-			$data['EDITDATA']				=	$this->common_model->getDataByParticularField('uw_users','users_id',(int)$editId);
-			// echo $editId; die();
-			// echo '<pre>';print_r($data['EDITDATA']);die;
-		else:
-			$this->admin_model->authCheck('add_data');
-		endif;
-		
-		$this->session->set_userdata('REDEEMINGAMOUNTLIMIT',currentFullUrl());
+		$data['defaultRedeemLimit'] = $this->_default_redeeming_amount_limit();
+		$editId = trim((string) $editId);
 
-		if($this->input->post('SaveChanges')):
-			// echo '<pre>';print_r($_POST);die;
-			
-			$error					=	'NO';
-			$this->form_validation->set_rules('redeeming_amount_limit', 'Redeeming Amount Limit', 'trim|required');
-			if($this->form_validation->run() && $error == 'NO'): 
-				$param['redeeming_amount_limit'] = 	$this->input->post('redeeming_amount_limit');
-				
-				if($this->input->post('CurrentDataID') !=''):
-					$categoryId					=	$this->input->post('CurrentDataID');
-					$param['update_ip']			=	currentIp();
-					$param['update_date']		=	date('Y-m-d h:i');
-					$param['updated_by']		=	(int)$this->session->userdata('UW_ADMIN_ID');
-					
-					// echo "<pre>";print_r($_POST);die();
-					$this->common_model->editData('uw_users',$param,'users_id',(int)$categoryId);
-					$this->session->set_flashdata('alert_success',lang('updatesuccess'));
-				endif;
-				redirect(correctLink('REDEEMINGAMOUNTLIMIT',getCurrentControllerPath('index')));
-			endif;
-		endif;
+		if ($editId === '') {
+			$this->admin_model->authCheck('view_data');
+			$this->session->set_flashdata('alert_error', 'Please select a customer to configure redeem limit.');
+			redirect(correctLink('REDEEMINGLIMITSLIST', getCurrentControllerPath('redeeminglimits')));
+			return;
+		}
+
+		$this->admin_model->authCheck('edit_data');
+		$data['EDITDATA'] = $this->common_model->getDataByParticularField('uw_users', 'users_id', (int) $editId);
+		if (empty($data['EDITDATA'])) {
+			$this->session->set_flashdata('alert_error', 'Customer not found.');
+			redirect(correctLink('REDEEMINGLIMITSLIST', getCurrentControllerPath('redeeminglimits')));
+			return;
+		}
+		
+		$this->session->set_userdata('REDEEMINGAMOUNTLIMIT', currentFullUrl());
+
+		if ($this->input->post('SaveChanges')) {
+			$error = 'NO';
+			$this->form_validation->set_rules('redeeming_amount_limit', 'Redeeming Amount Limit', 'trim|required|numeric|greater_than[0]');
+			$this->form_validation->set_rules('redeem_limit_mode', 'Redeem Limit Mode', 'trim|required|in_list[global,fixed]');
+			if ($this->form_validation->run() && $error == 'NO') {
+				$param['redeeming_amount_limit'] = (float) $this->input->post('redeeming_amount_limit');
+				$param['redeem_limit_mode'] = $this->_normalize_redeem_limit_mode($this->input->post('redeem_limit_mode'));
+				$userId = (int) $this->input->post('CurrentDataID');
+				if ($userId > 0) {
+					$param['update_ip'] = currentIp();
+					$param['update_date'] = date('Y-m-d h:i');
+					$param['updated_by'] = (int) $this->session->userdata('UW_ADMIN_ID');
+					$this->common_model->editData('uw_users', $param, 'users_id', $userId);
+					$this->session->set_flashdata('alert_success', lang('updatesuccess'));
+				}
+				$backUrl = $this->session->userdata('REDEEMINGLIMITSLIST');
+				if (!empty($backUrl)) {
+					redirect(correctLink('REDEEMINGLIMITSLIST', $backUrl));
+				} else {
+					redirect(correctLink('ALLUSERSDATA', getCurrentControllerPath('index')));
+				}
+				return;
+			}
+		}
 
 		$this->layouts->set_title('Add/Edit - Redeeming Limit');
-		$this->layouts->admin_view('users/allusers/addeditredeeminglimitdata',array(),$data);
+		$this->layouts->admin_view('users/allusers/addeditredeeminglimitdata', array(), $data);
 	}	// END OF FUNCTION	
 
 	/***********************************************************************

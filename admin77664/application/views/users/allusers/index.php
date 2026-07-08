@@ -34,9 +34,10 @@ $(function(){
                 <h5>Manage Users</h5>
                 <!-- <a href="<?php echo getCurrentControllerPath('exportexcel'); ?>" class="btn btn-sm btn-primary pull-right" style="margin-left: 5px;">Export excel</a> -->
                  <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right" style="margin-left: 5px;" data-toggle="modal" data-target="#exportModal">Export excel</a>
+                <a href="<?php echo getCurrentControllerPath('redeeminglimits'); ?>" class="btn btn-sm btn-primary pull-right" style="margin-left: 5px;">Redeem Limits</a>
                 <a href="<?php echo getCurrentControllerPath('addeditdata'); ?>" class="btn btn-sm btn-primary pull-right">Add Users</a>
               </div>
-              <div class="card-body">
+              <div class="card-body"> 
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
                   <div class="dt-responsive table-responsive">
                     <div id="simpletable_wrapper" class="dataTables_wrapper dt-bootstrap4">

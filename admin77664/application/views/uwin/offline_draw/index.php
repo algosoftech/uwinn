@@ -43,6 +43,7 @@ $(function(){
               <div class="card-header">
                 <h5>Manage Daily Winner List</h5>
                   <a href="javaScriptcript:void{0}" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#exportModal">Export excel</a>
+                  <a href="javascript:void(0)" class="btn btn-sm btn-info pull-right mr-2" data-toggle="modal" data-target="#combinedExportModal">Combined Excel (Hourly + Big Winners)</a>
               </div>
               <div class="card-body">
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
@@ -283,3 +284,54 @@ $(function(){
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="combinedExportModal" tabindex="-1" role="dialog" aria-labelledby="combinedExportModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="combinedExportModalLabel">Download Combined Report</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="<?=getUwinControllerPath('alllottoorders', 'combinedexportexcel')?>" method="post" autocomplete="off" id="combinedExportForm">
+        <input type="hidden" name="searchField" id="combinedSearchField" value="">
+        <input type="hidden" name="searchValue" id="combinedSearchValue" value="">
+        <input type="hidden" name="cancelled_order" id="combinedCancelledOrder" value="">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-12 col-md-6">
+              <label class="col-form-label">From:</label>
+              <input type="datetime-local" name="fromDate" id="combinedFromDate" value="<?php
+                $combinedFrom = !empty($combinedFromDate) ? $combinedFromDate : date('Y-m-d 16:00', strtotime('-1 day'));
+                echo date('Y-m-d\TH:i', strtotime(str_replace('T', ' ', $combinedFrom)));
+              ?>" class="form-control form-control-sm" placeholder="From Date">
+            </div>
+            <div class="col-sm-12 col-md-6">
+              <label class="col-form-label">To:</label>
+              <input type="datetime-local" name="toDate" id="combinedToDate" value="<?php
+                $combinedTo = !empty($combinedToDate) ? $combinedToDate : date('Y-m-d 22:00');
+                echo date('Y-m-d\TH:i', strtotime(str_replace('T', ' ', $combinedTo)));
+              ?>" class="form-control form-control-sm" placeholder="To Date">
+            </div>
+          </div>
+          <p class="text-muted small mt-2 mb-0">Hourly winners and Big Winners will both be exported for the selected date range.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-info">Download Combined Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).on('submit', '#combinedExportForm', function() {
+  var $listForm = $('#Data_Form');
+  if ($listForm.length) {
+    $('#combinedSearchField').val($listForm.find('[name="searchField"]').val() || '');
+    $('#combinedSearchValue').val($listForm.find('[name="searchValue"]').val() || '');
+  }
+});
+</script>

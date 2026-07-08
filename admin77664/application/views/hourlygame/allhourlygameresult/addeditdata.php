@@ -15,15 +15,24 @@ $(function() {
         changeMonth: true,
         changeYear: true,
         yearRange: "1970:<?= date('Y') ?>",
-        minDate: -1,   // yesterday
+        minDate: -3,   // previous 3 days
         maxDate: 0     // today
     });
 });
+
+function hourlyDrawTimeLabel(slot) {
+    if (!slot) {
+        return '';
+    }
+    var match = String(slot).trim().match(/(\d{2}:\d{2}:\d{2})$/);
+    return match ? match[1] : slot;
+}
 
 function updateHourlyGameTimeOptions() {
     var $productSelect = $("#product_details");
     var $timeSelect = $("#hourly_game_time");
     var selectedTime = $timeSelect.data("selected-time") || '';
+    var resultDate = $("#result_date").val() || '';
     var selectedOption = $productSelect.find("option:selected");
     var drawOptionsRaw = selectedOption.attr("data-draw-options") || '[]';
     var drawOptions = [];
@@ -45,13 +54,21 @@ function updateHourlyGameTimeOptions() {
         if (!slot) {
             continue;
         }
+        if (resultDate && String(slot).indexOf(resultDate) !== 0) {
+            continue;
+        }
+        var timeLabel = hourlyDrawTimeLabel(slot);
         var isSelected = selectedTime === slot ? ' selected' : '';
-        $timeSelect.append('<option value="' + slot + '"' + isSelected + '>' + slot + '</option>');
+        $timeSelect.append('<option value="' + slot + '"' + isSelected + '>' + timeLabel + '</option>');
     }
 }
 
 $(document).ready(function() {
     $("#product_details").on("change", function() {
+        $("#hourly_game_time").data("selected-time", '');
+        updateHourlyGameTimeOptions();
+    });
+    $("#result_date").on("change", function() {
         $("#hourly_game_time").data("selected-time", '');
         updateHourlyGameTimeOptions();
     });
@@ -181,7 +198,9 @@ $(document).ready(function() {
                                                 <option value="">Select Hourly Game Time</option>
                                                 <?php if(!empty($defaultHourlyTimeOptions)): ?>
                                                     <?php foreach($defaultHourlyTimeOptions as $hourlyOption): ?>
-                                                        <option value="<?=$hourlyOption;?>" <?=$selectedHourlyDateTime === $hourlyOption ? 'selected' : '';?>><?=$hourlyOption;?></option>
+                                                        <?php if(strpos($hourlyOption, $date) !== 0) continue; ?>
+                                                        <?php $hourlyOptionTime = date('H:i:s', strtotime($hourlyOption)); ?>
+                                                        <option value="<?=$hourlyOption;?>" <?=$selectedHourlyDateTime === $hourlyOption ? 'selected' : '';?>><?=$hourlyOptionTime;?></option>
                                                     <?php endforeach; ?>
                                                 <?php endif; ?>
                                             </select>

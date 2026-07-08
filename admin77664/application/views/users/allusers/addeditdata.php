@@ -158,14 +158,16 @@ $(function(){
                                         <span for="name" generated="true" class="help-inline"><?php echo form_error('pos_device_id'); ?></span>
                                         <?php endif; ?>
                                     </div>
+                                    <?php
+                                    $simNoValue = set_value('sim_no');
+                                    if($simNoValue === ''):
+                                        $simNoValue = !empty($EDITDATA['sim_no']) ? stripslashes($EDITDATA['sim_no']) : '';
+                                    endif;
+                                    $simNoValue = substr(preg_replace('/\D/', '', (string)$simNoValue), 0, 19);
+                                    ?>
                                     <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('sim_no')): ?>error<?php endif; ?>" id="sim_no_block">
-<<<<<<< HEAD
                                         <label>SIM No</label>
                                         <input type="text" name="sim_no" id="sim_no" class="form-control" maxlength="19" inputmode="numeric" value="<?php echo htmlspecialchars($simNoValue, ENT_QUOTES, 'UTF-8'); ?>" placeholder="SIM No (optional)">
-=======
-                                        <label>SIM No <span class="required">*</span></label>
-                                        <input type="text" name="sim_no" id="sim_no" class="form-control" value="<?php if(set_value('sim_no')): echo set_value('sim_no'); else: echo stripslashes($EDITDATA['sim_no']);endif; ?>" placeholder="SIM No (exactly 19 digits)">
->>>>>>> 13b9b87181ea34907d45444c9e2a0ac2e9e57565
                                         <?php if(form_error('sim_no')): ?>
                                         <span for="sim_no" generated="true" class="help-inline"><?php echo form_error('sim_no'); ?></span>
                                         <?php endif; ?>
@@ -222,6 +224,47 @@ $(function(){
                                                 <?php endif; ?>
                                             </div>
 
+                                        </div>
+                                    </fieldset>
+
+                                    <fieldset class="redeem_limit_container d-none">
+                                        <legend>Redeem Limit</legend>
+                                        <div class="row">
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('redeeming_amount_limit')): ?>error<?php endif; ?>" id="redeeming_amount_limit_block">
+                                                <label>Redeeming Amount Limit (AED)<span class="required">*</span></label>
+                                                <input type="number" step="0.01" min="0.01" name="redeeming_amount_limit" id="redeeming_amount_limit" class="form-control" value="<?php if(set_value('redeeming_amount_limit')): echo set_value('redeeming_amount_limit'); else: echo stripslashes(isset($EDITDATA['redeeming_amount_limit']) && $EDITDATA['redeeming_amount_limit'] !== '' ? $EDITDATA['redeeming_amount_limit'] : '499');endif; ?>" placeholder="Redeeming Amount Limit">
+                                                <?php if(form_error('redeeming_amount_limit')): ?>
+                                                <span for="redeeming_amount_limit" generated="true" class="help-inline"><?php echo form_error('redeeming_amount_limit'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php
+                                            $editRedeemMode = 'fixed';
+                                            if (set_value('redeem_limit_mode')) {
+                                                $editRedeemMode = set_value('redeem_limit_mode');
+                                            } elseif (!empty($EDITDATA['redeem_limit_mode'])) {
+                                                $editRedeemMode = strtolower((string) $EDITDATA['redeem_limit_mode']);
+                                            }
+                                            if ($editRedeemMode !== 'global') {
+                                                $editRedeemMode = 'fixed';
+                                            }
+                                            ?>
+                                            <div class="form-group-inner col-lg-8 col-md-8 col-sm-8 col-xs-12 <?php if(form_error('redeem_limit_mode')): ?>error<?php endif; ?>">
+                                                <label>Redeem Limit Type <span class="required">*</span></label>
+                                                <div class="mt-2">
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="redeem_limit_mode" id="edit_redeem_limit_mode_global" value="global" <?php echo $editRedeemMode === 'global' ? 'checked="checked"' : ''; ?>>
+                                                        <label class="form-check-label" for="edit_redeem_limit_mode_global">Global</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="redeem_limit_mode" id="edit_redeem_limit_mode_fixed" value="fixed" <?php echo $editRedeemMode === 'fixed' ? 'checked="checked"' : ''; ?>>
+                                                        <label class="form-check-label" for="edit_redeem_limit_mode_fixed">Fixed</label>
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted d-block">Global: The custom limit will remain unchanged after redeem. Fixed: The limit will reset to 499 AED after redeem.</small>
+                                                <?php if(form_error('redeem_limit_mode')): ?>
+                                                <span for="redeem_limit_mode" generated="true" class="help-inline"><?php echo form_error('redeem_limit_mode'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                     </fieldset>
                                 </div>
@@ -523,13 +566,13 @@ else{ $("#store").hide(); }
         });
 
         //Default field hiding.
-        $('#bind_with_list_block ,.commission_container , #bind_with_section , #store_name_block , #pos_section , #contract_given_by_section').addClass('d-none');
+        $('#bind_with_list_block ,.commission_container ,.redeem_limit_container , #bind_with_section , #store_name_block , #pos_section , #contract_given_by_section').addClass('d-none');
 
         // Showing EditData..
         let current_userType = "<?= isset($EDITDATA['users_type']) ? $EDITDATA['users_type'] : '' ?>";
 
         if(current_userType == 'Sales Person' || current_userType == 'Freelancer' ){
-            $('#pos_section , #bind_with_section , #bind_with_list_block').removeClass('d-none');
+            $('#pos_section , #bind_with_section , #bind_with_list_block , .redeem_limit_container').removeClass('d-none');
 
             if(current_userType == 'Freelancer'){
               $("#bind_user_type option:contains('Sales Person')").prop("disabled", false);
@@ -538,7 +581,7 @@ else{ $("#store").hide(); }
             }
         
         }else if( current_userType == "Retailer" || current_userType == 'Promoter' ){
-           $(' #store_name_block , #bind_with_section , #bind_with_list_block , #pos_section , .commission_container , #contract_given_by_section').removeClass('d-none');
+           $(' #store_name_block , #bind_with_section , #bind_with_list_block , #pos_section , .commission_container , .redeem_limit_container , #contract_given_by_section').removeClass('d-none');
 
           $("#bind_user_type option:contains('Sales Person') , #bind_user_type option:contains('Sales Supervisor') , #bind_user_type option:contains('Manager') ").prop("disabled", false);
 
@@ -606,16 +649,16 @@ else{ $("#store").hide(); }
             // console.log(userType);
 
             if( userType == 'Freelancer'){
-                $('#bind_with_section , #pos_section').removeClass('d-none');
+                $('#bind_with_section , #pos_section , .redeem_limit_container').removeClass('d-none');
                 $("#bind_user_type option:contains('Sales Person')").prop("disabled", false);
 
             } else if(userType == 'Sales Person' ){
-                $('#bind_with_section , #pos_section').removeClass('d-none');
+                $('#bind_with_section , #pos_section , .redeem_limit_container').removeClass('d-none');
                 $("#bind_user_type option:contains('Manager')").prop("disabled", false);
                 $("#bind_user_type option:contains('Sales Supervisor')").prop("disabled", false);
 
             } else if(userType == 'Retailer' || userType == 'Promoter' ){
-               $('#bind_with_section , #store_name_block , #pos_section , .commission_container , #contract_given_by_section').removeClass('d-none');
+               $('#bind_with_section , #store_name_block , #pos_section , .commission_container , .redeem_limit_container , #contract_given_by_section').removeClass('d-none');
                if(userType == 'Promoter'){
                 $('#commission_percentage_block , #contract_given_by_section').addClass('d-none');
                }

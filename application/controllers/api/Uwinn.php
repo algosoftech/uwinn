@@ -2525,10 +2525,11 @@ class uwinn extends CI_Controller {
 							endforeach;
 
 							$tableName1	    = "uw_users";
-							$Fields 	    = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit');
+							$Fields 	    = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit','redeem_limit_mode');
 							$sellerDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$userID);
 							$defaultRedeemingAmountLimit = 499;
 							$redeeming_amount_limit = $sellerDetails['redeeming_amount_limit']?$sellerDetails['redeeming_amount_limit'] : $defaultRedeemingAmountLimit; 
+							$redeemLimitMode = isset($sellerDetails['redeem_limit_mode']) ? strtolower((string) $sellerDetails['redeem_limit_mode']) : 'fixed';
 							
 							if($totalPrizeAmount > $redeeming_amount_limit &&  $userID != 100000000000110):
 								throw new Exception(lang('BIG_WINNER_TEXT'));
@@ -2650,7 +2651,7 @@ class uwinn extends CI_Controller {
 										$result = array('payment_date' => date('Y-m-d H:i'));
 									endif;
 									if($record && $reddemData ){
-											if($totalPrizeAmount >$defaultRedeemingAmountLimit  && $userID != 100000000000110):
+											if($totalPrizeAmount > $defaultRedeemingAmountLimit && $userID != 100000000000110 && $redeemLimitMode !== 'global'):
 												$uLimitParam['redeeming_amount_limit']    = $defaultRedeemingAmountLimit;
 												$uLimitParam['update_date']               =   date('Y-m-d h:m');
 												$this->common_model->editData('uw_users',$uLimitParam, 'users_id',(int)$userID);

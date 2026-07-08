@@ -57,9 +57,6 @@ class Alllottoorders extends CI_Controller {
 		else:
 			$toDate	 	 = date('Y-m-d 22:00');
 		endif;
-		$data['combinedFromDate'] = date('Y-m-d 16:00', strtotime('-1 day'));
-		$data['combinedToDate']   = date('Y-m-d 22:00');
-		
 		$searchField   = $this->input->get('searchField');
 		$searchValue   = $this->input->get('searchValue');
 		 

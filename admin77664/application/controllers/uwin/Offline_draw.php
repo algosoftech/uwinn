@@ -134,7 +134,9 @@ class Offline_draw extends CI_Controller {
            $page = 0;
        endif;
 		
-		$data['forAction'] 					= 	$baseUrl; 
+		$data['forAction'] 					= 	$baseUrl;
+		$data['combinedFromDate'] = date('Y-m-d 16:00', strtotime('-1 day'));
+		$data['combinedToDate']   = date('Y-m-d 22:00');
 		if($totalRows):
 			$first							=	(int)($page)+1;
 			$data['first']					=	$first;
