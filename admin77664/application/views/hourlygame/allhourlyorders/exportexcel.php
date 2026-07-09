@@ -74,8 +74,12 @@
     var totalPage         = <?=json_encode($total_page);?>;
     var searchField       = <?=json_encode($searchField);?>;
     var searchValue       = <?=json_encode($searchValue);?>;
+    var searchPosNumber   = <?=json_encode(isset($searchPosNumber) ? $searchPosNumber : '');?>;
+    var drawFromDate      = <?=json_encode(isset($drawFromDate) ? $drawFromDate : '');?>;
+    var drawToDate        = <?=json_encode(isset($drawToDate) ? $drawToDate : '');?>;
     var fromDate          = <?=json_encode($fromDate);?>;
     var toDate            = <?=json_encode($toDate);?>;
+    var drawTimeSearch    = <?=json_encode(isset($drawTimeSearch) ? $drawTimeSearch : '');?>;
     var cancelled_order   = <?=json_encode($cancelled_order);?>;
     var exportType        = <?=json_encode(isset($exportType) ? $exportType : 'draw');?>;
     let timeLeft          = totalPage == 1 ? 5 : 5 * totalPage + 5;
@@ -87,7 +91,7 @@
             $.ajax({
                 url: "<?=getCurrentControllerPath('exportexcelApi');?>",  
                 type: 'POST',
-                data: { pageno: currentPage, searchField: searchField, searchValue: searchValue, fromDate: fromDate, toDate: toDate , cancelled_order :cancelled_order, exportType: exportType },
+                data: { pageno: currentPage, searchField: searchField, searchValue: searchValue, searchPosNumber: searchPosNumber, drawFromDate: drawFromDate, drawToDate: drawToDate, fromDate: fromDate, toDate: toDate, drawTimeSearch: drawTimeSearch, cancelled_order :cancelled_order, exportType: exportType },
                 success: function(data) {
                     allData = allData.concat(JSON.parse(data)); // Store the data
                     responsesReceived++;

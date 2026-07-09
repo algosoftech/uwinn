@@ -96,6 +96,368 @@ class Hourlygames extends CI_Controller {
 	 * * Purpose  	   : This function used to orderCreate
 	 * * Date 		   : 31 March 2026
 	 * * **********************************************************************/
+	// public function orderCreate()
+	// {
+	// 	$apiHeaderData = getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 	   = array();
+	// 	try {
+	// 		if(requestAuthenticate(APIKEY,'POST')):
+	// 			$usersId    = $this->input->post('users_id');
+	// 			$productsId = $this->input->post('products_id');
+	// 			$qty        = $this->input->post('qty')?:1;
+	// 			$modes      = json_decode($this->input->post('modes'), true);
+	// 			$tickets    = json_decode($this->input->post('tickets'), true);
+	// 			$smsType 	      = $this->input->post('otp_sent');
+	// 			$buyerCountryCode = $this->input->post('buyer_country_code');
+	// 			$buyerMobile 	  = $this->input->post('buyer_mobile');
+	// 			$buyerEmail 	  = $this->input->post('buyer_email');
+	// 			$isCouponsRequired = $this->input->post('is_coupons_required');
+
+	// 			// optional fields
+	// 			$deliveryAddress = $this->input->post('delivery_address');
+	// 			$deliveryCharge  = $this->input->post('delivery_charge');
+	// 			$usersAddress    = $this->input->post('users_address');
+	// 			$usersLong       = $this->input->post('users_long');
+	// 			$usersLat        = $this->input->post('users_lat');
+	// 			$appName         = $this->input->post('app_name');
+	// 			$appVersion      = $this->input->post('app_version');
+	// 			$duplicateCheck  = $this->input->post('duplicate_check');
+	// 			$txnID           = $this->input->post('txn_id');
+	// 			$is24Hours       = $this->input->post('is_24_hours');
+	// 			$drawTime        = $this->input->post('draw_time');
+	// 			$drawTimeString  = $this->input->post('draw_time_string');
+
+	// 			if(empty($usersId)):
+	// 				throw new Exception(lang('USER_ID_EMPTY'), 1);
+	// 			elseif(empty($productsId)):
+	// 				throw new Exception(lang('PRODUCT_ID_EMPTY'), 1);
+	// 			else:
+					
+	// 				$tblName           = 'uw_users';
+	// 				$whereCon['where'] = array('users_id' => (int)$usersId);
+	// 				$userData          = $this->common_model->getData('single',$tblName,$whereCon);
+	// 				// echo "<pre>";print_r($userData);die();
+					
+	// 				if(empty($userData)):
+	// 					throw new Exception(lang('INVALID_USER'), 1);
+	// 				elseif($userData['status'] != "A"):
+	// 					throw new Exception(lang('ACCOUNT_BLOCKED'), 1);
+	// 				elseif($userData['enable_hourly_games'] == "N"):
+	// 					throw new Exception("HOURLY_GAME_DISABLED", 1);
+	// 				elseif($is24Hours == "Y" && empty($drawTimeString)):
+	// 					throw new Exception(lang('DRAW_TIME_REQUIRED'), 1);
+	// 				else:
+						
+	// 					$this->session->sess_regenerate();
+	// 					$session = $this->mongodb_client->client->startSession();
+	// 					$session->startTransaction();
+
+	// 					// check game data
+	// 					$tblName           = 'uw_hourly_games';
+	// 					$whereCon['where'] = array();
+	// 					$whereCon['where']['_id']                   = new MongoDB\BSON\ObjectID($productsId);
+						
+	// 					if($usersId  == 100000000000016 || $usersId  == 100000000001252 || $usersId  == 2010194 || $usersId  == 100000000000514  || $usersId  == 100000000000843):
+	// 						$whereCon['where']['is_24_hours']    = "Y";
+	// 					else:
+	// 						$whereCon['where']['status']         = "A";
+	// 					endif;
+	// 					$whereCon['where']['expiry_date']           = array('$gt' => strtotime(date('Y-m-d H:i:s')));
+	// 					$whereCon['where']['prize_setting']         = "enabled";
+	// 					$fieldList  = array();
+	// 					$gameData   = $this->common_model->getParticularFieldByMultipleCondition($fieldList,$tblName,$whereCon);
+
+	// 					// commented code --- 02 July 2026 ---
+	// 					// if(strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+	// 					// 	throw new Exception('Campaign expired. Please refresh the page and try again.');
+	// 					// endif;
+
+	// 					// if($userData['users_type'] == "Users" && strtotime('-2 minutes',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+	// 					// 	throw new Exception('Campaign expired. Please refresh the page and try again.');
+	// 					// elseif( $userData['users_type'] != "Users" && strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+	// 					// 	throw new Exception('Campaign expired. Please refresh the page and try again.');
+	// 					// endif;
+	// 					// ------------------------------------------------------------
+
+
+	// 					if(empty($isCouponsRequired)):
+	// 						$isCouponsRequired = "Y";
+	// 					endif;
+						
+	// 					// if(empty($gameData)):
+	// 					// 	throw new Exception(lang('DATA_NOT_FOUND'), 1);
+	// 					// elseif($userData['availableArabianPoints'] < $gameData['price'] * $qty):
+	// 					// 	throw new Exception(lang('LOW_BALANCE'), 1);
+	// 					// elseif($gameData['coupon_selection_type'] == 'manual' && empty($tickets)):
+	// 					// 	throw new Exception(lang('COUPON_NOT_SELECTED'), 1);
+	// 					// else:
+
+	// 					if(empty($gameData)):
+	// 						throw new Exception(lang('DATA_NOT_FOUND'), 1);
+	// 					elseif($userData['availableArabianPoints'] < $gameData['price'] * $qty):
+	// 						throw new Exception(lang('LOW_BALANCE'), 1);
+	// 					elseif($gameData['coupon_selection_type'] == 'manual' && empty($tickets) && $isCouponsRequired == "Y"):
+	// 						throw new Exception(lang('COUPON_NOT_SELECTED'), 1);
+	// 					else:
+							
+
+	// 						//Buffering time order duplication check.. START
+	// 						$checkWhereCon['where']['users_oid']    = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+	// 						$checkWhereCon['where']['products_oid'] = new MongoDB\BSON\ObjectID($productsId);
+	// 						$checkWhereCon['where']['created_at'] =  array(  '$gte' => strtotime(date('Y-m-d H:i:s', strtotime('-10 seconds')))  );
+	// 						$checkStartIndex    = 0;
+	// 						$checkitemsPerPage  = 1;
+	// 						$checkShortField = array('_id' => -1);
+	// 						$resultData = $this->common_model->getHourlyGameOrderHistory($checkWhereCon,$checkShortField,$checkitemsPerPage,$checkStartIndex);
+	// 						if(!empty($resultData)):
+	// 							$resultData = $resultData[0];
+	// 							if(!empty($resultData['ticketData'])):
+	// 								$PreviewsTickets = array_column($resultData['ticketData'], 'ticket');
+	// 								$currentTickets = array_column($tickets, 'ticket');
+	// 								if(!array_diff($currentTickets, $PreviewsTickets)):
+	// 									echo outPut(1, lang('SUCCESS_CODE'), lang('SUCCESS_ACTION'), $resultData);
+	// 									die();
+	// 								endif;
+	// 							endif;
+	// 						endif;
+
+	// 						if(!empty($txnID)):
+	// 							$checkWhereCon['where']['users_oid']    = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+	// 							$checkWhereCon['where']['products_oid'] = new MongoDB\BSON\ObjectID($productsId);
+	// 							$checkWhereCon['where']['status']       = "A";
+	// 							$checkWhereCon['where']['txn_id']       = $txnID;
+	// 							$checkWhereCon['where']['created_at']   = array('$gte' => strtotime(date('Y-m-d H:i:s', strtotime('-1 minute')))  );
+	// 							$checkStartIndex    = 0;
+	// 							$checkitemsPerPage  = 1;
+	// 							$checkShortField = array('_id' => -1);
+	// 							$resultData = $this->common_model->getHourlyGameOrderHistory($checkWhereCon,$checkShortField,$checkitemsPerPage,$checkStartIndex);
+	// 							if(!empty($resultData)):
+	// 								$resultData = $resultData[0];
+	// 								echo outPut(1, lang('SUCCESS_CODE'), lang('ALREADY_ORDER_PLACED'), $resultData);
+	// 								die();
+	// 							endif;
+	// 						endif;
+
+	// 						//Buffering time order duplication check.. END
+
+	// 						$currentTime = strtotime(date('H:00:00'));
+
+	// 						A :
+	// 						$status = $isCouponsRequired == "Y" ? "A" : "INI";
+	// 						$drawTime = $is24Hours == "Y" ? $drawTimeString : $gameData['draw_time'];
+							
+	// 						$currentDate = strtotime(date('Y-m-d H:i:s'));
+	// 						$drawTi      = date('Y-m-d 17:00:00');
+	// 						if(!empty($is24Hours) && $is24Hours == "Y" && !empty($drawTimeString)):
+	// 							$drawTimeTs     = strtotime($drawTimeString);
+	// 							$drawTimeString = $drawTimeString;
+	// 						elseif(empty($is24Hours) && empty($drawTimeString) && $currentDate <= strtotime($drawTi)):
+	// 							$drawTimeTs     = strtotime($drawTi);
+	// 							$drawTimeString = $drawTi;
+	// 						else:
+	// 							if($currentTime >= '17:00:00' && $currentTime <= strtotime('23:59:59')):
+	// 								$drawTi = date('Y-m-d H:00:00' , strtotime('+1 hour'));
+	// 							endif;
+	// 							$drawTimeTs     = strtotime($drawTi);
+	// 							$drawTimeString = $drawTi;
+	// 						endif;
+
+	// 						$now = time();
+	// 						if(empty($drawTimeTs) || $drawTimeTs <= 0):
+	// 							throw new Exception(lang('DRAW_TIME_REQUIRED'), 1);
+	// 						endif;
+	// 						if($userData['users_type'] == "Users"):
+	// 							if(strtotime('-2 minutes', $drawTimeTs) < $now):
+	// 								throw new Exception('Campaign expired. Please refresh the page and try again.');
+	// 							endif;
+	// 						elseif(strtotime('-10 seconds', $drawTimeTs) < $now):
+	// 							throw new Exception('Campaign expired. Please refresh the page and try again.');
+	// 						endif;
+
+	// 						$orderSeq      = floor((microtime(true) * 1000)).rand(100,999);
+	// 						$totalPrice    = $gameData['price'] * $qty;
+	// 						$param['order_id']        = "UWINN".$orderSeq;
+	// 						$param['users_id']        = (int)$usersId;
+	// 						$param['users_oid']       = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+	// 						$param['products_oid']    = new MongoDB\BSON\ObjectID($productsId);
+	// 						$param['products_name']   = $gameData['title'];
+	// 						$param['start_date']      = $gameData['start_date'];
+	// 						$param['expiry_date']     = $gameData['expiry_date'];
+	// 						// $param['draw_time']       = $gameData['draw_time'];
+	// 						// $param['draw_time_string']= date('Y-m-d H:i:s', $gameData['draw_time']);
+	// 						$param['draw_time']       = $drawTimeTs;
+	// 						$param['draw_time_string']= $drawTimeString;
+	// 						$param['qty']             = (int)$qty;
+	// 						$param['total_price']     = (float)$totalPrice;
+	// 						$param['sms_type']           = $smsType;
+	// 						$param['buyer_country_code'] = $buyerCountryCode;
+	// 						$param['buyer_mobile']       = (int)$buyerMobile;
+	// 						$param['buyer_email']        = $buyerEmail;
+	// 						$param['created_at']      = strtotime(date('Y-m-d H:i:s'));
+	// 						$param['created_by']      = (int)$usersId;
+	// 						// $param['status']       = 'A';
+	// 						$param['is_24_hours']     = $is24Hours?$is24Hours:"N";
+	// 						$param['status']          = $status;
+	// 						$result = $this->common_model->addData('uw_hourly_orders',$param);
+	// 						if(empty($result)):
+	// 							goto A;
+	// 						endif;
+	// 						$orderOid = $result['_id']->{'$id'};
+
+	// 						if(!empty($tickets) && $isCouponsRequired == "Y"):
+	// 							foreach($tickets as $index => $item):
+	// 								$ticketParam['order_oid']       = new MongoDB\BSON\ObjectID($orderOid);
+	// 								$ticketParam['users_id']        = (int)$usersId;
+	// 								$ticketParam['users_oid']       = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+	// 								$ticketParam['products_oid']    = new MongoDB\BSON\ObjectID($productsId);
+	// 								$ticketParam['products_name']   = $gameData['title'];
+	// 								$ticketParam['start_date']      = $gameData['start_date'];
+	// 								$ticketParam['expiry_date']     = $gameData['expiry_date'];
+	// 								$ticketParam['type']   			= $item['type'];
+	// 								$ticketParam['ticket'] 			= $item['ticket'];
+	// 								$ticketParam['points']          = $item['points'];
+	// 								$ticketParam['created_at']      = strtotime(date('Y-m-d H:i:s'));
+	// 								$ticketParam['created_by']      = (int)$usersId;
+	// 								$ticketParam['status']          = 'A';
+	// 								// $resultTicket = $this->common_model->addData('uw_hourly_tickets',$ticketParam);
+	// 								$resultTicket = $this->mongodb_client->insertDocument('uw_hourly_tickets',$ticketParam, $session);
+
+	// 							endforeach;
+	// 						endif;
+
+	// 						$loadBalanceParam['users_id']      = (int)$usersId;
+	// 						$loadBalanceParam['user_oid']     = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+	// 						$loadBalanceParam['load_balance_id'] = $this->common_model->getNextSequence('loadBalance');
+	// 						$loadBalanceParam['order_oid']     = new MongoDB\BSON\ObjectID($result['_id']->{'$id'});
+	// 						$loadBalanceParam['product_oid']   = new MongoDB\BSON\ObjectID($productsId);
+	// 						$loadBalanceParam['user_id_deb']   = (int)$usersId;
+	// 						$loadBalanceParam['user_id_cred']  = (int)0;
+	// 						$loadBalanceParam['order_id']      = $result['order_id'];
+	// 						$loadBalanceParam['upoints']       = (float)$totalPrice;
+	// 						$loadBalanceParam['availableArabianPoints'] = (float)$userData['availableArabianPoints'];
+	// 						$loadBalanceParam['end_balance']   = (float)$userData['availableArabianPoints'] - (float)$totalPrice;
+	// 						$loadBalanceParam['record_type']   = 'Debit';
+	// 						$loadBalanceParam['narration']     = 'Hourly Game Order';
+	// 						$loadBalanceParam['remarks']       = 'Order ID: '.$result['order_id'];
+	// 						$loadBalanceParam['created_at']    = date('Y-m-d H:i:s');
+	// 						$loadBalanceParam['created_by']    = (int)$usersId;
+	// 						$loadBalanceParam['status']        = 'A';	
+	// 						// $result2 = $this->common_model->addData('uw_loadBalance',$loadBalanceParam);
+	// 						$result2 = $this->mongodb_client->insertDocument('uw_loadBalance',$loadBalanceParam, $session);
+
+
+	// 						$commission_percentage = $userData['hourly_games_commission_percentage']?$userData['hourly_games_commission_percentage']:10;
+	// 						$commission_amount     = ($totalPrice * $commission_percentage) / 100;
+	// 						$availableArabianPoints = (float)$userData['availableArabianPoints'] - (float)$totalPrice;
+							
+	// 						if($commission_amount > 0 && $userData['users_type'] != "Users"):
+	// 							$commissionParam['users_id']      = (int)$usersId;
+	// 							$commissionParam['user_oid']     = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+	// 							$commissionParam['load_balance_id'] = $this->common_model->getNextSequence('loadBalance');
+	// 							$commissionParam['order_oid']     = new MongoDB\BSON\ObjectID($result['_id']->{'$id'});
+	// 							$commissionParam['product_oid']   = new MongoDB\BSON\ObjectID($productsId);
+	// 							$commissionParam['user_id_deb']   = (int)0;
+	// 							$commissionParam['user_id_cred']  = (int)$usersId;
+	// 							$commissionParam['order_id']      = $result['order_id'];
+	// 							$commissionParam['upoints']       = (float)$commission_amount;
+	// 							$commissionParam['availableArabianPoints'] = (float)$loadBalanceParam['end_balance'];
+	// 							$commissionParam['end_balance']   = (float)$loadBalanceParam['end_balance']+(float)$commission_amount;
+	// 							$commissionParam['record_type']   = 'Credit';
+	// 							$commissionParam['narration']     = 'Hourly Game Commission';
+	// 							$commissionParam['remarks']       = 'Order ID: '.$result['order_id'];
+	// 							$commissionParam['created_at']    = date('Y-m-d H:i:s');
+	// 							$commissionParam['created_by']    = (int)$usersId;
+	// 							$commissionParam['status']        = 'A';	
+	// 							// $result3                          = $this->common_model->addData('uw_loadBalance',$commissionParam);
+	// 							$result3 = $this->mongodb_client->insertDocument('uw_loadBalance',$commissionParam, $session);
+	// 							$availableArabianPoints = ((float)$userData['availableArabianPoints'] - (float)$totalPrice ) + (float)$commission_amount;
+	// 						endif;
+							
+	// 						/* Update user availableArabianPoints */
+	// 						$userParam['availableArabianPoints'] = (float)$availableArabianPoints;
+	// 						$userParam['updated_at']             = date('Y-m-d H:i:s');
+	// 						$userParam['updated_by']             = (int)$usersId;
+	// 						// $this->common_model->editData('uw_users',$userParam,'_id', new MongoDB\BSON\ObjectID($userData['_id']->{'$id'}));
+	// 						$this->mongodb_client->updateDocument('uw_users',['_id' => new MongoDB\BSON\ObjectID($userData['_id']->{'$id'})],['$set' => $userParam], $session);
+
+	// 						$session->commitTransaction();
+	// 						$this->mongodb_client->commitTransaction($session);
+
+	// 						$message = "";
+	// 						if(!empty($tickets) && ( ( !empty($buyerCountryCode) && !empty($buyerMobile) ) || !empty($buyerEmail) )  ):
+	// 							$output        = [];
+	// 							$CouponDetails = '';
+	// 							$map = ['S', 'R', 'C'];
+	// 							foreach ($tickets as $key => $tickectitem) {
+	// 								// Ticket numbers
+	// 								$line = $tickectitem['ticket'];
+	// 								$line .= ' (';
+	// 								if($tickectitem['type'] == "straight"):
+	// 									$line .= 'S';
+	// 								elseif($tickectitem['type'] == "rumble"):
+	// 									$line .= 'R';
+	// 								elseif($tickectitem['type'] == "chance"):
+	// 									$line .= 'C';
+	// 								endif;
+	// 								$line .= ')';
+									 
+	// 								$output[] = $line;
+	// 							}
+
+	// 							$CouponDetails = implode('. ', $output);
+
+	// 							if(!empty($drawTimeTs)):
+	// 								$drawDate = date('d.m.Y h:iA', $drawTimeTs);
+	// 							else:
+	// 								$drawDate = date('d.m.Y h:iA', $gameData['draw_time']);
+	// 							endif;
+
+	// 							$message = 'Order ID '.$result['order_id'].' of '.$gameData['title'].' with coupons '.$CouponDetails.' Ddate '.$drawDate.' You can download the invoice here https://tktinvoice.com/uwin-download-invoice/'.$result['order_id'];
+
+	// 							if(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message) && $smsType == "SMS"):
+
+	// 								$enableSmsFields   = ['default_sms'];
+	// 								$enableTblName     = 'uw_enablesms';
+	// 								$enableSMSData     = $this->common_model->getSingleDataByParticularField($enableSmsFields,$enableTblName, 'status', 'A');
+	// 								$defaultSMSGateway = $enableSMSData['default_sms'];
+									
+	// 								$senderDetails['gateway']       = $defaultSMSGateway;
+	// 								$senderDetails['users_mobile']  = $buyerMobile;
+	// 								$senderDetails['country_code']  = $buyerCountryCode;
+	// 								$senderDetails['message']       = $message;
+	// 								$this->sms_model->sendSMS($senderDetails);
+
+	// 							elseif(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message) && $smsType == "WhatsApp"):
+	// 								$senderDetails['country_code']  = $buyerCountryCode;
+	// 								$senderDetails['users_mobile']  = $buyerMobile;
+	// 								$senderDetails['message']       = $message;
+	// 								$senderDetails['ORDERID']       = $result["order_id"];
+	// 								$senderDetails['CAMPAIGNAME']   = $gameData["title"];
+	// 								$senderDetails['CouponDetails'] = $CouponDetails;
+	// 								$senderDetails['DDATE']         = $drawDate;
+	// 								$senderDetails['LINK']          = 'https://tktinvoice.com/uwin-download-invoice/'.$result["order_id"];
+	// 								// $senderDetails['LINK']          = 'https://staging.u-winn.net/uwin-download-invoice/'.$result["order_id"];
+	// 								$this->sms_model->sendWhatsAppMessage($senderDetails);
+	// 							elseif(!empty($buyerEmail) && !empty($message) && $smsType == "EMAIL"):
+	// 								$subject = "Order Confirmation";
+	// 								$this->emailsendgrid_model->sendEmail($buyerEmail,$subject,$message);
+	// 							endif;	
+	// 						endif;
+
+	// 						echo outPut(1, lang('SUCCESS_CODE'), lang('SUCCESS_ACTION'), $result);
+	// 					endif;
+	// 				endif;
+					
+	// 			endif;
+
+	// 		else:
+	// 			throw new Exception(lang('FORBIDDEN_MSG'),1);
+	// 		endif;
+	// 	} catch (Exception $e) {
+	// 		echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+	// 	}
+	// }
 	public function orderCreate()
 	{
 		$apiHeaderData = getApiHeaderData();
@@ -126,6 +488,8 @@ class Hourlygames extends CI_Controller {
 				$txnID           = $this->input->post('txn_id');
 				$is24Hours       = $this->input->post('is_24_hours');
 				$drawTime        = $this->input->post('draw_time');
+				$drawTimeString  = $this->input->post('draw_time_string');
+				$postedDrawTimeString = $drawTimeString;
 
 				if(empty($usersId)):
 					throw new Exception(lang('USER_ID_EMPTY'), 1);
@@ -144,7 +508,7 @@ class Hourlygames extends CI_Controller {
 						throw new Exception(lang('ACCOUNT_BLOCKED'), 1);
 					elseif($userData['enable_hourly_games'] == "N"):
 						throw new Exception("HOURLY_GAME_DISABLED", 1);
-					elseif($is24Hours == "Y" && empty($drawTime)):
+					elseif($is24Hours == "Y" && empty($drawTimeString)):
 						throw new Exception(lang('DRAW_TIME_REQUIRED'), 1);
 					else:
 						
@@ -156,20 +520,40 @@ class Hourlygames extends CI_Controller {
 						$tblName           = 'uw_hourly_games';
 						$whereCon['where'] = array();
 						$whereCon['where']['_id']                   = new MongoDB\BSON\ObjectID($productsId);
-						$whereCon['where']['status']                = "A";
+						
+						if($usersId  == 100000000000016 || $usersId  == 100000000001252 || $usersId  == 2010194 || $usersId  == 100000000000514  || $usersId  == 100000000000843):
+							$whereCon['where']['is_24_hours']    = "Y";
+						else:
+							$whereCon['where']['status']         = "A";
+						endif;
 						$whereCon['where']['expiry_date']           = array('$gt' => strtotime(date('Y-m-d H:i:s')));
 						$whereCon['where']['prize_setting']         = "enabled";
 						$fieldList  = array();
 						$gameData   = $this->common_model->getParticularFieldByMultipleCondition($fieldList,$tblName,$whereCon);
 
-						if(strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
-							throw new Exception('Campaign expired. Please refresh the page and try again.');
-						endif;
+						// commented code --- 02 July 2026 ---
+						// if(strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+						// 	throw new Exception('Campaign expired. Please refresh the page and try again.');
+						// endif;
 
-						if($userData['users_type'] == "Users" && strtotime('-2 minutes',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
-							throw new Exception('Campaign expired. Please refresh the page and try again.');
-						elseif( $userData['users_type'] != "Users" && strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
-							throw new Exception('Campaign expired. Please refresh the page and try again.');
+						// if($userData['users_type'] == "Users" && strtotime('-2 minutes',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+						// 	throw new Exception('Campaign expired. Please refresh the page and try again.');
+						// elseif( $userData['users_type'] != "Users" && strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+						// 	throw new Exception('Campaign expired. Please refresh the page and try again.');
+						// endif;
+						// ------------------------------------------------------------
+
+
+						if( empty($is24Hours) || $is24Hours != 'Y'):
+							if(strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+								throw new Exception('Campaign expired. Please refresh the page and try again.');
+							endif;
+	
+							if($userData['users_type'] == "Users" && strtotime('-2 minutes',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+								throw new Exception('Campaign expired. Please refresh the page and try again.');
+							elseif( $userData['users_type'] != "Users" && strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+								throw new Exception('Campaign expired. Please refresh the page and try again.');
+							endif;
 						endif;
 						
 						if(empty($isCouponsRequired)):
@@ -214,35 +598,49 @@ class Hourlygames extends CI_Controller {
 							endif;
 
 							if(!empty($txnID)):
-								$checkWhereCon['where']['users_oid']    = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
-								$checkWhereCon['where']['products_oid'] = new MongoDB\BSON\ObjectID($productsId);
-								$checkWhereCon['where']['status']       = "A";
-								$checkWhereCon['where']['txn_id']       = $txnID;
-								$checkWhereCon['where']['created_at']   = array('$gte' => strtotime(date('Y-m-d H:i:s', strtotime('-1 minute')))  );
-								$checkStartIndex    = 0;
-								$checkitemsPerPage  = 1;
-								$checkShortField = array('_id' => -1);
-								$resultData = $this->common_model->getHourlyGameOrderHistory($checkWhereCon,$checkShortField,$checkitemsPerPage,$checkStartIndex);
-								if(!empty($resultData)):
-									$resultData = $resultData[0];
-									echo outPut(1, lang('SUCCESS_CODE'), lang('ALREADY_ORDER_PLACED'), $resultData);
+								$txnWhereCon['where']['users_oid']    = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
+								$txnWhereCon['where']['products_oid'] = new MongoDB\BSON\ObjectID($productsId);
+								$txnWhereCon['where']['txn_id']       = $txnID;
+								$txnShortField = array('_id' => -1);
+								$duplicateOrderData = $this->common_model->getData('single','uw_hourly_orders',$txnWhereCon,$txnShortField);
+								if(!empty($duplicateOrderData)):
+									echo outPut(1, lang('SUCCESS_CODE'), lang('ALREADY_ORDER_PLACED'), $duplicateOrderData);
 									die();
 								endif;
 							endif;
 
 							//Buffering time order duplication check.. END
 
+							$currentTime = strtotime(date('H:00:00'));
+
 							A :
 							$status = $isCouponsRequired == "Y" ? "A" : "INI";
-							$drawTime = $is24Hours == "Y" ? $drawTime : $gameData['draw_time'];
-							if(!empty($is24Hours) && $is24Hours == "Y" && !empty($drawTime)):
-								$drawTimeTs     = strtotime($drawTime);
-								$drawTimeString = date('Y-m-d H:i:s', $drawTimeTs);
+							$drawTime = $is24Hours == "Y" ? $drawTimeString : $gameData['draw_time'];
+							
+							$currentDate = strtotime(date('Y-m-d H:i:s'));
+							$drawTi      = date('Y-m-d 17:00:00');
+							if(!empty($drawTimeString)):
+								$drawTimeTs     = strtotime($drawTimeString);
+							elseif(empty($is24Hours) && $currentDate <= strtotime($drawTi)):
+								$drawTimeTs     = strtotime($drawTi);
+								$drawTimeString = $drawTi;
 							else:
-								$drawTimeTs     = $gameData['draw_time'];
-								$drawTimeString = date('Y-m-d H:i:s', $gameData['draw_time']);
+								if($currentTime >= '17:00:00' && $currentTime <= strtotime('23:59:59')):
+									$drawTi = date('Y-m-d H:00:00' , strtotime('+1 hour'));
+								endif;
+								$drawTimeTs     = strtotime($drawTi);
+								$drawTimeString = $drawTi;
 							endif;
 
+							if(!empty($postedDrawTimeString)):
+								$now = time();
+								if(empty($drawTimeTs) || $drawTimeTs <= 0):
+									throw new Exception(lang('DRAW_TIME_REQUIRED'), 1);
+								endif;
+								if(strtotime('-10 seconds', $drawTimeTs) < $now):
+									throw new Exception('Campaign expired. Please refresh the page and try again.');
+								endif;
+							endif;
 
 							$orderSeq      = floor((microtime(true) * 1000)).rand(100,999);
 							$totalPrice    = $gameData['price'] * $qty;
@@ -253,6 +651,8 @@ class Hourlygames extends CI_Controller {
 							$param['products_name']   = $gameData['title'];
 							$param['start_date']      = $gameData['start_date'];
 							$param['expiry_date']     = $gameData['expiry_date'];
+							// $param['draw_time']       = $gameData['draw_time'];
+							// $param['draw_time_string']= date('Y-m-d H:i:s', $gameData['draw_time']);
 							$param['draw_time']       = $drawTimeTs;
 							$param['draw_time_string']= $drawTimeString;
 							$param['qty']             = (int)$qty;
@@ -266,6 +666,7 @@ class Hourlygames extends CI_Controller {
 							// $param['status']       = 'A';
 							$param['is_24_hours']     = $is24Hours?$is24Hours:"N";
 							$param['status']          = $status;
+							$param['txn_id']          = $txnID;
 							$result = $this->common_model->addData('uw_hourly_orders',$param);
 							if(empty($result)):
 								goto A;
@@ -373,7 +774,13 @@ class Hourlygames extends CI_Controller {
 								}
 
 								$CouponDetails = implode('. ', $output);
-								$drawDate = date('d.m.Y h:iA', $gameData['draw_time']);
+
+								if(!empty($drawTimeTs)):
+									$drawDate = date('d.m.Y h:iA', $drawTimeTs);
+								else:
+									$drawDate = date('d.m.Y h:iA', $gameData['draw_time']);
+								endif;
+
 								$message = 'Order ID '.$result['order_id'].' of '.$gameData['title'].' with coupons '.$CouponDetails.' Ddate '.$drawDate.' You can download the invoice here https://tktinvoice.com/uwin-download-invoice/'.$result['order_id'];
 
 								if(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message) && $smsType == "SMS"):
@@ -419,7 +826,6 @@ class Hourlygames extends CI_Controller {
 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
 		}
 	}
-
 	/* * *********************************************************************
 	 * * Function name : updateOrder
 	 * * Developed By  : Dilip Halder

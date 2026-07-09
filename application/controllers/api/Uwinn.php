@@ -911,7 +911,7 @@ class uwinn extends CI_Controller {
 	 * * Updated By   	: Dilip Halder
 	 * * Updated Date 	: 12 April 2024
 	 * * **********************************************************************/
-	 public function paymentCapture()
+	public function paymentCapture()
 	 {	
 		try {
 
@@ -958,8 +958,7 @@ class uwinn extends CI_Controller {
 				$buyerMobile 		 = $this->input->post('buyer_mobile');
 				$buyerEmail 		 = $this->input->post('buyer_email');
 				$txnID 			     = $this->input->post('txn_id');
-
-
+				
 				if(empty($userId)): 
 					throw new Exception(lang('USER_ID_EMPTY'), 1);
 				elseif(empty($prizeTitle)): 
@@ -1049,10 +1048,11 @@ class uwinn extends CI_Controller {
 								endif;
 								//Buffering time order duplication check.. END
 
+
 								/* ----- Raffle Mode Addon code  ---------*/
 								$orderIdss = floor((microtime(true) * 1000)).rand(100,999);
 								$ORparam["sequence_id"]		    		=	(int)$this->geneal_model->getNextSequence('uw_lotto_orders');
-								$ORparam["txn_id"]			    		=	$txnID;
+								$ORparam["txn_id"]    					=   $txnID;
 						        $ORparam["user_oid"] 					=	new MongoDB\BSON\ObjectId($user_oid);
 						        $ORparam["order_id"]		        	=	"UWINN".$orderIdss;//$this->geneal_model->getNextUWINOrderId();
 						        // $ORparam["order_id"]		        	=	$this->geneal_model->getNextUWINOrderId();

@@ -21,14 +21,48 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Lotto Orders</h5>
+                        <h5>Hourly Game Orders</h5>
                         <a href="javaScript:void(0)" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#exportModal">Export excel</a>
+                        <a href="javaScript:void(0)" class="btn btn-sm btn-success pull-right mr-2" data-toggle="modal" data-target="#shopExportModal">Shop excel</a>
                     </div>
                     <div class="card-body">
+                        <style>
+                            .hourly-order-filter-row {
+                                overflow-x: auto;
+                                flex-wrap: nowrap !important;
+                            }
+                            .hourly-order-filter-row .col,
+                            .hourly-order-filter-row .col-auto {
+                                min-width: 140px;
+                            }
+                            .hourly-order-filter-row .col:first-child {
+                                min-width: 170px;
+                            }
+                            .hourly-order-filter-row #drawTimeSearchWrap,
+                            .hourly-order-filter-row .filter-date-col {
+                                min-width: 240px;
+                                flex: 0 0 240px;
+                                max-width: 240px;
+                            }
+                            .hourly-order-filter-row #drawTimeSearchWrap {
+                                min-width: 285px;
+                                flex: 0 0 285px;
+                                max-width: 285px;
+                            }
+                            .hourly-order-filter-row .input-group-text {
+                                white-space: nowrap;
+                                font-size: 12px;
+                                padding: 0.25rem 0.5rem;
+                            }
+                            .hourly-order-filter-row input[type="datetime-local"].form-control {
+                                min-width: 165px;
+                            }
+                        </style>
+                        <?php $drawTimeSearchFields = array('pos_number', 'settler_pos_number', 'products_name'); ?>
                         <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">
                             <div class="dt-responsive table-responsive">
                                 <div id="simpletable_wrapper" class="dataTables_wrapper dt-bootstrap4">
-                                    <div class="row">
+                                    <div class="row align-items-center mb-2">
                                         <div class="col-sm-12 col-md-12">
                                             <div class="dataTables_length" id="simpletable_length">
                                                 <label>Show
@@ -44,7 +78,9 @@
                                                 </label>
                                             </div>
                                         </div>
-                                        <div class="col-sm-3 col-md-3">
+                                    </div>
+                                    <div class="row align-items-center hourly-order-filter-row flex-nowrap">
+                                        <div class="col">
                                             <select name="searchField" id="searchField" class="custom-select custom-select-sm form-control form-control-sm">
                                               <option value="">Select Field</option>
                                               <option value="order_id" <?php if ($searchField == 'order_id') echo 'selected="selected"'; ?>>Order ID</option>
@@ -60,23 +96,38 @@
                                               <option value="settler_mobile" <?php if ($searchField == 'settler_mobile') echo 'selected="selected"'; ?>>Settler Mobile</option>
                                               <option value="buyer_mobile" <?php if ($searchField == 'buyer_mobile') echo 'selected="selected"'; ?>>Buyer Mobile</option>
                                               <option value="buyer_email" <?php if ($searchField == 'buyer_email') echo 'selected="selected"'; ?>>Buyer Email</option>
+                                              <option value="draw_time_string" <?php if ($searchField == 'draw_time_string') echo 'selected="selected"'; ?>>Draw DateTime</option>
                                             </select>
                                         </div>
-                                        <div class="col-sm-3 col-md-3">
-                                            <input type="text" name="searchValue" id="searchValue" value="<?php echo htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="Enter Search Text">
+                                        <div class="col">
+                                             <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="searchValue" step="3600" autocomplete="off" value="<?php if ($searchField === 'draw_time_string') { echo !empty($searchValue) ? date('Y-m-d\TH:i', strtotime($searchValue)) : date('Y-m-d') . 'T17:00'; } else { echo htmlspecialchars($searchValue ?? ''); } ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
                                         </div>
-                                        <div class="col-sm-6 col-md-6">
-                                            <div class="row">
-                                                <div class="col-sm-12 col-md-4">
-                                                    <input type="datetime-local" name="fromDate" id="fromDate" autocomplete="off" value="<?php echo $fromDate ? date('Y-m-d\TH:i', strtotime($fromDate)) : ''; ?>" class="form-control form-control-sm" placeholder="From Date">
+                                        <div class="col" id="drawTimeSearchWrap" style="<?php echo (in_array($searchField, $drawTimeSearchFields, true)) ? '' : 'display:none;'; ?>">
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Draw Date Time</span>
                                                 </div>
-                                                <div class="col-sm-12 col-md-4">
-                                                    <input type="datetime-local" name="toDate" id="toDate" autocomplete="off" value="<?php echo $toDate ? date('Y-m-d\TH:i', strtotime($toDate)) : ''; ?>" class="form-control form-control-sm" placeholder="To Date">
-                                                </div>
-                                                <div class="col-sm-12 col-md-4">
-                                                    <input type="submit" name="Search" value="Search" class="btn btn-sm btn-primary">
-                                                </div>
+                                                <input type="datetime-local" name="drawTimeSearch" id="drawTimeSearch" step="3600" autocomplete="off" value="<?php echo !empty($drawTimeSearch) ? date('Y-m-d\TH:i', strtotime($drawTimeSearch)) : ''; ?>" class="form-control form-control-sm" title="Draw Date Time">
                                             </div>
+                                        </div>
+                                        <div class="col filter-date-col">
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">From Date</span>
+                                                </div>
+                                                <input type="datetime-local" name="fromDate" id="fromDate" autocomplete="off" value="<?php echo $fromDate ? date('Y-m-d\TH:i', strtotime($fromDate)) : ''; ?>" class="form-control form-control-sm" title="From Date">
+                                            </div>
+                                        </div>
+                                        <div class="col filter-date-col">
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">To Date</span>
+                                                </div>
+                                                <input type="datetime-local" name="toDate" id="toDate" autocomplete="off" value="<?php echo $toDate ? date('Y-m-d\TH:i', strtotime($toDate)) : ''; ?>" class="form-control form-control-sm" title="To Date">
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <input type="submit" name="Search" value="Search" class="btn btn-sm btn-primary">
                                         </div>
                                     </div>
                                 </div>
@@ -90,11 +141,11 @@
                                                     <th width="5%">S.No.</th>
                                                     <th width="15%">Order ID</th>
                                                     <th width="10%">Seller Details</th>
-                                                    <th width="10%">Delivery Address</th>
                                                     <th width="20%">Game</th>
                                                     <th width="8%">Qty</th>
                                                     <th width="12%">Total Price</th>
                                                     <th width="15%">Created Date</th>
+                                                    <th width="15%">Draw Date & Time</th>
                                                     <th width="10%">Buyer Details</th>
                                                     <th width="10%">Winning Details</th>
                                                     <th width="10%">Status</th>
@@ -125,25 +176,20 @@
                                                         <b>POS Number </b>     : <?=htmlspecialchars($row['seller_users_pos_number'] ?? 'N/A'); ?><br/>
                                                         <b>Bind with Name </b> : <?=htmlspecialchars($row['seller_users_bind_person_name'] ?? 'N/A'); ?>
                                                     </td>
-                                                    <td>
-                                                        <div class="text-center">
-                                                          <?php if($row['delivery_address']): ?>
-                                                            <p>
-                                                              <b>Delivery Address</b> 
-                                                              <br> <?=stripslashes($row['delivery_address']??'N/A')?>
-                                                            </p>
-                                                            <p> 
-                                                              <b>Delivery charges</b> AED <?=stripslashes($row['delivery_charge']??'N/A');?> 
-                                                            </p>
-                                                          <?php else: ?>
-                                                            --
-                                                            <?php endif; ?>
-                                                        </div>
-                                                    </td>
                                                     <td><?php echo htmlspecialchars($row['products_name'] ?? 'N/A'); ?></td>
                                                     <td><?php echo (int) ($row['qty'] ?? 0); ?></td>
                                                     <td>AED <?php echo number_format((float) ($row['total_price'] ?? 0), 2); ?></td>
-                                                    <td><?=date('d-m-Y H:i:s', $row['created_at']); ?></td>
+                                                    <td class="text-nowrap"><?=date('d-m-Y H:i:s', $row['created_at']); ?></td>
+                                                    <td class="text-nowrap">
+                                                        <?php
+                                                          $ca = $row['draw_time'] ?? null;
+                                                          if ($ca) {
+                                                              echo is_numeric($ca) ? date('d M Y h:i:s A', $ca) : date('d M Y h:i:s A', strtotime($ca));
+                                                          } else {
+                                                              echo 'N/A';
+                                                          }
+                                                        ?>
+                                                    </td>
                                                     <td class="text-left">
                                                       <b>Sent via </b> : <?=htmlspecialchars($row['sms_type'] ?? 'N/A'); ?><br/>
                                                       <b>Mobile </b>   : <?=htmlspecialchars($row['buyer_mobile'] ?? 'N/A'); ?><br/>
@@ -190,7 +236,7 @@
                                                 </tr>
                                                 <?php endif; ?>
                                             </tbody>
-                                        </table>
+                                         </table>
                                     </div>
                                 </div>
                             </div>
@@ -239,11 +285,15 @@
               <input class="form-check-input export-type-checkbox" type="checkbox" name="exportType[]" id="exportTypeDraw" value="draw" checked>
               <label class="form-check-label" for="exportTypeDraw">Draw</label>
             </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="includeDrawTime" id="includeDrawTime" value="1">
+              <label class="form-check-label" for="includeDrawTime">Draw Time</label>
+            </div>
           </div>
         </div>
       <div class="row mt-2">
           <div class="col-sm-12 col-md-6">
-            <select name="searchField" id="searchField" class="custom-select custom-select-sm form-control form-control-sm">
+            <select name="searchField" id="exportSearchField" class="custom-select custom-select-sm form-control form-control-sm">
               <option value="">Select Field</option>
               <option value="order_id" <?php if ($searchField == 'order_id') echo 'selected="selected"'; ?>>Order ID</option>
               <option value="products_name" <?php if ($searchField == 'products_name') echo 'selected="selected"'; ?>>Game Name</option>
@@ -258,24 +308,28 @@
               <option value="settler_mobile" <?php if ($searchField == 'settler_mobile') echo 'selected="selected"'; ?>>Settler Mobile</option>
               <option value="buyer_mobile" <?php if ($searchField == 'buyer_mobile') echo 'selected="selected"'; ?>>Buyer Mobile</option>
               <option value="buyer_email" <?php if ($searchField == 'buyer_email') echo 'selected="selected"'; ?>>Buyer Email</option>
+              <option value="draw_time_string" <?php if ($searchField == 'draw_time_string') echo 'selected="selected"'; ?>>Draw DateTime</option>
             </select>
           </div>
           <div class="col-sm-12 col-md-6">
-            <input type="text" name="searchValue" id="searchValue" value="<?php echo $searchValue; ?>" class="form-control form-control-sm" placeholder="Enter Search Text">
+            <!-- <input type="text" name="searchValue" id="searchValue" value="<?php echo $searchValue; ?>" class="form-control form-control-sm" placeholder="Enter Search Text"> -->
+             <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="exportSearchValue" step="3600" autocomplete="off" value="<?php if ($searchField === 'draw_time_string') { echo !empty($searchValue) ? date('Y-m-d\TH:i', strtotime($searchValue)) : date('Y-m-d') . 'T17:00'; } else { echo htmlspecialchars($searchValue ?? ''); } ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
+          </div>
+        </div>
+        <div class="row mt-2" id="exportDrawTimeSearchWrap" style="<?php echo (in_array($searchField, $drawTimeSearchFields, true)) ? '' : 'display:none;'; ?>">
+          <div class="col-sm-12 col-md-6">
+            <label for="exportDrawTimeSearch" class="col-form-label">Draw DateTime (for POS search):</label>
+            <input type="datetime-local" name="drawTimeSearch" id="exportDrawTimeSearch" step="3600" autocomplete="off" value="<?php echo !empty($drawTimeSearch) ? date('Y-m-d\TH:i', strtotime($drawTimeSearch)) : ''; ?>" class="form-control form-control-sm" placeholder="Select Draw DateTime">
           </div>
         </div>
           <div class="row">
             <div class="col-sm-12 col-md-6">
-              <label for="recipient-name" class="col-form-label">Form:</label>
+              <label for="exportFromDate" class="col-form-label">Start Date:</label>
+              <input type="datetime-local" name="fromDate" id="exportFromDate" step="1" autocomplete="off" value="<?php echo !empty($fromDate) ? date('Y-m-d\TH:i', strtotime($fromDate)) : ''; ?>" class="form-control form-control-sm" placeholder="Start Date">
             </div>
             <div class="col-sm-12 col-md-6">
-              <label for="recipient-name" class="col-form-label">To:</label>
-            </div>
-            <div class="col-sm-12 col-md-6">
-              <input type="text" name="fromDate" id="fromDate" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
-            </div>
-            <div class="col-sm-12 col-md-6">
-              <input type="text" name="toDate" id="toDate" value="<?php echo $toDate; ?>" class="form-control form-control-sm" placeholder="From Date">
+              <label for="exportToDate" class="col-form-label">End Date:</label>
+              <input type="datetime-local" name="toDate" id="exportToDate" step="1" autocomplete="off" value="<?php echo !empty($toDate) ? date('Y-m-d\TH:i', strtotime($toDate)) : ''; ?>" class="form-control form-control-sm" placeholder="End Date">
             </div>
           </div>
       </div>
@@ -289,6 +343,60 @@
 </div>
 
 <script>
+  (function () {
+  function getDefaultDrawDateTime() {
+      var now = new Date();
+      var month = String(now.getMonth() + 1);
+      var day = String(now.getDate());
+      if (month.length < 2) month = '0' + month;
+      if (day.length < 2) day = '0' + day;
+      return now.getFullYear() + '-' + month + '-' + day + 'T17:00';
+    }
+
+    function setupDrawDateTimeSearch(fieldId, valueId, drawWrapId, drawInputId) {
+      var searchField = document.getElementById(fieldId);
+      var searchValue = document.getElementById(valueId);
+      var drawTimeSearchWrap = drawWrapId ? document.getElementById(drawWrapId) : document.getElementById('drawTimeSearchWrap');
+      var drawTimeSearch = drawInputId ? document.getElementById(drawInputId) : document.getElementById('drawTimeSearch');
+      if (!searchField || !searchValue) {
+        return;
+      }
+
+      function toggleDrawTimeSearchField() {
+        var showDrawTimeSearch = searchField.value === 'pos_number'
+          || searchField.value === 'settler_pos_number'
+          || searchField.value === 'products_name';
+        if (drawTimeSearchWrap) {
+          drawTimeSearchWrap.style.display = showDrawTimeSearch ? '' : 'none';
+        }
+        if (showDrawTimeSearch && drawTimeSearch && !drawTimeSearch.value) {
+          drawTimeSearch.value = getDefaultDrawDateTime();
+        }
+      }
+
+      searchField.addEventListener('change', function () {
+        var isDrawDateTime = searchField.value === 'draw_time_string';
+        if (isDrawDateTime) {
+          searchValue.type = 'datetime-local';
+          searchValue.step = '3600';
+          searchValue.value = getDefaultDrawDateTime();
+          searchValue.placeholder = 'Select Draw DateTime';
+        } else {
+          searchValue.value = '';
+          searchValue.type = 'text';
+          searchValue.removeAttribute('step');
+          searchValue.placeholder = 'Enter Search Text';
+        }
+        toggleDrawTimeSearchField();
+      });
+
+      toggleDrawTimeSearchField();
+    }
+
+    setupDrawDateTimeSearch('searchField', 'searchValue');
+    setupDrawDateTimeSearch('exportSearchField', 'exportSearchValue', 'exportDrawTimeSearchWrap', 'exportDrawTimeSearch');
+  })();
+  
   (function () {
     var checkboxes = document.querySelectorAll('.export-type-checkbox');
     if (!checkboxes || !checkboxes.length) {
@@ -314,3 +422,5 @@
     });
   })();
 </script>
+
+<?php include(APPPATH.'views/hourlygame/allhourlyorders/shop_export_modal.php'); ?>
