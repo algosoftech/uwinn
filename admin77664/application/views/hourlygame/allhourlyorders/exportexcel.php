@@ -82,6 +82,7 @@
     var drawTimeSearch    = <?=json_encode(isset($drawTimeSearch) ? $drawTimeSearch : '');?>;
     var cancelled_order   = <?=json_encode($cancelled_order);?>;
     var exportType        = <?=json_encode(isset($exportType) ? $exportType : 'draw');?>;
+    var includeDrawTime   = <?=json_encode(isset($includeDrawTime) ? $includeDrawTime : '0');?>;
     let timeLeft          = totalPage == 1 ? 5 : 5 * totalPage + 5;
     var allData           = [];
     var responsesReceived = 0;

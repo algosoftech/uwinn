@@ -1,4 +1,5 @@
 .htaccess
+/assets
 /application/config/
 /application/logs
 /admin77664/application/config/

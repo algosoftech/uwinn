@@ -42,12 +42,7 @@ class Allhourlyorders extends CI_Controller {
 		
 		$searchField = $this->input->get('searchField');
 		$searchValue = $this->input->get('searchValue');
-		$drawTimeSearch = $this->input->get('drawTimeSearch');
-		if ($searchField === 'draw_time_string' && $searchValue !== '' && $searchValue !== null && ($drawTimeSearch === '' || $drawTimeSearch === null)) {
-			$drawTimeSearch = $searchValue;
-		}
-
-		$whereCon = array('where' => array(
+		$whereCon    = array('where' => array(
 			'created_at' => array(
 				'$gte' => (int) strtotime($fromDate),
 				'$lte' => (int) strtotime($toDate),
@@ -484,19 +479,13 @@ class Allhourlyorders extends CI_Controller {
 		}
 		$searchField = $this->input->post('searchField');
 		$searchValue = $this->input->post('searchValue');
-		$drawTimeSearch = $this->input->post('drawTimeSearch');
-		if ($searchField === 'draw_time_string' && $searchValue !== '' && $searchValue !== null && ($drawTimeSearch === '' || $drawTimeSearch === null)) {
-			$drawTimeSearch = $searchValue;
-		}
-
 		$whereCondition = array('where' => array(
 			'created_at' => array(
 				'$gte' => (int) strtotime($fromDate),
 				'$lte' => (int) strtotime($toDate),
 			),
 		));
-
-		if (!empty($searchField) && $searchValue !== '' && $searchValue !== null && $searchField !== 'draw_time_string') {
+		if (!empty($searchField) && $searchValue !== '' && $searchValue !== null) {
 			if ($searchField === 'order_id' || $searchField === 'users.store_name') {
 				$whereCondition['where'][$searchField] = array('$regex' => $searchValue, '$options' => 'i');
 			} elseif ($searchField == 'winning_status') {
@@ -597,14 +586,6 @@ class Allhourlyorders extends CI_Controller {
 				$baseRow['Payment Status']  = $status;
 				$purchaseDate = !empty($itemsArray['created_at']) ? date('d-m-Y H:i', $itemsArray['created_at']) : 'N/A';
 
-				$drawDateTime = 'N/A';
-				if (!empty($itemsArray['draw_time'])) {
-					$drawTimeValue = $itemsArray['draw_time'];
-					$drawDateTime = is_numeric($drawTimeValue)
-						? date('d-m-Y H:i', $drawTimeValue)
-						: date('d-m-Y H:i', strtotime($drawTimeValue));
-				}
-
 				if ($exportType === 'draw' && isset($itemsArray['status']) && in_array($itemsArray['status'], array('CL', 'Cancelled'), true)) {
 					continue;
 				}
@@ -638,9 +619,6 @@ class Allhourlyorders extends CI_Controller {
 							unset($csvRow['Payment Status']);
 							$csvRow['Payment Status'] = $paymentStatusValue;
 							$csvRow['Purchase Date'] = $purchaseDate;
-							if ($includeDrawTime) {
-								$csvRow['Draw Date Time'] = $drawDateTime;
-							}
 							$csvRow['Coupons'] = $ticketValue;
 							$ticketRows[] = $csvRow;
 						}
@@ -655,9 +633,6 @@ class Allhourlyorders extends CI_Controller {
 					unset($accountRow['Payment Status']);
 					$accountRow['Payment Status'] = $paymentStatusValue;
 					$accountRow['Purchase Date'] = $purchaseDate;
-					if ($includeDrawTime) {
-						$accountRow['Draw Date Time'] = $drawDateTime;
-					}
 					$accountRow['Total Amount'] = (float) $totalAmountValue;
 					$CSVData[] = $accountRow;
 				} elseif ($exportType === 'winners') {
@@ -673,9 +648,6 @@ class Allhourlyorders extends CI_Controller {
 					$winnerRow['Redeemed POS ID']  = !empty($itemsArray['settler_pos_number']) ? $itemsArray['settler_pos_number'] : 'N/A';
 					$winnerRow['Redeemed Date']    = !empty($redeemingDate) ? $redeemingDate : 'N/A';
 					$winnerRow['Purchase Date']    = $purchaseDate;
-					if ($includeDrawTime) {
-						$winnerRow['Draw Date Time'] = $drawDateTime;
-					}
 					$winnerRow['Area']    = !empty($itemsArray['area']) ? $itemsArray['area'] : 'N/A';;
 					$CSVData[] = $winnerRow;
 				} elseif (!empty($ticketRows)) {

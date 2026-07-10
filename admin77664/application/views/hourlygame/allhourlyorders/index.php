@@ -99,8 +99,8 @@
                                               <option value="draw_time_string" <?php if ($searchField == 'draw_time_string') echo 'selected="selected"'; ?>>Draw DateTime</option>
                                             </select>
                                         </div>
-                                        <div class="col">
-                                             <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="searchValue" step="3600" autocomplete="off" value="<?php if ($searchField === 'draw_time_string') { echo !empty($searchValue) ? date('Y-m-d\TH:i', strtotime($searchValue)) : date('Y-m-d') . 'T17:00'; } else { echo htmlspecialchars($searchValue ?? ''); } ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
+                                        <div class="col-sm-3 col-md-3">
+                                            <input type="text" name="searchValue" id="searchValue" value="<?php echo htmlspecialchars($searchValue ?? ''); ?>" class="form-control form-control-sm" placeholder="Enter Search Text">
                                         </div>
                                         <div class="col" id="drawTimeSearchWrap" style="<?php echo (in_array($searchField, $drawTimeSearchFields, true)) ? '' : 'display:none;'; ?>">
                                             <div class="input-group input-group-sm">
@@ -179,17 +179,7 @@
                                                     <td><?php echo htmlspecialchars($row['products_name'] ?? 'N/A'); ?></td>
                                                     <td><?php echo (int) ($row['qty'] ?? 0); ?></td>
                                                     <td>AED <?php echo number_format((float) ($row['total_price'] ?? 0), 2); ?></td>
-                                                    <td class="text-nowrap"><?=date('d-m-Y H:i:s', $row['created_at']); ?></td>
-                                                    <td class="text-nowrap">
-                                                        <?php
-                                                          $ca = $row['draw_time'] ?? null;
-                                                          if ($ca) {
-                                                              echo is_numeric($ca) ? date('d M Y h:i:s A', $ca) : date('d M Y h:i:s A', strtotime($ca));
-                                                          } else {
-                                                              echo 'N/A';
-                                                          }
-                                                        ?>
-                                                    </td>
+                                                    <td><?=date('d-m-Y H:i:s', $row['created_at']); ?></td>
                                                     <td class="text-left">
                                                       <b>Sent via </b> : <?=htmlspecialchars($row['sms_type'] ?? 'N/A'); ?><br/>
                                                       <b>Mobile </b>   : <?=htmlspecialchars($row['buyer_mobile'] ?? 'N/A'); ?><br/>
@@ -312,14 +302,7 @@
             </select>
           </div>
           <div class="col-sm-12 col-md-6">
-            <!-- <input type="text" name="searchValue" id="searchValue" value="<?php echo $searchValue; ?>" class="form-control form-control-sm" placeholder="Enter Search Text"> -->
-             <input type="<?php echo ($searchField === 'draw_time_string') ? 'datetime-local' : 'text'; ?>" name="searchValue" id="exportSearchValue" step="3600" autocomplete="off" value="<?php if ($searchField === 'draw_time_string') { echo !empty($searchValue) ? date('Y-m-d\TH:i', strtotime($searchValue)) : date('Y-m-d') . 'T17:00'; } else { echo htmlspecialchars($searchValue ?? ''); } ?>" class="form-control form-control-sm" placeholder="<?php echo ($searchField === 'draw_time_string') ? 'Select Draw DateTime' : 'Enter Search Text'; ?>">
-          </div>
-        </div>
-        <div class="row mt-2" id="exportDrawTimeSearchWrap" style="<?php echo (in_array($searchField, $drawTimeSearchFields, true)) ? '' : 'display:none;'; ?>">
-          <div class="col-sm-12 col-md-6">
-            <label for="exportDrawTimeSearch" class="col-form-label">Draw DateTime (for POS search):</label>
-            <input type="datetime-local" name="drawTimeSearch" id="exportDrawTimeSearch" step="3600" autocomplete="off" value="<?php echo !empty($drawTimeSearch) ? date('Y-m-d\TH:i', strtotime($drawTimeSearch)) : ''; ?>" class="form-control form-control-sm" placeholder="Select Draw DateTime">
+            <input type="text" name="searchValue" id="searchValue" value="<?php echo $searchValue; ?>" class="form-control form-control-sm" placeholder="Enter Search Text">
           </div>
         </div>
           <div class="row">
@@ -343,60 +326,6 @@
 </div>
 
 <script>
-  (function () {
-  function getDefaultDrawDateTime() {
-      var now = new Date();
-      var month = String(now.getMonth() + 1);
-      var day = String(now.getDate());
-      if (month.length < 2) month = '0' + month;
-      if (day.length < 2) day = '0' + day;
-      return now.getFullYear() + '-' + month + '-' + day + 'T17:00';
-    }
-
-    function setupDrawDateTimeSearch(fieldId, valueId, drawWrapId, drawInputId) {
-      var searchField = document.getElementById(fieldId);
-      var searchValue = document.getElementById(valueId);
-      var drawTimeSearchWrap = drawWrapId ? document.getElementById(drawWrapId) : document.getElementById('drawTimeSearchWrap');
-      var drawTimeSearch = drawInputId ? document.getElementById(drawInputId) : document.getElementById('drawTimeSearch');
-      if (!searchField || !searchValue) {
-        return;
-      }
-
-      function toggleDrawTimeSearchField() {
-        var showDrawTimeSearch = searchField.value === 'pos_number'
-          || searchField.value === 'settler_pos_number'
-          || searchField.value === 'products_name';
-        if (drawTimeSearchWrap) {
-          drawTimeSearchWrap.style.display = showDrawTimeSearch ? '' : 'none';
-        }
-        if (showDrawTimeSearch && drawTimeSearch && !drawTimeSearch.value) {
-          drawTimeSearch.value = getDefaultDrawDateTime();
-        }
-      }
-
-      searchField.addEventListener('change', function () {
-        var isDrawDateTime = searchField.value === 'draw_time_string';
-        if (isDrawDateTime) {
-          searchValue.type = 'datetime-local';
-          searchValue.step = '3600';
-          searchValue.value = getDefaultDrawDateTime();
-          searchValue.placeholder = 'Select Draw DateTime';
-        } else {
-          searchValue.value = '';
-          searchValue.type = 'text';
-          searchValue.removeAttribute('step');
-          searchValue.placeholder = 'Enter Search Text';
-        }
-        toggleDrawTimeSearchField();
-      });
-
-      toggleDrawTimeSearchField();
-    }
-
-    setupDrawDateTimeSearch('searchField', 'searchValue');
-    setupDrawDateTimeSearch('exportSearchField', 'exportSearchValue', 'exportDrawTimeSearchWrap', 'exportDrawTimeSearch');
-  })();
-  
   (function () {
     var checkboxes = document.querySelectorAll('.export-type-checkbox');
     if (!checkboxes || !checkboxes.length) {

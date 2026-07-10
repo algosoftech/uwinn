@@ -105,13 +105,14 @@
                                                 ?>
                                             </td>
                                         </tr>
+
                                         <tr>
                                             <th>Start Date</th>
                                             <td>
                                                 <?php
                                                 $ca = $order['start_date'] ?? null;
                                                 if ($ca) {
-                                                    echo is_numeric($ca) ? date('d M Y h:i A', $ca) : date('d M Y h:i A', strtotime($ca));
+                                                    echo is_numeric($ca) ? date('d M Y h:i:s A', $ca) : date('d M Y h:i:s A', strtotime($ca));
                                                 } else {
                                                     echo 'N/A';
                                                 }
@@ -124,13 +125,16 @@
                                                 <?php
                                                 $ca = $order['draw_time'] ?? null;
                                                 if ($ca) {
-                                                    echo is_numeric($ca) ? date('d M Y h:i A', $ca) : date('d M Y h:i A', strtotime($ca));
+                                                    echo is_numeric($ca) ? date('d M Y h:i:s A', $ca) : date('d M Y h:i:s A', strtotime($ca));
                                                 } else {
                                                     echo 'N/A';
                                                 }
                                                 ?>
                                             </td>
                                         </tr>
+
+
+
                                         <tr>
                                             <th>Status</th>
                                             <td><?php echo htmlspecialchars($order['status'] ?? 'N/A'); ?></td>
