@@ -307,7 +307,7 @@ class Orders extends CI_Controller {
 				$edDateTime = date('Y-m-d H:i:59', $EndDateTime);
 				$stDateTime = strtotime($stDateTime); //comment for testing
 				$edDateTime = strtotime($edDateTime); //comment for testing
-				$iterWhereCondition['created_at'] = array('$gte' =>  $stDateTime, '$lte' => $edDateTime );
+				$iterWhereCondition['winner_uploaded_at'] = array('$gte' =>  $stDateTime, '$lte' => $edDateTime );
 			else:
 				// if($i == 0){
 				// 	$StartDateTime = date('Y-m-d H:i', strtotime($dateArray[$i]));

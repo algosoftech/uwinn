@@ -544,15 +544,13 @@ class Hourlygames extends CI_Controller {
 						// ------------------------------------------------------------
 
 
+						// Restrict purchasing within last 3 minutes before draw time
+						$purchaseCutoffMsg = 'Purchasing is closed 3 minutes before draw time. Please try the next draw.';
+
 						if( empty($is24Hours) || $is24Hours != 'Y'):
-							if(strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
-								throw new Exception('Campaign expired. Please refresh the page and try again.');
-							endif;
-	
-							if($userData['users_type'] == "Users" && strtotime('-2 minutes',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
-								throw new Exception('Campaign expired. Please refresh the page and try again.');
-							elseif( $userData['users_type'] != "Users" && strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
-								throw new Exception('Campaign expired. Please refresh the page and try again.');
+							$nowTs = strtotime(date('Y-m-d H:i:s'));
+							if(strtotime('-3 minutes', $gameData['draw_time']) < $nowTs):
+								throw new Exception($purchaseCutoffMsg);
 							endif;
 						endif;
 						
@@ -637,8 +635,9 @@ class Hourlygames extends CI_Controller {
 								if(empty($drawTimeTs) || $drawTimeTs <= 0):
 									throw new Exception(lang('DRAW_TIME_REQUIRED'), 1);
 								endif;
-								if(strtotime('-10 seconds', $drawTimeTs) < $now):
-									throw new Exception('Campaign expired. Please refresh the page and try again.');
+								// Restrict purchasing within last 3 minutes before selected draw time
+								if(strtotime('-3 minutes', $drawTimeTs) < $now):
+									throw new Exception('Purchasing is closed 3 minutes before draw time. Please try the next draw.');
 								endif;
 							endif;
 
@@ -965,20 +964,18 @@ class Hourlygames extends CI_Controller {
 		try {
 			if(requestAuthenticate(APIKEY,'POST')):
 				$usersId    = $this->input->post('users_id');
-				$orderOId   = $this->input->post('order_oid');
-
-				// $this->session->sess_regenerate();
-				// $session = $this->mongodb_client->startSession();
-				// $session->startTransaction();
+				$orderOId   = trim((string)$this->input->post('order_oid'));
 
 				if(empty($usersId)):
 					throw new Exception(lang('USER_ID_EMPTY'), 1);
 				elseif(empty($orderOId)):
 					throw new Exception(lang('ORDER_ID_EMPTY'), 1);
+				elseif(!preg_match('/^[a-f0-9]{24}$/i', $orderOId)):
+					throw new Exception(lang('ORDET_ID_INVALID'), 1);
 				else:
 
 					$whereCon['where'] = array('users_id' => (int)$usersId);
-					$FieldList = array('users_id', 'status', 'availableArabianPoints');
+					$FieldList = array('users_id', 'status', 'availableArabianPoints', '_id');
 					$UserData   = $this->common_model->getParticularFieldByMultipleCondition($FieldList,'uw_users',$whereCon );
 
 					if(empty($UserData)):
@@ -988,76 +985,93 @@ class Hourlygames extends CI_Controller {
 					else:
 
 						$tblName = 'uw_hourly_orders';
-						$whereCon['where'] = array();
-						$whereCon['where']['_id'] = new MongoDB\BSON\ObjectID($orderOId);
+						$whereCon['where'] = array(
+							'_id' => new MongoDB\BSON\ObjectID($orderOId),
+							'users_id' => (int)$usersId
+						);
 						$orderDetails = $this->common_model->getData('single',$tblName,$whereCon);
 
-						$currentDateTime = date('Y-m-d H:i:s');
-						$currentDateTime = strtotime($currentDateTime);
+						$currentDateTime = strtotime(date('Y-m-d H:i:s'));
 						
 						if(empty($orderDetails)):
 							throw new Exception(lang('DATA_NOT_FOUND'), 1);
 						elseif($orderDetails['status'] == 'CL'):
 							throw new Exception(lang('ORDER_ALREADY_CANCELLED'), 1);
-						elseif($currentDateTime >= $orderDetails['expiry_date'] ):
+						elseif($currentDateTime >= (int)$orderDetails['expiry_date']):
 							throw new Exception(lang('CANNOT_CANCEL_ORDER'), 1);
-						elseif($orderDetails['status'] == 'A'):
+						elseif(in_array($orderDetails['status'], array('A', 'INI'), true)):
+
+							$userOid = '';
+							if (isset($UserData['_id']['$id'])) {
+								$userOid = (string)$UserData['_id']['$id'];
+							} elseif (isset($UserData['_id']['$oid'])) {
+								$userOid = (string)$UserData['_id']['$oid'];
+							} elseif (is_string($UserData['_id'])) {
+								$userOid = $UserData['_id'];
+							}
+							if (empty($userOid)) {
+								throw new Exception(lang('USER_NOT_FOUND'), 1);
+							}
+
+							$productOid = $orderDetails['products_oid'];
+							if (is_object($productOid) && method_exists($productOid, '__toString')) {
+								$productOid = (string)$productOid;
+							} elseif (is_array($productOid)) {
+								$productOid = isset($productOid['$id']) ? $productOid['$id'] : (isset($productOid['$oid']) ? $productOid['$oid'] : '');
+							}
+
+							$refundAmount = (float)$orderDetails['total_price'];
+							$openingBalance = (float)$UserData['availableArabianPoints'];
+							$endBalance = $openingBalance + $refundAmount;
 
 							/* updated order status */
 							$param1['status']		= 'CL';
 							$param1['update_ip']	= currentIp();
-							$param1['update_date']  = (int)$this->timezone->utc_time();//currentDateTime();
-							$param1['refund_date']	= (int)$this->timezone->utc_time();//currentDateTime();
+							$param1['update_date']  = (int)$this->timezone->utc_time();
+							$param1['refund_date']	= (int)$this->timezone->utc_time();
 							$param1['updated_by']	= (int)$usersId;
+							$param1['cancel_reason']= 'android api Hourly Game';
 							$orderWhereCon          = array('_id' => new MongoDB\BSON\ObjectId($orderOId));
-							$update1 = $this->common_model->editData('uw_hourly_orders',$param1,'_id', new MongoDB\BSON\ObjectID($orderOId));
-							$update2 = $this->common_model->editMultipleDataByMultipleCondition('uw_hourly_tickets', $param1, $orderWhereCon);
-							// $update1 = $this->mongodb_client->updateDocument('uw_hourly_orders',$orderWhereCon, ['$set' => $param1],$session);
-							// $update2 = $this->mongodb_client->updateDocument('uw_hourly_tickets',$orderWhereCon, ['$set' => $param1],$session);
+							$this->common_model->editData('uw_hourly_orders',$param1,'_id', new MongoDB\BSON\ObjectID($orderOId));
+							$this->common_model->editMultipleDataByMultipleCondition('uw_hourly_tickets', $param1, $orderWhereCon);
 
 							/* Generating order cancellation record in loadbalance */
 							$loadBalanceParam['users_id']        = (int)$usersId;
-							$loadBalanceParam['user_oid']        = new MongoDB\BSON\ObjectID($UserData['_id']['$id']);
+							$loadBalanceParam['user_oid']        = new MongoDB\BSON\ObjectID($userOid);
 							$loadBalanceParam['load_balance_id'] = $this->common_model->getNextSequence('loadBalance');
 							$loadBalanceParam['order_oid']     = new MongoDB\BSON\ObjectID($orderOId);
-							$loadBalanceParam['product_oid']   = new MongoDB\BSON\ObjectID($orderDetails['products_oid']);
+							$loadBalanceParam['product_oid']   = new MongoDB\BSON\ObjectID($productOid);
 							$loadBalanceParam['user_id_deb']   = (int)0;
 							$loadBalanceParam['user_id_cred']  = (int)$usersId;
 							$loadBalanceParam['order_id']      = $orderDetails['order_id'];
-							$loadBalanceParam['upoints']       = (float)$orderDetails['total_price'];
-							$loadBalanceParam['availableArabianPoints'] = (float)$UserData['availableArabianPoints'];
-							$loadBalanceParam['end_balance']   = (float)$UserData['availableArabianPoints'] + (float)$orderDetails['total_price'];
+							$loadBalanceParam['upoints']       = $refundAmount;
+							$loadBalanceParam['availableArabianPoints'] = $openingBalance;
+							$loadBalanceParam['end_balance']   = $endBalance;
 							$loadBalanceParam['record_type']   = 'Credit';
 							$loadBalanceParam['narration']     = 'Hourly Game Order Cancelled';
 							$loadBalanceParam['remarks']       = 'Order ID: '.$orderDetails['order_id'];
 							$loadBalanceParam['created_at']    = date('Y-m-d H:i:s');
 							$loadBalanceParam['created_by']    = (int)$usersId;
-							$loadBalanceParam['status']        = 'A';	
-							// echo "<pre>";print_r($loadBalanceParam);die();
-							$update2 = $this->common_model->addData('uw_loadBalance',$loadBalanceParam);
-							// $update2 = $this->mongodb_client->insertDocument('uw_loadBalance', $loadBalanceParam, $session);
+							$loadBalanceParam['status']        = 'A';
+							$this->common_model->addData('uw_loadBalance',$loadBalanceParam);
 							
 							/* Balance Updated.. */
-							$updateBalance['availableArabianPoints'] = (float)$loadBalanceParam['end_balance'];
-							$update3 = $this->common_model->editData('uw_users',$updateBalance,'users_id',(int)$usersId);
-							// $update3 = $this->mongodb_client->updateDocument(
-							// 	'uw_users',         				// Collection name
-							// 	['users_id' => (int)$usersId],       // Filter / condition for which document to update
-							// 	['$set' => $updateBalance],         // Proper MongoDB update syntax
-							// 	$session                            // MongoDB session (optional)
-							// );
+							$updateBalance['availableArabianPoints'] = $endBalance;
+							$this->common_model->editData('uw_users',$updateBalance,'users_id',(int)$usersId);
 
-							// $session->commitTransaction();
-							// $this->mongodb_client->commitTransaction($session);
 							echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_CANCELLED_SUCCESSFULLY'),$result);
+							die();
+						else:
+							throw new Exception(lang('CANNOT_CANCEL_ORDER'), 1);
 						endif;
 					endif;
 				endif;
 			else:
 				throw new Exception(lang('FORBIDDEN_MSG'),1);
 			endif;
-		} catch (Exception $e) {
-			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+		} catch (\Throwable $e) {
+			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
+			die();
 		}
 	}
 

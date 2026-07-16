@@ -251,7 +251,7 @@
                                        <h1 class="mb-0">Narration : <?=$items['narration'];?></h1>
                                    <!-- If Narration avaialble than show Narration End-->
                                    <p class="mb-0">
-                                    <?php if($items['narration'] == "Redeem Prize"): ?>
+                                    <?php if($items['narration'] == "Redeem Prize" || strpos((string)$items['narration'], 'Order Cancelled') === 0): ?>
                                         <?php if($items['order_id']): ?>
                                          Ticket ID :-  <?=$items['order_id'] ?> <br>
                                         <?php endif; ?>

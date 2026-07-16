@@ -1990,7 +1990,7 @@ class Common_model extends CI_Model
 		$whereCon['user_oid']        = new MongoDB\BSON\ObjectId($user_oid);
 		// $whereCon['narration']       = array( '$in' => array('Order','Order Cancalled') );
 		// $whereCon['narration']       = 'Order Cancelled';
-		$whereCon['narration']       = array('$in' => array('Order Cancelled', 'Order Cancalled' ));
+		$whereCon['narration']       = array('$in' => array('Order Cancelled', 'Order Cancalled', 'Order Cancelled (Auto)' ));
 
 		if($DateFilter['created_at']):
 			$whereCon['created_at']  = $DateFilter['created_at'];
@@ -2077,7 +2077,7 @@ class Common_model extends CI_Model
 		$whereCon['user_oid']        = new MongoDB\BSON\ObjectId($user_oid);
 		// $whereCon['narration']       = array( '$in' => array('Order','Order Cancalled') );
 		// $whereCon['narration']       = 'Order';
-		$whereCon['narration']       = array( '$in' => array('Order','Order Cancalled','Order Cancelled') );
+		$whereCon['narration']       = array( '$in' => array('Order','Order Cancalled','Order Cancelled','Order Cancelled (Auto)') );
 
 		if($DateFilter['created_at']):
 			$whereCon['created_at']  = $DateFilter['created_at'];

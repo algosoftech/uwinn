@@ -315,7 +315,7 @@ $(function(){
               ?>" class="form-control form-control-sm" placeholder="To Date">
             </div>
           </div>
-          <p class="text-muted small mt-2 mb-0">Hourly winners and Big Winners will both be exported for the selected date range.</p>
+          <p class="text-muted small mt-2 mb-0">Hourly winners and Big Winners will both be exported for the selected date range (filtered by created date).</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

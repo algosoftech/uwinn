@@ -333,10 +333,11 @@ class Wallet_statements extends CI_Controller {
 		if($WalletData):
 			foreach($WalletData as $index => $itemsArray):
 
-				if($itemsArray['narration'] == "Redeem Prize"):
-			      $remarks  =   "Ticket ID :- ".$itemsArray['order_id'].'. ' .$itemsArray['remarks'];
+				$exportNarration = isset($itemsArray['narration']) ? (string)$itemsArray['narration'] : '';
+				if($exportNarration == "Redeem Prize" || strpos($exportNarration, 'Order Cancelled') === 0):
+			      $remarks  =   "Ticket ID :- ".$itemsArray['order_id'].'. ' .(isset($itemsArray['remarks']) ? $itemsArray['remarks'] : '');
 		  		else:
-			  	  $remarks  =  $itemsArray['remarks'];
+			  	  $remarks  =  isset($itemsArray['remarks']) ? $itemsArray['remarks'] : '';
 			    endif;
 
 			    if($itemsArray['record_type'] == 'Credit' ): 

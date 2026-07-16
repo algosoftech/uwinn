@@ -57,6 +57,9 @@ class Alllottoorders extends CI_Controller {
 		else:
 			$toDate	 	 = date('Y-m-d 22:00');
 		endif;
+		$data['combinedFromDate'] = date('Y-m-d 16:00', strtotime('-1 day'));
+		$data['combinedToDate']   = date('Y-m-d 22:00');
+		
 		$searchField   = $this->input->get('searchField');
 		$searchValue   = $this->input->get('searchValue');
 		 
@@ -984,7 +987,7 @@ class Alllottoorders extends CI_Controller {
 		$searchField = $this->input->post('searchField');
 		$searchValue = $this->input->post('searchValue');
 		$whereCondition = array('where' => array(
-			'created_at' => array(
+			'winner_uploaded_at' => array(
 				'$gte' => (int) strtotime($dateRange['fromDate']),
 				'$lte' => (int) strtotime($dateRange['toDate']),
 			),
@@ -1095,7 +1098,7 @@ class Alllottoorders extends CI_Controller {
 			'multiple',
 			'uw_hourly_orders',
 			$whereCondition,
-			array('created_at' => -1),
+			array('winner_uploaded_at' => -1),
 			$itemsPerPage,
 			$startIndex
 		);
@@ -1120,7 +1123,7 @@ class Alllottoorders extends CI_Controller {
 		$maxPage = ($page !== null) ? (int)$page : null;
 		while(true):
 			$startIndex = ($currentPage - 1) * $itemsPerPage;
-			$orderData = $this->common_model->getHourlyGameOrderData('multiple', 'uw_hourly_orders', $whereCondition, array('created_at' => -1), $itemsPerPage, $startIndex);
+			$orderData = $this->common_model->getHourlyGameOrderData('multiple', 'uw_hourly_orders', $whereCondition, array('winner_uploaded_at' => -1), $itemsPerPage, $startIndex);
 			if(!is_array($orderData) || empty($orderData)):
 				break;
 			endif;

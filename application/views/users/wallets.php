@@ -390,7 +390,7 @@
                                           <div class="trnsection_history_list_innercontent">
                                              <h1>Narration :</h1>
                                              <p>
-                                                <?php if($items['narration'] == "Redeem Prize"): ?>
+                                                <?php if($items['narration'] == "Redeem Prize" || strpos((string)$items['narration'], 'Order Cancelled') === 0): ?>
                                                     <?php if($items['order_id']): ?>
                                                      Ticket ID :-  <?=$items['order_id'] ?> <br>
                                                     <?php endif; ?>

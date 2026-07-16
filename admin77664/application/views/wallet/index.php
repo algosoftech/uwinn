@@ -187,7 +187,10 @@ $(function(){
                                   <td width="10%"><?=$i?></td>
                                   <td width="30%"> <?=isset($items['narration']) ? $items['narration'] : '' ?>  </td>
                                   <td width="50%">
-                                  <?php if(isset($items['narration']) && $items['narration'] == "Redeem Prize"): ?>
+                                  <?php
+                                    $walletNarrationLabel = isset($items['narration']) ? (string)$items['narration'] : '';
+                                    if ($walletNarrationLabel == "Redeem Prize" || strpos($walletNarrationLabel, 'Order Cancelled') === 0):
+                                  ?>
                                      Ticket ID :-  <?=isset($items['order_id']) ? $items['order_id'] : '' ?> <br>
                                   <?php endif; ?>
 

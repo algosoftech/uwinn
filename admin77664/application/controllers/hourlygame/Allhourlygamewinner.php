@@ -383,6 +383,19 @@ class Allhourlygamewinner extends CI_Controller {
 				];
 
 				$this->common_model->editData('uw_hourly_orders', $updateParam, 'order_id', $order_id);
+
+				// Send winner notification (picked up by push cron via push_status=0)
+				$orderWhere = array('where' => array('order_id' => $order_id));
+				$orderWhere['select'] = array('order_id', 'users_id', 'winning_amount', 'products_name');
+				$orderData = $this->common_model->getData('single', 'uw_hourly_orders', $orderWhere);
+				if(!empty($orderData) && !empty($orderData['users_id'])):
+					$winAmount = number_format((float)$winnerInfo['total_amount'], 2);
+					$gameName  = !empty($orderData['products_name']) ? $orderData['products_name'] : 'Hourly Game';
+					$title     = 'Congratulations';
+					$message   = 'Congratulations! You have won '.$winAmount.' AED prize in '.$gameName.' for your order: '.$order_id;
+					$this->common_model->saveNotifications((int)$orderData['users_id'], $title, $message, $order_id);
+				endif;
+
 				$uploadCount++;
 			endforeach;
 		endif;

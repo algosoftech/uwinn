@@ -580,10 +580,10 @@ class Upload_winners extends CI_Controller {
 
 			$dataToInsert[] = $param;
 
-			// Queue notification if needed
-			if (($UsersData['users_type'] ?? '') === 'Users') {
+			// Queue winner notification for order user (Users / POS / Agents)
+			if (!empty($OrderData['user_id'])) {
 				$notificationsToInsert[] = [
-					'user_id' => $OrderData['user_id'],
+					'user_id' => (int)$OrderData['user_id'],
 					'title'   => 'Congratulations',
 					'message' => "Congratulations! You have won {$data['amount']} AED prize for your order: {$data['order_id']}",
 					'order_id' => $data['order_id'],
