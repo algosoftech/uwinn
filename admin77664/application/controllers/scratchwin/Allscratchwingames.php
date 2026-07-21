@@ -44,7 +44,7 @@ class Allscratchwingames extends CI_Controller {
 		$this->session->set_userdata('ALLSCRATCHWINGAMESDATA',currentFullUrl());
 		$qStringdata						=	explode('?',currentFullUrl());
 		$suffix								= 	isset($qStringdata[1]) && $qStringdata[1] ? '?'.$qStringdata[1] : '';
-		$tblName 							= 	'db_scratch_win_games';
+		$tblName 							= 	'uw_scratch_win_games';
 		$con 								= 	'';
 		
 		$totalRows 							= 	$this->common_model->getData('count',$tblName,$whereCon,$shortField,'0','0');
@@ -110,7 +110,7 @@ class Allscratchwingames extends CI_Controller {
 		$data['activeSubMenu'] = 'allscratchwingames';
 		if($editId):
 			$this->admin_model->authCheck('edit_data');
-			$data['EDITDATA']  = $this->common_model->getDataByParticularField('db_scratch_win_games','_id', new MongoDB\BSON\ObjectID($editId));
+			$data['EDITDATA']  = $this->common_model->getDataByParticularField('uw_scratch_win_games','_id', new MongoDB\BSON\ObjectID($editId));
 		else:
 			$this->admin_model->authCheck('add_data');
 		endif;
@@ -165,11 +165,11 @@ class Allscratchwingames extends CI_Controller {
 				if(empty($editId)):
 					$param['status']		 = 'A';
 					$param['prize_setting']  = 'disabled';
-					$param['products_id']	 = (int)$this->common_model->getNextSequence('db_scratch_win_games');
+					$param['products_id']	 = (int)$this->common_model->getNextSequence('uw_scratch_win_games');
 					$param['creation_ip']	 = currentIp();
 					$param['creation_date']	 = (int)$this->timezone->utc_time();//currentDateTime();
 					$param['created_by']	 = (int)$this->session->userdata('UW_ADMIN_ID');
-					$alastInsertId			 =	$this->common_model->addData('db_scratch_win_games',$param);
+					$alastInsertId			 =	$this->common_model->addData('uw_scratch_win_games',$param);
 					$this->session->set_flashdata('alert_success',lang('addsuccess'));
 				else:
 					if($param['price'] != $data['EDITDATA']['price']):
@@ -178,7 +178,7 @@ class Allscratchwingames extends CI_Controller {
 					$param['update_ip']		 = currentIp();
 					$param['update_date']	 = (int)$this->timezone->utc_time();//currentDateTime();
 					$param['updated_by']	 = (int)$this->session->userdata('UW_ADMIN_ID');
-					$this->common_model->editData('db_scratch_win_games',$param,'_id', new MongoDB\BSON\ObjectID($editId));
+					$this->common_model->editData('uw_scratch_win_games',$param,'_id', new MongoDB\BSON\ObjectID($editId));
 					$this->session->set_flashdata('alert_success',lang('updatesuccess'));
 				endif;
 				redirect(correctLink('ALLSCRATCHWINGAMESDATA',getCurrentControllerPath('index')));
@@ -199,7 +199,7 @@ class Allscratchwingames extends CI_Controller {
 	{  
 		$this->admin_model->authCheck('edit_data');
 		$param['status'] =	$statusType;
-		$this->common_model->editData('db_scratch_win_games',$param,'_id', new MongoDB\BSON\ObjectID($changeStatusId));
+		$this->common_model->editData('uw_scratch_win_games',$param,'_id', new MongoDB\BSON\ObjectID($changeStatusId));
 		$this->session->set_flashdata('alert_success',lang('statussuccess'));
 		
 		redirect(correctLink('ALLSCRATCHWINGAMESDATA',getCurrentControllerPath('index')));
@@ -214,7 +214,7 @@ class Allscratchwingames extends CI_Controller {
 	function deletedata($deleteId='')
 	{  
 		$this->admin_model->authCheck('delete_data');
-		$this->common_model->deleteData('db_scratch_win_games','_id', new MongoDB\BSON\ObjectID($deleteId));
+		$this->common_model->deleteData('uw_scratch_win_games','_id', new MongoDB\BSON\ObjectID($deleteId));
 		$this->session->set_flashdata('alert_success',lang('deletesuccess'));
 		redirect(correctLink('ALLSCRATCHWINGAMESDATA',getCurrentControllerPath('index')));
 	}
@@ -258,7 +258,7 @@ class Allscratchwingames extends CI_Controller {
 		$this->admin_model->authCheck('view_data');
 		/* Export excel button code */
 		$wcon['where']          =   '';
-		$data        			=   $this->common_model->getData('multiple','db_scratch_win_games',$wcon);//echo '<pre>';print_r($data);die;
+		$data        			=   $this->common_model->getData('multiple','uw_scratch_win_games',$wcon);//echo '<pre>';print_r($data);die;
 
 		$spreadsheet = new Spreadsheet();
 		$sheet = $spreadsheet->getActiveSheet();
@@ -342,7 +342,7 @@ class Allscratchwingames extends CI_Controller {
 		//echo $changeStatusId; die();
 		$this->admin_model->authCheck('edit_data');
 		$param['status']		=	$statusType;
-		$this->common_model->editData('db_scratch_win_games',$param,'_id', new MongoDB\BSON\ObjectID($changeStatusId));
+		$this->common_model->editData('uw_scratch_win_games',$param,'_id', new MongoDB\BSON\ObjectID($changeStatusId));
 		$this->session->set_flashdata('alert_success',lang('statussuccess'));
 		redirect(correctLink('ALLSCRATCHWINGAMESDATA',getCurrentControllerPath('index')));
 	}
@@ -359,7 +359,7 @@ class Allscratchwingames extends CI_Controller {
 		$data['activeMenu']    = 'scratchwin';
 		$data['activeSubMenu'] = 'allscratchwingames';
 
-		$tblName  			    = 'db_scratch_win_games';
+		$tblName  			    = 'uw_scratch_win_games';
 		$this->session->set_userdata('ALLSCRATCHWINGAMESDATA',currentFullUrl());
 		if($editId):
 			$this->admin_model->authCheck('edit_data');
@@ -703,7 +703,7 @@ class Allscratchwingames extends CI_Controller {
 					$mergedConfig = $this->_mergeGameWiseRtpConfigForSave($existingRtpConfig, array(
 						'target_rtp_percent' => (float)$rtpPercent,
 					), $gameRow);
-					$this->common_model->editData('db_scratch_win_games', array(
+					$this->common_model->editData('uw_scratch_win_games', array(
 						'prize_slab_mode' => 'rtp_based_prize',
 						'rtp_config' => $mergedConfig,
 						'update_ip' => currentIp(),
@@ -783,7 +783,7 @@ class Allscratchwingames extends CI_Controller {
 						'update_date' => (int)$this->timezone->utc_time(),
 						'updated_by' => (int)$this->session->userdata('UW_ADMIN_ID'),
 					);
-					$this->common_model->editData('db_scratch_win_games', $param, '_id', $objectId);
+					$this->common_model->editData('uw_scratch_win_games', $param, '_id', $objectId);
 					// Switching this mode updates the saved active RTP scope (mutual exclusion with Global).
 					$this->_persistRtpActiveMode($tblName, $globalSettingsRow, $rtpScope, $isRtpEnabledPost);
 				else:
@@ -903,7 +903,7 @@ class Allscratchwingames extends CI_Controller {
 			'where' => array('status' => 'A'),
 			'select' => array('title', 'products_id', 'prize_slab_mode', 'rtp_config', 'price'),
 		);
-		$rows = $this->common_model->getData('multiple', 'db_scratch_win_games', $whereCon, array('title' => 'ASC'));
+		$rows = $this->common_model->getData('multiple', 'uw_scratch_win_games', $whereCon, array('title' => 'ASC'));
 		$options = array();
 		if (!is_array($rows)) {
 			return $options;
@@ -1066,7 +1066,7 @@ class Allscratchwingames extends CI_Controller {
 		if ($selectedGameId === '') {
 			return array();
 		}
-		$row = $this->common_model->getDataByParticularField('db_scratch_win_games', '_id', new MongoDB\BSON\ObjectID($selectedGameId));
+		$row = $this->common_model->getDataByParticularField('uw_scratch_win_games', '_id', new MongoDB\BSON\ObjectID($selectedGameId));
 		return $this->_normalizeMongoRowToArray($row);
 	}
 

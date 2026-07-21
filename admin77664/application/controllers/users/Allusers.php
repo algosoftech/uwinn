@@ -309,6 +309,8 @@ class Allusers extends CI_Controller {
 			$this->form_validation->set_rules('enable_tambola_games', 'Enable Tambola Games', 'trim|required');
 			$this->form_validation->set_rules('enable_hourly_games', 'Enable Hourly Games', 'trim|required');
 			$this->form_validation->set_rules('enable_ding', 'Enable International (Ding)', 'trim|required');
+			$this->form_validation->set_rules('enable_scratch_win', 'Enable Scratch & Win', 'trim|required');
+			$this->form_validation->set_rules('enable_buy_win', 'Enable Buy & Win', 'trim|required');
 
 			if($this->form_validation->run() && $error == 'NO'): 
 
@@ -330,6 +332,8 @@ class Allusers extends CI_Controller {
 				$param['enable_hourly_games']	 = $this->input->post('enable_hourly_games');
 				$enableDing = $this->input->post('enable_ding');
 				$param['enable_ding'] = $enableDing;
+				$param['enable_scratch_win'] = $this->input->post('enable_scratch_win');
+				$param['enable_buy_win'] = $this->input->post('enable_buy_win');
 				$bind_with_person_name = $this->input->post('bind_with_person_name');
 				if(!empty($bind_with_person_name)):
 				   $sales_person  = explode('|',$bind_with_person_name);
