@@ -231,7 +231,7 @@ class Allscratchwingames extends CI_Controller {
 		$subCategoryId     = $this->input->post('_id');
 		$whereCon['where'] = array('category_oid' => new MongoDB\BSON\ObjectId($categoryId));	
 		$shortField        = array('sub_category_name' => 'ASC');
-		$subCategoryData  = $this->common_model->getData('multiple','db_sub_category',$whereCon,$shortField);
+		$subCategoryData  = $this->common_model->getData('multiple','uw_sub_category',$whereCon,$shortField);
 		
 		if(!empty($subCategoryData)):
 			$html = '<option value="">Select Sub Category</option>';

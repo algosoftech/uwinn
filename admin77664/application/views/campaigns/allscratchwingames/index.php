@@ -23,11 +23,8 @@
             <div class="card">
               <div class="card-header">
                 <h5>Manage Scratch Win Games</h5>
-                <?php if(empty($ALLDATA)): ?>
-                <a href="<?=getCurrentControllerPath('addeditdata'); ?>" class="btn btn-sm btn-primary pull-right mr-2">Add New</a>
-                <?php endif; ?>
-                <a href="<?=getCurrentControllerPath('manageDrawTime'); ?>" class="btn btn-sm btn-primary pull-right mr-2">Manage Draw Time</a>
                 <a href="<?=getCurrentControllerPath('rtp'); ?>" class="btn btn-sm btn-warning pull-right mr-2">RTP</a>
+                <a href="<?=getCurrentControllerPath('addeditdata'); ?>" class="btn btn-sm btn-primary pull-right mr-2">Add New</a>
               </div>
               <div class="card-body">
                 <form id="Data_Form" name="Data_Form" method="get" action="<?php echo $forAction; ?>">

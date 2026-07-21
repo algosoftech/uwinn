@@ -111,6 +111,17 @@
                                         <?php endif; ?>
                                     </div>
 
+                                    <div class="form-group-inner col-lg-2 col-md-2 col-sm-2 col-xs-12 <?php if(form_error('game_mode')): ?>error<?php endif; ?>">
+                                        <label>Game Mode<span class="required">*</span></label>
+                                        <select name="game_mode" id="game_mode" class="form-control required">
+                                            <option value="scratch_win" <?= $EDITDATA['game_mode'] == 'scratch_win' ? 'selected' : ''; ?>>Scratch & Win</option>
+                                            <option value="buy_win" <?= $EDITDATA['game_mode'] == 'buy_win' ? 'selected' : ''; ?>>Buy & Win</option>
+                                        </select>
+                                        <?php if(form_error('game_mode')): ?>
+                                            <span for="game_mode" generated="true" class="help-inline"><?php echo form_error('game_mode'); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+
                                     <div class="form-group-inner col-lg-2 col-md-2 col-sm-2 col-xs-12 <?php if(form_error('price')): ?>error<?php endif; ?>">
                                         <label>Price ( ADE / iPoints )<span class="required">*</span></label>
                                         <input type="number" min="0" name="price" id="price" class="form-control required" value="<?php if(set_value('price')): echo set_value('price'); else: echo stripslashes($EDITDATA['price']);endif; ?>" placeholder="ADE / iPoints">
@@ -146,9 +157,7 @@
                                             <span for="expiry_date" generated="true" class="help-inline"><?php echo form_error('expiry_date'); ?></span>
                                         <?php endif; ?>
                                     </div>
-                                                    
-                                            
-                                
+ 
                                     <div class="form-group-inner col-lg-3 col-md-3 col-sm-3 col-xs-12 <?php if(form_error('show_on')): ?>error<?php endif; ?>">
                                         <label>Show ON <sub class="text-danger"> ( Website, App , POS ) </sub></label>
                                         <select name="show_on[]" id="show_on" class="form-control required" multiple required>
