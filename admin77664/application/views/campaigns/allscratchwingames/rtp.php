@@ -303,6 +303,88 @@ if (!empty($EDITDATA['_id'])) {
                             </fieldset>
                             </div>
 
+                            <?php if ($_rtp_scope === 'global'): ?>
+                            <div class="rtp-fieldset rtp-campaign-list-panel mb-4">
+                                <div class="rtp-game-list-toolbar mt-1 mb-2">
+                                    <div class="rtp-game-list-toolbar-title">
+                                        <i class="feather icon-grid"></i> Scratch &amp; Win Games (<?= (int) $_list_game_count ?>)
+                                    </div>
+                                    <a href="<?= htmlspecialchars(base_url('scratchwin/allscratchwingames/rtp?scope=game&filterDate=' . urlencode($_rtp_filter_date))) ?>" class="btn btn-sm rtp-save-list-btn">
+                                        <i class="feather icon-sliders"></i> Manage Game Wise RTP
+                                    </a>
+                                </div>
+                                <?php if (!empty($_rtp_game_options)): ?>
+                                <div class="table-responsive rtp-game-list-wrap mt-2">
+                                    <table class="table table-sm mb-0 rtp-game-list-table">
+                                        <thead>
+                                            <tr>
+                                                <th width="60">#</th>
+                                                <th>Game</th>
+                                                <th width="110">Product ID</th>
+                                                <th width="90">Ticket</th>
+                                                <th width="130">Total Sales</th>
+                                                <th width="80">Orders</th>
+                                                <th width="150">Distributed Prize</th>
+                                                <th width="100">RTP %</th>
+                                                <th width="100">Mode</th>
+                                                <th width="90">Open</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php $_g_sl = 1; foreach ($_rtp_game_options as $_game_opt): ?>
+                                            <?php
+                                            $_row_sales = (float) (isset($_game_opt['total_sales']) ? $_game_opt['total_sales'] : 0);
+                                            $_row_orders = (int) (isset($_game_opt['order_count']) ? $_game_opt['order_count'] : 0);
+                                            $_row_prize = (float) (isset($_game_opt['distributed_prize_amount']) ? $_game_opt['distributed_prize_amount'] : 0);
+                                            $_row_rtp = (float) (isset($_game_opt['target_rtp_percent']) ? $_game_opt['target_rtp_percent'] : 0);
+                                            $_row_open_url = base_url('scratchwin/allscratchwingames/rtp?scope=game&filterDate=' . urlencode($_rtp_filter_date) . '&game_id=' . urlencode($_game_opt['_id']));
+                                            ?>
+                                            <tr class="rtp-game-list-row" data-game-id="<?= htmlspecialchars($_game_opt['_id']) ?>">
+                                                <td class="text-center"><?= (int) $_g_sl++ ?></td>
+                                                <td>
+                                                    <a href="<?= htmlspecialchars($_row_open_url) ?>" class="rtp-game-name-link">
+                                                        <span class="rtp-game-name-dot"></span>
+                                                        <?= htmlspecialchars($_game_opt['title']) ?>
+                                                    </a>
+                                                </td>
+                                                <td class="text-center"><?= (int) (isset($_game_opt['products_id']) ? $_game_opt['products_id'] : 0) ?></td>
+                                                <td class="text-center"><?= htmlspecialchars(number_format((float) (isset($_game_opt['ticket_price']) ? $_game_opt['ticket_price'] : 0), 0, '.', ',')) ?></td>
+                                                <td class="text-right">
+                                                    <span class="rtp-sales-value <?= $_row_sales > 0 ? 'rtp-sales-value-active' : '' ?>">
+                                                        <?= htmlspecialchars(number_format($_row_sales, 0, '.', ',')) ?>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="rtp-orders-pill"><?= $_row_orders ?></span>
+                                                </td>
+                                                <td class="text-right">
+                                                    <span class="rtp-prize-value <?= $_row_prize > 0 ? 'rtp-prize-value-active' : '' ?>">
+                                                        <?= htmlspecialchars(number_format($_row_prize, 0, '.', ',')) ?>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?= $_row_rtp > 0 ? htmlspecialchars(rtrim(rtrim(number_format($_row_rtp, 2, '.', ''), '0'), '.')) . '%' : '—' ?>
+                                                </td>
+                                                <td>
+                                                    <span class="rtp-mode-badge <?= !empty($_game_opt['is_rtp_enabled']) ? 'rtp-mode-badge-on' : 'rtp-mode-badge-off' ?>">
+                                                        <?= !empty($_game_opt['is_rtp_enabled']) ? 'RTP' : 'Normal' ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="<?= htmlspecialchars($_row_open_url) ?>" class="btn btn-sm rtp-open-game-btn">Open</a>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="rtp-game-list-footnote mt-2">All Scratch &amp; Win game products from <code>uw_scratch_win_games</code>. Sales, orders, and distributed prizes are for <?= htmlspecialchars($_rtp_filter_date) ?>. Click a game to configure its Game Wise RTP.</div>
+                                <?php else: ?>
+                                <div class="alert alert-info mb-0">No active Scratch &amp; Win games found.</div>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
+
                             <?php if ($_rtp_scope === 'game' && !empty($_rtp_game_options)): ?>
                             <div class="rtp-fieldset rtp-campaign-list-panel mb-4">
                                 <div class="row rtp-game-list-summary">
