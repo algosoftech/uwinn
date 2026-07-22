@@ -394,3 +394,4 @@ $lang['DING_RECHARGE_FAILED']							= 'Ding recharge failed. Please try again.';
 $lang['INVALID_SKU_CODE']								= 'Invalid SKU code.';
 $lang['INSUFFICIENT_BALANCE']							= 'Insufficient recharge balance.';
 $lang['DRAW_TIME_REQUIRED']								= 'Draw time is required.';
+$lang['GAME_MODE_EMPTY']							    = 'Game mode is empty';

@@ -127,6 +127,7 @@ class Allscratchwingames extends CI_Controller {
 			$this->form_validation->set_rules('show_on[]'        , 'Show On'          , 'trim|required');
 			$this->form_validation->set_rules('start_date'       , 'Start Date'       , 'trim|required');
 			$this->form_validation->set_rules('expiry_date'      , 'Expiry Date'      , 'trim|required');
+			$this->form_validation->set_rules('game_mode'        , 'Game Mode'        , 'trim|required');
 			$this->form_validation->set_rules('SaveChanges'      , 'SaveChanges'      , 'trim|required');
 			if($this->form_validation->run() && $error == 'NO'):
 
@@ -162,6 +163,7 @@ class Allscratchwingames extends CI_Controller {
 				$param['show_on']			 = $this->input->post('show_on');
 				$param['start_date']		 = strtotime($this->input->post('start_date'));
 				$param['expiry_date']		 = strtotime($this->input->post('expiry_date'));
+				$param['game_mode']		     = $this->input->post('game_mode');
 				if(empty($editId)):
 					$param['status']		 = 'A';
 					$param['prize_setting']  = 'disabled';
@@ -705,6 +707,7 @@ class Allscratchwingames extends CI_Controller {
 					), $gameRow);
 					$this->common_model->editData('uw_scratch_win_games', array(
 						'prize_slab_mode' => 'rtp_based_prize',
+						'prize_setting' => 'enabled',
 						'rtp_config' => $mergedConfig,
 						'update_ip' => currentIp(),
 						'update_date' => (int)$this->timezone->utc_time(),
@@ -777,6 +780,7 @@ class Allscratchwingames extends CI_Controller {
 					}
 					$param = array(
 						'prize_slab_mode' => !empty($isRtpEnabledPost) ? 'rtp_based_prize' : (isset($existingRow['prize_slab_mode']) ? $existingRow['prize_slab_mode'] : ''),
+						'prize_setting' => 'enabled',
 						'rtp_config' => $this->_mergeGameWiseRtpConfigForSave($existingRtpConfig, is_array($rtpConfigPost) ? $rtpConfigPost : array(), $existingRow),
 						'rtp_prize_slabs' => $this->_mergeGlobalRtpSlabsForSave($existingSlabs, is_array($rtpSlabsPost) ? $rtpSlabsPost : array()),
 						'update_ip' => currentIp(),
