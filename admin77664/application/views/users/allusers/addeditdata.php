@@ -224,6 +224,14 @@ $(function(){
                                                 <?php endif; ?>
                                             </div>
 
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('scratch_card_commission_percentage')): ?>error<?php endif; ?>" id="scratch_card_commission_percentage_block">
+                                                <label> Scratch Card Commission Percentage<span class="required">*</span></label>
+                                                <input type="text" name="scratch_card_commission_percentage" id="scratch_card_commission_percentage" class="form-control" value="<?php if(set_value('scratch_card_commission_percentage')): echo set_value('scratch_card_commission_percentage'); else: echo stripslashes(isset($EDITDATA['scratch_card_commission_percentage']) && $EDITDATA['scratch_card_commission_percentage'] !== '' ? $EDITDATA['scratch_card_commission_percentage'] : '0');endif; ?>" placeholder="Scratch Card Commission Percentage">
+                                                <?php if(form_error('scratch_card_commission_percentage')): ?>
+                                                <span for="scratch_card_commission_percentage" generated="true" class="help-inline"><?php echo form_error('scratch_card_commission_percentage'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
                                         </div>
                                     </fieldset>
 

@@ -293,6 +293,7 @@ class Allusers extends CI_Controller {
 					$this->form_validation->set_rules('redeeming_commission_percentage', 'Redeeming Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('hourly_games_commission_percentage', 'Hourly Games Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('ding_commission_percentage', 'International (Ding) Commission Percentage', 'trim|required' );
+					$this->form_validation->set_rules('scratch_card_commission_percentage', 'Scratch Card Commission Percentage', 'trim|required' );
 				endif;
 			}
 			elseif($userType == 'Manager'){
@@ -345,6 +346,7 @@ class Allusers extends CI_Controller {
 					$param['redeeming_commission_percentage'] = $this->input->post('redeeming_commission_percentage');
 					$param['hourly_games_commission_percentage'] = $this->input->post('hourly_games_commission_percentage');
 					$param['ding_commission_percentage'] = $this->input->post('ding_commission_percentage');
+					$param['scratch_card_commission_percentage'] = $this->input->post('scratch_card_commission_percentage');
 					$redeemLimit = trim((string) $this->input->post('redeeming_amount_limit'));
 					$param['redeeming_amount_limit'] = $redeemLimit !== '' ? (float) $redeemLimit : (float) $this->_default_redeeming_amount_limit();
 					$param['redeem_limit_mode'] = $this->_normalize_redeem_limit_mode($this->input->post('redeem_limit_mode'));
