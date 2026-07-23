@@ -817,11 +817,13 @@ class Orders extends CI_Controller {
 					elseif($orderDetails['status'] == 'CL'):
 						throw new Exception(lang('ORDER_ALREADY_CANCELLED'), 1);
 					elseif(!empty($orderDetails) && $orderDetails['status'] == 'A'):
-						$currentTime        = strtotime(date('H:i'));
+						$currentTime        = strtotime(date('Y-m-d H:i'));
 						$drawDateTime       = strtotime($orderDetails['draw_date'].' '.$orderDetails['draw_time']);
 						$drawDateTimeMinus5 = $drawDateTime - (5 * 60);
 						if($currentTime >= $drawDateTimeMinus5 && $currentTime <= $drawDateTime):
 							throw new Exception(lang('CANCELLATION_STOP_DRAW_UNDERWAY'), 1);
+						elseif($currentTime >= $drawDateTime):
+							throw new Exception(lang('CANNOT_CANCEL_ORDER'), 1);
 						else:
 
 							$whereCon['where'] = array('users_id' => (int)$userId);
@@ -835,6 +837,8 @@ class Orders extends CI_Controller {
 							$param1['update_date']  = (int)$this->timezone->utc_time();//currentDateTime();
 							$param1['refund_date']	= (int)$this->timezone->utc_time();//currentDateTime();
 							$param1['updated_by']	= (int)$userId;
+							$param1['cancel_reason']= 'android web';
+
 							$orderWhereCon          = array('_id' => new MongoDB\BSON\ObjectId($CancellationID));
 							$update1 = $this->mongodb_client->updateDocument('uw_lotto_orders',$orderWhereCon, ['$set' => $param1],$session);
 							

@@ -305,3 +305,20 @@ $route['api/ding/plan/recharge/history']   = 'api/ding/rechargeHistory';
 $route['api/ding/plan/recharge/summary']   = 'api/ding/rechargeSummary';
 $route['api/ding/recharge/history']        = 'api/ding/rechargeHistory';
 $route['api/ding/recharge/summary']        = 'api/ding/rechargeSummary';
+
+ 
+
+$route['api/scratchcard/list'] 				     = 'api/scratchcards/getGameList';
+$route['api/scratchcard/order/create'] 			 = 'api/scratchcards/orderCreate';
+// $route['api/scratchcard/order/send-ticket'] 	 = 'api/scratchcards/tambolaSendTicket';
+// $route['api/scratchcard/order/send-redeem'] 	 = 'api/scratchcards/tambolaSendRedeem';
+// $route['api/scratchcard/order/history'] 		 = 'api/scratchcards/OrderHistory';
+// $route['api/scratchcard/order/check-winner'] 	 = 'api/scratchcards/checkWinner';
+// $route['api/scratchcard/order/redeem'] 		     = 'api/scratchcards/OrderRedeem';
+// $route['api/scratchcard/order/redeem-history'] 	 = 'api/scratchcards/OrderRedeemHistory';
+// $route['api/scratchcard/report/summary'] 		 = 'api/scratchcards/ReportSummary';
+// $route['api/scratchcard/rtp/settings']           = 'api/scratchcards/getGlobalSettings';
+// $route['api/scratchcard/rtp/preview']            = 'api/scratchcards/previewAllocation';
+// $route['api/scratchcard/rtp/compare']            = 'api/scratchcards/compareScenarios';
+// $route['api/scratchcard/rtp/live']               = 'api/scratchcards/getLiveStats';
+// $route['api/scratchcard/updateAllowPrint']      = 'api/scratchcards/updateAllowPrint';

@@ -313,6 +313,35 @@ fieldset{
                             </div>
                         </div>
                     </fieldset>
+                    <fieldset class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <legend>Scratch Card Banner</legend>
+                        <div class="row">
+                            <div class="col-sm-4 col-lg-4 col-md-4 col-xs-12">
+                                <div class="form-group-inner">
+                                    <input type="checkbox" name="added_for_scratch_card_banner[]" value="Website" id="Website5" <?= isset($EDITDATA['added_for_scratch_card_banner']) && in_array('Website', $EDITDATA['added_for_scratch_card_banner']) ? 'checked' : ''; ?>>
+                                    <label for="Website3">Website</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-lg-4 col-md-4 col-xs-12">
+                                <div class="form-group-inner">
+                                    <input type="checkbox" name="added_for_scratch_card_banner[]" value="App" id="App5" <?= isset($EDITDATA['added_for_scratch_card_banner']) && in_array('App', $EDITDATA['added_for_scratch_card_banner']) ? 'checked' : ''; ?>>
+                                    <label for="App3">App</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-lg-4 col-md-4 col-xs-12">
+                                <div class="form-group-inner">
+                                    <input type="checkbox" name="added_for_scratch_card_banner[]" value="POS" id="POS5" <?= isset($EDITDATA['added_for_scratch_card_banner']) && in_array('POS', $EDITDATA['added_for_scratch_card_banner']) ? 'checked' : ''; ?>>
+                                    <label for="POS3">POS</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                <div class="form-group-inner">
+                                    <input type="checkbox" name="added_for[]" value="Scratch Card Banner" id="scratch_card_banner" <?= isset($EDITDATA['added_for']) && in_array('Scratch Card Banner', $EDITDATA['added_for']) ? 'checked' : ''; ?>>
+                                    <label for="scratch_card_banner">Scratch Card Banner</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
                     <div class="login-btn-inner col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="inline-remember-me mt-4">
                             <input type="hidden" name="SaveChanges" id="SaveChanges" value="Yes">

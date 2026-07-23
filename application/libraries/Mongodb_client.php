@@ -85,17 +85,56 @@ class mongodb_client {
     }
 
     // get document method which returns the document data
-    public function getDocument($action='single', $collectionName, $filter=[], $session=null, $skip=0, $limit=100) {
+    public function getDocument($action='single', $collectionName, $filter=[], $session=null, $skip=0, $limit=100, $projection=null, $sort=null) {
         $collection = $this->database->$collectionName;
-        if($action == 'single'):
-            return $collection->findOne($filter, ['session' => $session]);
-        elseif($action == 'multiple'):
-            return $collection->find($filter, ['session' => $session])->skip($skip)->limit($limit);
-        elseif($action == 'count'):
-            return $collection->countDocuments($filter, ['session' => $session]);
-        else:
-            return false;
-        endif;
+        $options = ['typeMap' => ['root' => 'array', 'document' => 'array', 'array' => 'array']];
+        if ($session !== null) {
+            $options['session'] = $session;
+        }
+
+        if ($action == 'single') {
+            $result = $collection->findOne($filter, $options);
+            if ($result && isset($result['_id']) && $result['_id'] instanceof MongoDB\BSON\ObjectId) {
+                $result['_id'] = ['$id' => (string) $result['_id']];
+            }
+            return $result;
+        }
+        if ($action == 'multiple') {
+            if ((int)$skip > 0) {
+                $options['skip'] = (int)$skip;
+            }
+            if ((int)$limit > 0) {
+                $options['limit'] = (int)$limit;
+            }
+            if (is_array($projection) && !empty($projection)) {
+                if (array_values($projection) === $projection) {
+                    $projectionFields = array();
+                    foreach ($projection as $field) {
+                        $projectionFields[$field] = 1;
+                    }
+                    $options['projection'] = $projectionFields;
+                } else {
+                    $options['projection'] = $projection;
+                }
+            }
+            if (is_array($sort) && !empty($sort)) {
+                $options['sort'] = $sort;
+            }
+
+            $cursor = $collection->find($filter, $options);
+            $results = array();
+            foreach ($cursor as $doc) {
+                if (isset($doc['_id']) && $doc['_id'] instanceof MongoDB\BSON\ObjectId) {
+                    $doc['_id'] = array('$id' => (string)$doc['_id']);
+                }
+                $results[] = $doc;
+            }
+            return $results;
+        }
+        if ($action == 'count') {
+            return $collection->countDocuments($filter, $options);
+        }
+        return false;
     }
 
 

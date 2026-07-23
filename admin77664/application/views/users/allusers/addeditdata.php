@@ -224,6 +224,14 @@ $(function(){
                                                 <?php endif; ?>
                                             </div>
 
+                                            <div class="form-group-inner col-lg-4 col-md-4 col-sm-4 col-xs-12 <?php if(form_error('scratch_card_commission_percentage')): ?>error<?php endif; ?>" id="scratch_card_commission_percentage_block">
+                                                <label> Scratch Card Commission Percentage<span class="required">*</span></label>
+                                                <input type="text" name="scratch_card_commission_percentage" id="scratch_card_commission_percentage" class="form-control" value="<?php if(set_value('scratch_card_commission_percentage')): echo set_value('scratch_card_commission_percentage'); else: echo stripslashes(isset($EDITDATA['scratch_card_commission_percentage']) && $EDITDATA['scratch_card_commission_percentage'] !== '' ? $EDITDATA['scratch_card_commission_percentage'] : '0');endif; ?>" placeholder="Scratch Card Commission Percentage">
+                                                <?php if(form_error('scratch_card_commission_percentage')): ?>
+                                                <span for="scratch_card_commission_percentage" generated="true" class="help-inline"><?php echo form_error('scratch_card_commission_percentage'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
                                         </div>
                                     </fieldset>
 
@@ -464,6 +472,31 @@ $(function(){
                                                 <span for="enable_ding" generated="true" class="help-inline"><?php echo form_error('enable_ding'); ?></span>
                                                 <?php endif; ?>
                                             </div>
+
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('enable_scratch_win')): ?>error<?php endif; ?>">
+                                                <label>Enable Scratch & Win<span class="required">*</span></label>
+                                                <select name="enable_scratch_win" id="enable_scratch_win" class="form-control required">
+                                                    <?php $enableScratchWinValue = (!empty($EDITDATA['enable_scratch_win']) && $EDITDATA['enable_scratch_win'] == 'Y') ? 'Y' : 'N'; ?>
+                                                    <option value="N" <?php if ($enableScratchWinValue == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($enableScratchWinValue == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('enable_scratch_win')): ?>
+                                                <span for="enable_scratch_win" generated="true" class="help-inline"><?php echo form_error('enable_scratch_win'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="form-group-inner col-lg-3 col-md-2 col-sm-3 col-xs-12 <?php if(form_error('enable_buy_win')): ?>error<?php endif; ?>">
+                                                <label>Enable Buy & Win<span class="required">*</span></label>
+                                                <select name="enable_buy_win" id="enable_buy_win" class="form-control required">
+                                                    <?php $enableBuyWinValue = (!empty($EDITDATA['enable_buy_win']) && $EDITDATA['enable_buy_win'] == 'Y') ? 'Y' : 'N'; ?>
+                                                    <option value="N" <?php if ($enableBuyWinValue == 'N') {?> selected <?php } ?>>No</option>
+                                                    <option value="Y" <?php if ($enableBuyWinValue == 'Y') {?> selected <?php } ?>>Yes</option>
+                                                </select>
+                                                <?php if(form_error('enable_scratch_win')): ?>
+                                                <span for="enable_buy_win" generated="true" class="help-inline"><?php echo form_error('enable_buy_win'); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+
                                         </div>
                                 </fieldset>
                                

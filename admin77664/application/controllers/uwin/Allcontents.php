@@ -123,10 +123,11 @@ class Allcontents extends CI_Controller {
 			'link_title' => '',
 			'game_type' => '',
 			'added_for' => array(),
-			'added_for_top_banner' => array(),
-			'added_for_recent_winners' => array(),
-			'added_for_result_page' => array(),
-			'added_for_winner_gallery' => array(),
+			'added_for_top_banner'          => array(),
+			'added_for_recent_winners'      => array(),
+			'added_for_result_page'         => array(),
+			'added_for_winner_gallery'      => array(),
+			'added_for_scratch_card_banner' => array(),
 		);
 
 		if($editId):
@@ -269,11 +270,12 @@ class Allcontents extends CI_Controller {
 			$param['position']	     = (int)$this->input->post('position');
 			$param['live_date_time'] = strtotime($this->input->post('live_date_time'));
 			$param['new_position']   = (int)$this->input->post('new_position');
-			$param['live_date_time_later']     = strtotime($this->input->post('live_date_time_later'));
-			$param['added_for_top_banner']	   = $this->input->post('added_for_top_banner');
-			$param['added_for_result_page']	   = $this->input->post('added_for_result_page');
-			$param['added_for_recent_winners'] = $this->input->post('added_for_recent_winners');
-			$param['added_for_winner_gallery'] = $this->input->post('added_for_winner_gallery');
+			$param['live_date_time_later']          = strtotime($this->input->post('live_date_time_later'));
+			$param['added_for_top_banner']	        = $this->input->post('added_for_top_banner');
+			$param['added_for_result_page']	        = $this->input->post('added_for_result_page');
+			$param['added_for_recent_winners']      = $this->input->post('added_for_recent_winners');
+			$param['added_for_winner_gallery']      = $this->input->post('added_for_winner_gallery');
+			$param['added_for_scratch_card_banner'] = $this->input->post('added_for_scratch_card_banner');
 	    	// echo "<pre>";print_r($param);die();
 			
 			if($this->input->post('CurrentDataID') ==''):

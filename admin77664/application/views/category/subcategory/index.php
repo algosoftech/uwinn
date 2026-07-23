@@ -96,14 +96,14 @@
 											<div class="btn-group">
 											  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
 											  <ul class="dropdown-menu" role="menu">
-												<li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['sub_category_id'])?>"><i class="fas fa-edit"></i> Edit Details</a></li>
-												<?php if($ALLDATAINFO['status'] == 'A'): ?>
-												  <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['sub_category_id'].'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
-												<?php elseif($ALLDATAINFO['status'] == 'I'): ?>
-												  <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['sub_category_id'].'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
-												<?php endif; ?>
-												  <li><a href="<?php echo getCurrentControllerPath('deletedata/'.$ALLDATAINFO['sub_category_id'])?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
-											   </ul>
+                            <li><a href="<?php echo getCurrentControllerPath('addeditdata/'.$ALLDATAINFO['_id']->{'$id'})?>"><i class="fas fa-edit"></i> Edit Details</a></li>
+                          <?php if($ALLDATAINFO['status'] == 'A'): ?>
+                            <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/I')?>"><i class="fas fa-thumbs-down"></i> Inactive</a></li>
+                          <?php elseif($ALLDATAINFO['status'] == 'I'): ?>
+                            <li><a href="<?php echo getCurrentControllerPath('changestatus/'.$ALLDATAINFO['_id']->{'$id'}.'/A')?>"><i class="fas fa-thumbs-up"></i> Active</a></li>
+                          <?php endif; ?>
+                            <li><a href="<?php echo getCurrentControllerPath('deletedata/'. $ALLDATAINFO['_id']->{'$id'})?>" onClick="return confirm('Want to delete!');"><i class="fas fa-trash"></i> Delete</a></li>
+                        </ul>
 											</div>
 										  </td>
 										</tr>

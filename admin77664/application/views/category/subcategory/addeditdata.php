@@ -47,11 +47,7 @@
                         <label>Category<span class="required">*</span></label>
                         <?php
                            $category_oid = '';
-                           if (set_value('category_oid')):
-                              $category_oid = set_value('category_oid');
-                           elseif (!empty($EDITDATA['category_oid']) && isset($EDITDATA['category_oid']->{'$id'})):
-                              $category_oid = $EDITDATA['category_oid']->{'$id'};
-                           endif;
+                           $category_oid = (object)$EDITDATA['category_oid'];
                         ?>
                         <select name="category_oid" id="category_oid" class="form-control required">
                           <?php echo $this->admin_model->getCampaignCategory($category_oid); ?>

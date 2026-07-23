@@ -162,6 +162,10 @@
                                       <?php if(!empty($ALLDATAINFO['added_for_winner_gallery'])): ?>
                                         <b>show on (Winner Gallery): </b> <?=implode(' , ',$ALLDATAINFO['added_for_winner_gallery'])?> </br>
                                       <?php endif; ?>
+
+                                      <?php if(!empty($ALLDATAINFO['added_for_scratch_card_banner'])): ?>
+                                        <b>show on (Scratch Card Banner): </b> <?=implode(' , ',$ALLDATAINFO['added_for_scratch_card_banner'])?> </br>
+                                      <?php endif; ?>
                                   </td>
                                   <td><?=showStatus($ALLDATAINFO['status'])?></td>
                                   <td class="position-cell"><?=$ALLDATAINFO['position'];?></td>

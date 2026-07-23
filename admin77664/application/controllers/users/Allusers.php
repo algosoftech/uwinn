@@ -293,6 +293,7 @@ class Allusers extends CI_Controller {
 					$this->form_validation->set_rules('redeeming_commission_percentage', 'Redeeming Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('hourly_games_commission_percentage', 'Hourly Games Commission Percentage', 'trim|required' );
 					$this->form_validation->set_rules('ding_commission_percentage', 'International (Ding) Commission Percentage', 'trim|required' );
+					$this->form_validation->set_rules('scratch_card_commission_percentage', 'Scratch Card Commission Percentage', 'trim|required' );
 				endif;
 			}
 			elseif($userType == 'Manager'){
@@ -309,6 +310,8 @@ class Allusers extends CI_Controller {
 			$this->form_validation->set_rules('enable_tambola_games', 'Enable Tambola Games', 'trim|required');
 			$this->form_validation->set_rules('enable_hourly_games', 'Enable Hourly Games', 'trim|required');
 			$this->form_validation->set_rules('enable_ding', 'Enable International (Ding)', 'trim|required');
+			$this->form_validation->set_rules('enable_scratch_win', 'Enable Scratch & Win', 'trim|required');
+			$this->form_validation->set_rules('enable_buy_win', 'Enable Buy & Win', 'trim|required');
 
 			if($this->form_validation->run() && $error == 'NO'): 
 
@@ -330,6 +333,8 @@ class Allusers extends CI_Controller {
 				$param['enable_hourly_games']	 = $this->input->post('enable_hourly_games');
 				$enableDing = $this->input->post('enable_ding');
 				$param['enable_ding'] = $enableDing;
+				$param['enable_scratch_win'] = $this->input->post('enable_scratch_win');
+				$param['enable_buy_win'] = $this->input->post('enable_buy_win');
 				$bind_with_person_name = $this->input->post('bind_with_person_name');
 				if(!empty($bind_with_person_name)):
 				   $sales_person  = explode('|',$bind_with_person_name);
@@ -341,6 +346,7 @@ class Allusers extends CI_Controller {
 					$param['redeeming_commission_percentage'] = $this->input->post('redeeming_commission_percentage');
 					$param['hourly_games_commission_percentage'] = $this->input->post('hourly_games_commission_percentage');
 					$param['ding_commission_percentage'] = $this->input->post('ding_commission_percentage');
+					$param['scratch_card_commission_percentage'] = $this->input->post('scratch_card_commission_percentage');
 					$redeemLimit = trim((string) $this->input->post('redeeming_amount_limit'));
 					$param['redeeming_amount_limit'] = $redeemLimit !== '' ? (float) $redeemLimit : (float) $this->_default_redeeming_amount_limit();
 					$param['redeem_limit_mode'] = $this->_normalize_redeem_limit_mode($this->input->post('redeem_limit_mode'));

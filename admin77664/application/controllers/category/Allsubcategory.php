@@ -114,7 +114,7 @@ class Allsubcategory extends CI_Controller {
 		
 		if($editId):
 			$this->admin_model->authCheck('edit_data');
-			$data['EDITDATA']				=	$this->common_model->getDataByParticularField('uw_sub_category','sub_category_id',(int)$editId);
+			$data['EDITDATA']				=	$this->common_model->getDataByParticularField('uw_sub_category','_id', new MongoDB\BSON\ObjectId($editId));
 		else:
 			$this->admin_model->authCheck('add_data');
 		endif;
@@ -127,8 +127,6 @@ class Allsubcategory extends CI_Controller {
 			    $this->form_validation->set_rules('sub_cat_image', 'Image', 'trim');
 			endif;
 			$this->form_validation->set_rules('sub_cat_image_alt', 'Alt', 'trim');
-			
-
 			if($this->form_validation->run() && $error == 'NO'): 
 
 				$categoryOid = $this->input->post('category_oid');
@@ -208,7 +206,7 @@ class Allsubcategory extends CI_Controller {
 	{  
 		$this->admin_model->authCheck('edit_data');
 		$param['status']		=	$statusType;
-		$this->common_model->editData('uw_sub_category',$param,'sub_category_id',(int)$changeStatusId);
+		$this->common_model->editData('uw_sub_category',$param,'_id', new MongoDB\BSON\ObjectId($changeStatusId));
 		$this->session->set_flashdata('alert_success',lang('statussuccess'));
 		
 		redirect(correctLink('ALLSUBCATEGORYDATA',getCurrentControllerPath('index')));
@@ -223,7 +221,7 @@ class Allsubcategory extends CI_Controller {
 	function deletedata($deleteId='')
 	{  
 		$this->admin_model->authCheck('delete_data');
-		$this->common_model->deleteData('uw_sub_category','sub_category_id',(int)$deleteId);
+		$this->common_model->deleteData('uw_sub_category','_id', new MongoDB\BSON\ObjectId($deleteId));
 		$this->session->set_flashdata('alert_success',lang('deletesuccess'));
 		
 		redirect(correctLink('ALLSUBCATEGORYDATA',getCurrentControllerPath('index')));
