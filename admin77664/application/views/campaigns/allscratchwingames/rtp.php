@@ -98,7 +98,10 @@ $_live_all_games_prize_pct = isset($_live_stats['all_games_prize_percent'])
     : round($_live_manual_big_prize_pct + $_live_game_wise_prize_pct, 2);
 $_rtp_filter_date = !empty($rtp_filter_date) ? (string) $rtp_filter_date : date('Y-m-d');
 $_rtp_scope = !empty($rtp_scope) ? (string) $rtp_scope : 'global';
-$_saved_rtp_scope = isset($EDITDATA['rtp_scope']) ? (string) $EDITDATA['rtp_scope'] : '';
+$_saved_rtp_scope = !empty($saved_rtp_scope) ? (string) $saved_rtp_scope : '';
+if ($_saved_rtp_scope === '' && isset($EDITDATA['rtp_scope'])) {
+    $_saved_rtp_scope = (string) $EDITDATA['rtp_scope'];
+}
 // Show Enabled only for the currently saved active RTP mode.
 $_rtp_enabled = ($_saved_rtp_scope !== '' && $_saved_rtp_scope === $_rtp_scope);
 $_rtp_all_games_id = 'all';
@@ -191,8 +194,8 @@ if (!empty($EDITDATA['_id'])) {
                                 <div class="row align-items-end">
                                     <div class="col-md-12">
                                         <div class="rtp-scope-switch btn-group btn-group-sm" role="group">
-                                            <a href="<?= htmlspecialchars(base_url('scratchwin/allscratchwingames/rtp?scope=global&filterDate=' . urlencode($_rtp_filter_date))) ?>" class="btn <?= $_rtp_scope === 'global' ? 'rtp-scope-btn-active' : 'rtp-scope-btn' ?>">Global RTP</a>
-                                            <a href="<?= htmlspecialchars(base_url('scratchwin/allscratchwingames/rtp?scope=game&filterDate=' . urlencode($_rtp_filter_date) . ($_selected_game_id !== '' ? '&game_id=' . urlencode($_selected_game_id) : ''))) ?>" class="btn <?= $_rtp_scope === 'game' ? 'rtp-scope-btn-active' : 'rtp-scope-btn' ?>">Game Wise RTP</a>
+                                            <a href="<?= htmlspecialchars(base_url('scratchwin/allscratchwingames/rtp?scope=global&filterDate=' . urlencode($_rtp_filter_date))) ?>" id="rtp_scope_btn_global" class="btn <?= $_rtp_scope === 'global' ? 'rtp-scope-btn-active' : 'rtp-scope-btn' ?>" aria-pressed="<?= $_rtp_scope === 'global' ? 'true' : 'false' ?>">Global RTP</a>
+                                            <a href="<?= htmlspecialchars(base_url('scratchwin/allscratchwingames/rtp?scope=game&filterDate=' . urlencode($_rtp_filter_date) . ($_selected_game_id !== '' ? '&game_id=' . urlencode($_selected_game_id) : ''))) ?>" id="rtp_scope_btn_game" class="btn <?= $_rtp_scope === 'game' ? 'rtp-scope-btn-active' : 'rtp-scope-btn' ?>" aria-pressed="<?= $_rtp_scope === 'game' ? 'true' : 'false' ?>">Game Wise RTP</a>
                                         </div>
                                         <div class="rtp-scope-hint">Global RTP shows pool configuration. Game Wise RTP shows the campaign list — open a game to edit its RTP and prize distribution.</div>
                                     </div>
@@ -378,7 +381,7 @@ if (!empty($EDITDATA['_id'])) {
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="rtp-game-list-footnote mt-2">All Scratch &amp; Win game products from <code>uw_scratch_win_games</code>. Sales, orders, and distributed prizes are for <?= htmlspecialchars($_rtp_filter_date) ?>. Click a game to configure its Game Wise RTP.</div>
+                                <div class="rtp-game-list-footnote mt-2">All Scratch &amp; Win game products from <code>uw_scratch_win_games</code>. Sales, orders, and distributed prizes are generated from <code>uw_scratch_win_orders</code> for <?= htmlspecialchars($_rtp_filter_date) ?>. Click a game to configure its Game Wise RTP.</div>
                                 <?php else: ?>
                                 <div class="alert alert-info mb-0">No active Scratch &amp; Win games found.</div>
                                 <?php endif; ?>
@@ -533,14 +536,16 @@ if (!empty($EDITDATA['_id'])) {
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="rtp-game-list-footnote mt-2">Total sales, orders, and distributed prize amounts are campaign-wise for <?= htmlspecialchars($_rtp_filter_date) ?>. Click any game name once to open its RTP and prize distribution.</div>
+                                <div class="rtp-game-list-footnote mt-2">Total sales, orders, and distributed prize amounts are campaign-wise from <code>uw_scratch_win_orders</code> for <?= htmlspecialchars($_rtp_filter_date) ?>. Click any game name once to open its RTP and prize distribution.</div>
                             </div>
                             <?php endif; ?>
 
                             <div id="rtp_game_config_wrapper" class="<?= $_rtp_show_game_config ? '' : 'rtp-game-config-hidden' ?>">
                             <div class="rtp-based-prize-slab<?= $_rtp_enabled ? '' : ' rtp-config-disabled' ?><?= $_rtp_all_games_view ? ' rtp-all-games-mode' : '' ?>" id="rtp_config_content">
                                 <div class="alert alert-warning rtp-config-disabled-notice<?= $_rtp_enabled ? '' : ' is-visible' ?>" id="rtp_disabled_notice">
-                                    Global RTP is currently <strong>disabled</strong>. Orders will not use this RTP pool until you enable it and save.
+                                    <?= $_rtp_scope === 'game'
+                                        ? 'Game Wise RTP is currently <strong>disabled</strong>. Turn on <strong>Enable Game Wise RTP</strong> and save to activate this mode.'
+                                        : 'Global RTP is currently <strong>disabled</strong>. Orders will not use this RTP pool until you enable it and save.' ?>
                                 </div>
                                 <div class="alert alert-info rtp-all-games-readonly-notice<?= $_rtp_all_games_view ? ' is-visible' : '' ?>" id="rtp_all_games_readonly_notice">
                                     <strong>All Games Sales</strong> is read-only. Open an individual game to edit RTP Pool Allocation and prize pools.
@@ -782,11 +787,11 @@ window.RTP_LIVE_CFG = {
   filterDate: '<?= htmlspecialchars($_rtp_filter_date) ?>',
   todayDate: '<?= htmlspecialchars($this->timezone->current_date('Y-m-d', 'Asia/Dubai')) ?>',
   scope: '<?= htmlspecialchars($_rtp_scope) ?>',
-  savedScope: '<?= htmlspecialchars(isset($EDITDATA['rtp_scope']) ? (string) $EDITDATA['rtp_scope'] : '') ?>',
+  savedScope: '<?= htmlspecialchars($_saved_rtp_scope) ?>',
   readonly: <?= !empty($_rtp_readonly_mode) ? 'true' : 'false' ?>,
   gameId: '<?= htmlspecialchars($_selected_game_id !== '' ? $_selected_game_id : $_rtp_all_games_id) ?>',
   allGamesId: '<?= htmlspecialchars($_rtp_all_games_id) ?>',
   liveStats: <?= json_encode($_live_stats, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
 };
 </script>
-<script src="{ASSET_INCLUDE_URL}dist/js/allscratchwingames-rtp.js?v=20260715a"></script>
+<script src="{ASSET_INCLUDE_URL}dist/js/allscratchwingames-rtp.js?v=20260722b"></script>

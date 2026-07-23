@@ -615,7 +615,7 @@ class Allscratchwingames extends CI_Controller {
 		$data['error'] = '';
 		$data['activeMenu'] = 'scratchwin';
 		$data['activeSubMenu'] = 'allscratchwingames';
-		$tblName = 'db_scratch_win_rtp_settings';
+		$tblName = 'uw_scratch_win_rtp_settings';
  
 		if (!$this->currentAdminCanScratchWinSettings()):
 			$this->session->set_flashdata('alert_warning', lang('accessdenied'));
@@ -634,6 +634,13 @@ class Allscratchwingames extends CI_Controller {
 		$filterDate = $this->_sanitizeRtpFilterDate($this->input->get('filterDate'));
 
 		$data['EDITDATA'] = $this->_loadScratchWinRtpSettingsRow();
+		$globalRtpSettings = is_array($data['EDITDATA']) ? $data['EDITDATA'] : array();
+		$data['saved_rtp_scope'] = '';
+		if (!empty($globalRtpSettings['rtp_scope'])) {
+			$data['saved_rtp_scope'] = $this->_sanitizeRtpScope($globalRtpSettings['rtp_scope']);
+		} elseif (!empty($globalRtpSettings['settings_key'])) {
+			$data['saved_rtp_scope'] = $this->_sanitizeRtpScope($globalRtpSettings['settings_key']);
+		}
 		if (empty($rtpScope) && !empty($data['EDITDATA']['rtp_scope'])) {
 			$rtpScope = $this->_sanitizeRtpScope($data['EDITDATA']['rtp_scope']);
 		} elseif (empty($rtpScope) && !empty($data['EDITDATA']['settings_key'])) {
@@ -668,14 +675,12 @@ class Allscratchwingames extends CI_Controller {
 			} else {
 				$data['rtp_display_title'] = 'Game Wise RTP - ' . (isset($gameRow['title']) ? $gameRow['title'] : ('Product ID ' . (isset($gameRow['products_id']) ? $gameRow['products_id'] : '')));
 				$data['rtp_scope_label'] = 'Game Wise RTP';
-				if (isset($gameRow['prize_slab_mode']) && $gameRow['prize_slab_mode'] === 'rtp_based_prize') {
-					$data['EDITDATA'] = $this->_buildGameWiseRtpEditData($gameRow);
-					$data['EDITDATA']['is_rtp_enabled'] = 1;
-					$data['live_stats'] = $this->_getGameWiseRtpLiveStats($gameRow, $filterDate);
-				} else {
-					$data['EDITDATA'] = $this->_buildGameWiseRtpEditData($gameRow);
-					$data['EDITDATA']['is_rtp_enabled'] = 1;
-					$data['live_stats'] = $this->_getGameWiseRtpLiveStats($gameRow, $filterDate);
+				$data['EDITDATA'] = $this->_buildGameWiseRtpEditData($gameRow);
+				// Keep active mode from global settings so the Enable toggle stays correct.
+				$data['EDITDATA']['rtp_scope'] = $data['saved_rtp_scope'];
+				$data['EDITDATA']['is_rtp_enabled'] = ($data['saved_rtp_scope'] === 'game') ? 1 : 0;
+				$data['live_stats'] = $this->_getGameWiseRtpLiveStats($gameRow, $filterDate);
+				if (!isset($gameRow['prize_slab_mode']) || $gameRow['prize_slab_mode'] !== 'rtp_based_prize') {
 					$data['rtp_scope_message'] = 'Game wise RTP stays enabled here. Save once to apply RTP Based Prize mode for this game.';
 				}
 			}
@@ -968,7 +973,7 @@ class Allscratchwingames extends CI_Controller {
 			)),
 		);
 
-		$rows = $this->common_model->mongo_db->aggregate('db_scratch_win_orders', $query, array('batchSize' => 4));
+		$rows = $this->common_model->mongo_db->aggregate('uw_scratch_win_orders', $query, array('batchSize' => 4));
 		$result = array();
 		if (!is_array($rows)) {
 			return $result;
@@ -1038,17 +1043,45 @@ class Allscratchwingames extends CI_Controller {
 
 	private function _aggregateScratchWinPrizePayoutByGameForRtp($dateStart, $dateEnd)
 	{
-		$whereCon = array(
-			'where' => array(
+		$prizeDouble = array('$toDouble' => array('$ifNull' => array('$winning_amount', 0)));
+		$query = array(
+			array('$match' => array(
 				'created_at' => array('$gte' => (int) $dateStart, '$lte' => (int) $dateEnd),
-			),
+				'status' => array('$ne' => 'CL'),
+				'winning_status' => 'Y',
+				'winning_amount' => array('$gt' => 0),
+			)),
+			array('$group' => array(
+				'_id' => '$products_oid',
+				'total_payout' => array('$sum' => $prizeDouble),
+				'total_winners' => array('$sum' => 1),
+			)),
 		);
-		$rows = $this->common_model->getData('multiple', 'db_scratch_win_prize_amounts', $whereCon, array('_id' => -1));
+		$rows = $this->common_model->mongo_db->aggregate('uw_scratch_win_orders', $query, array('batchSize' => 4));
 		$result = array();
 		if (!is_array($rows)) {
 			return $result;
 		}
 		foreach ($rows as $row) {
+			$row = $this->_normalizeMongoRowToArray($row);
+			$productOid = $this->_extractMongoObjectId(isset($row['_id']) ? $row['_id'] : null);
+			if ($productOid === null) {
+				continue;
+			}
+			$result[(string) $productOid] = round(max(0, (float)(isset($row['total_payout']) ? $row['total_payout'] : 0)), 2);
+		}
+
+		// Fallback / merge with prize ledger when orders have no winning_amount yet.
+		$whereCon = array(
+			'where' => array(
+				'created_at' => array('$gte' => (int) $dateStart, '$lte' => (int) $dateEnd),
+			),
+		);
+		$ledgerRows = $this->common_model->getData('multiple', 'uw_scratch_win_prize_amounts', $whereCon, array('_id' => -1));
+		if (!is_array($ledgerRows)) {
+			return $result;
+		}
+		foreach ($ledgerRows as $row) {
 			$row = $this->_normalizeMongoRowToArray($row);
 			$productOid = $this->_extractMongoObjectId(isset($row['products_oid']) ? $row['products_oid'] : null);
 			if ($productOid === null) {
@@ -1056,10 +1089,9 @@ class Allscratchwingames extends CI_Controller {
 			}
 			$oidStr = (string) $productOid;
 			$payout = isset($row['amount']) ? round(max(0, (float) $row['amount']), 2) : $this->_sumScratchWinPrizeDocumentPayout($row);
-			if (!isset($result[$oidStr])) {
-				$result[$oidStr] = 0.0;
+			if (!isset($result[$oidStr]) || $result[$oidStr] < $payout) {
+				$result[$oidStr] = $payout;
 			}
-			$result[$oidStr] = round($result[$oidStr] + $payout, 2);
 		}
 		return $result;
 	}
@@ -1351,7 +1383,8 @@ class Allscratchwingames extends CI_Controller {
 			if (!isset($rtpConfig['target_rtp_percent']) || (float)$rtpConfig['target_rtp_percent'] <= 0) {
 				$rtpConfig['target_rtp_percent'] = isset($liveStats['target_rtp_percent']) ? (float)$liveStats['target_rtp_percent'] : 70;
 			}
-			$isRtpEnabled = isset($editData['is_rtp_enabled']) ? !empty($editData['is_rtp_enabled']) : true;
+			$savedScope = !empty($editData['rtp_scope']) ? $this->_sanitizeRtpScope($editData['rtp_scope']) : '';
+			$isRtpEnabled = ($savedScope === 'game') ? 1 : 0;
 			header('Content-Type: application/json');
 			echo json_encode(array(
 				'success' => true,
@@ -1360,7 +1393,8 @@ class Allscratchwingames extends CI_Controller {
 					'title' => 'All Games Sales',
 					'products_id' => 0,
 					'current_data_id' => $currentDataId,
-					'is_rtp_enabled' => $isRtpEnabled ? 1 : 0,
+					'is_rtp_enabled' => $isRtpEnabled,
+					'saved_rtp_scope' => $savedScope,
 					'rtp_config' => $rtpConfig,
 					'rtp_prize_slabs' => $this->_groupRtpPrizeSlabsByPool(!empty($editData['rtp_prize_slabs']) ? $editData['rtp_prize_slabs'] : array()),
 					'live_stats' => $liveStats,
@@ -1379,8 +1413,10 @@ class Allscratchwingames extends CI_Controller {
 			exit;
 		}
 
+		$globalSettings = $this->_loadScratchWinRtpSettingsRow();
+		$savedScope = !empty($globalSettings['rtp_scope']) ? $this->_sanitizeRtpScope($globalSettings['rtp_scope']) : '';
 		$editData = $this->_buildGameWiseRtpEditData($gameRow);
-		$editData['is_rtp_enabled'] = 1;
+		$editData['is_rtp_enabled'] = ($savedScope === 'game') ? 1 : 0;
 		$liveStats = $this->_getGameWiseRtpLiveStats($gameRow, $filterDate);
 		$currentDataId = '';
 		if (!empty($editData['_id'])) {
@@ -1408,7 +1444,8 @@ class Allscratchwingames extends CI_Controller {
 				'title' => isset($editData['title']) ? (string) $editData['title'] : '',
 				'products_id' => isset($editData['products_id']) ? (int) $editData['products_id'] : 0,
 				'current_data_id' => $currentDataId,
-				'is_rtp_enabled' => 1,
+				'is_rtp_enabled' => ($savedScope === 'game') ? 1 : 0,
+				'saved_rtp_scope' => $savedScope,
 				'rtp_config' => $rtpConfig,
 				'rtp_prize_slabs' => $this->_groupRtpPrizeSlabsByPool(!empty($editData['rtp_prize_slabs']) ? $editData['rtp_prize_slabs'] : array()),
 				'live_stats' => $liveStats,
@@ -1527,19 +1564,19 @@ class Allscratchwingames extends CI_Controller {
 	private function _loadScratchWinRtpSettingsRow()
 	{
 		$row = $this->_normalizeMongoRowToArray(
-			$this->common_model->getDataByParticularField('db_scratch_win_rtp_settings', 'settings_key', 'global')
+			$this->common_model->getDataByParticularField('uw_scratch_win_rtp_settings', 'settings_key', 'global')
 		);
 		if (!empty($row)) {
 			return $row;
 		}
 		$row = $this->_normalizeMongoRowToArray(
-			$this->common_model->getDataByParticularField('db_scratch_win_rtp_settings', 'settings_key', 'game')
+			$this->common_model->getDataByParticularField('uw_scratch_win_rtp_settings', 'settings_key', 'game')
 		);
 		if (!empty($row)) {
 			return $row;
 		}
 		$row = $this->_normalizeMongoRowToArray(
-			$this->common_model->getData('single', 'db_scratch_win_rtp_settings', array())
+			$this->common_model->getData('single', 'uw_scratch_win_rtp_settings', array())
 		);
 		return is_array($row) ? $row : array();
 	}
@@ -1744,7 +1781,7 @@ class Allscratchwingames extends CI_Controller {
 			)),
 		);
 
-		$rows = $this->common_model->mongo_db->aggregate('db_scratch_win_orders', $query, array('batchSize' => 4));
+		$rows = $this->common_model->mongo_db->aggregate('uw_scratch_win_orders', $query, array('batchSize' => 4));
 		if (!is_array($rows) || empty($rows[0])) {
 			return array(
 				'daily_sales'     => 0.0,
@@ -1764,6 +1801,12 @@ class Allscratchwingames extends CI_Controller {
 
 	private function _aggregateGlobalPrizeDistributionForRtp($dateStart, $dateEnd, $productOid = null)
 	{
+		// Prefer actual order outcomes from data generation (uw_scratch_win_orders).
+		$orderPrizeSummary = $this->_aggregateOrderWinningDistributionForRtp($dateStart, $dateEnd, $productOid);
+		if (!empty($orderPrizeSummary['total_winners']) || !empty($orderPrizeSummary['total_payout'])) {
+			return $orderPrizeSummary;
+		}
+
 		$whereCon = array(
 			'where' => array(
 				'created_at' => array('$gte' => (int)$dateStart, '$lte' => (int)$dateEnd),
@@ -1772,7 +1815,7 @@ class Allscratchwingames extends CI_Controller {
 		if ($productOid instanceof MongoDB\BSON\ObjectID) {
 			$whereCon['where']['products_oid'] = $productOid;
 		}
-		$rows = $this->common_model->getData('multiple', 'db_scratch_win_prize_amounts', $whereCon, array('_id' => -1));
+		$rows = $this->common_model->getData('multiple', 'uw_scratch_win_prize_amounts', $whereCon, array('_id' => -1));
 		if (!is_array($rows)) {
 			$rows = array();
 		}
@@ -1878,6 +1921,81 @@ class Allscratchwingames extends CI_Controller {
 			'total_big_prize'       => $totalBigPrize,
 			'total_manual_big_prize'=> $totalManualBigPrize,
 			'total_game_wise_payout'=> $totalGameWisePayout,
+		);
+	}
+
+	private function _aggregateOrderWinningDistributionForRtp($dateStart, $dateEnd, $productOid = null)
+	{
+		$match = array(
+			'created_at' => array('$gte' => (int)$dateStart, '$lte' => (int)$dateEnd),
+			'status' => array('$ne' => 'CL'),
+			'winning_status' => 'Y',
+			'winning_amount' => array('$gt' => 0),
+		);
+		if ($productOid instanceof MongoDB\BSON\ObjectID) {
+			$match['products_oid'] = $productOid;
+		}
+
+		$prizeDouble = array('$toDouble' => array('$ifNull' => array('$winning_amount', 0)));
+		$query = array(
+			array('$match' => $match),
+			array('$group' => array(
+				'_id' => array('$toDouble' => array('$ifNull' => array('$winning_amount', 0))),
+				'winners' => array('$sum' => 1),
+				'payout' => array('$sum' => $prizeDouble),
+			)),
+			array('$sort' => array('_id' => 1)),
+		);
+
+		$rows = $this->common_model->mongo_db->aggregate('uw_scratch_win_orders', $query, array('batchSize' => 4));
+		if (!is_array($rows)) {
+			$rows = array();
+		}
+
+		$slabs = array();
+		$pools = array(
+			'regular' => array('winners' => 0, 'payout' => 0.0),
+			'reserve' => array('winners' => 0, 'payout' => 0.0),
+			'big'     => array('winners' => 0, 'payout' => 0.0),
+		);
+		$totalWinners = 0;
+		$totalPayout = 0.0;
+		$totalBigPrize = 0.0;
+		$totalGameWisePayout = 0.0;
+
+		foreach ($rows as $row) {
+			$row = $this->_normalizeMongoRowToArray($row);
+			$prizeAmount = round(max(0, (float)(isset($row['_id']) ? $row['_id'] : 0)), 2);
+			$winners = max(0, (int)(isset($row['winners']) ? $row['winners'] : 0));
+			$payout = round(max(0, (float)(isset($row['payout']) ? $row['payout'] : 0)), 2);
+			if ($prizeAmount <= 0 || $winners <= 0) {
+				continue;
+			}
+			$poolType = $this->_classifyRtpPrizePool($prizeAmount);
+			$slabs[] = array(
+				'pool_type'    => $poolType,
+				'prize_amount' => $prizeAmount,
+				'winners'      => $winners,
+				'payout'       => $payout,
+			);
+			$pools[$poolType]['winners'] += $winners;
+			$pools[$poolType]['payout'] = round($pools[$poolType]['payout'] + $payout, 2);
+			$totalWinners += $winners;
+			$totalPayout = round($totalPayout + $payout, 2);
+			$totalGameWisePayout = round($totalGameWisePayout + $payout, 2);
+			if ($poolType === 'big') {
+				$totalBigPrize = round($totalBigPrize + $payout, 2);
+			}
+		}
+
+		return array(
+			'slabs'                  => $slabs,
+			'pools'                  => $pools,
+			'total_winners'          => $totalWinners,
+			'total_payout'           => $totalPayout,
+			'total_big_prize'        => $totalBigPrize,
+			'total_manual_big_prize'  => 0.0,
+			'total_game_wise_payout' => $totalGameWisePayout,
 		);
 	}
 

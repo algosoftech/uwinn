@@ -160,7 +160,7 @@
     var enabled = $toggle.is(':checked');
     if (isGame) {
       $('.rtp-enable-toggle-text').text(enabled ? 'Game Wise RTP Enabled' : 'Enable Game Wise RTP');
-      $('.rtp-enable-bar .text-muted').text(
+      $('.rtp-enable-bar .text-muted').first().text(
         enabled
           ? (scopesMatch
             ? 'Game Wise RTP is active. Turn off and save to disable it, or switch to Global RTP and enable that instead.'
@@ -169,7 +169,7 @@
       );
     } else {
       $('.rtp-enable-toggle-text').text(enabled ? 'Global RTP Enabled' : 'Enable Global RTP');
-      $('.rtp-enable-bar .text-muted').text(
+      $('.rtp-enable-bar .text-muted').first().text(
         enabled
           ? (scopesMatch
             ? 'Global RTP is active. Turn off and save to disable it, or switch to Game Wise RTP and enable that instead.'
@@ -180,6 +180,15 @@
     $badge.text(enabled ? 'Enabled' : 'Disabled')
       .toggleClass('rtp-enable-status-on', enabled)
       .toggleClass('rtp-enable-status-off', !enabled);
+
+    var $notice = $('#rtp_disabled_notice');
+    if ($notice.length) {
+      if (isGame) {
+        $notice.html('Game Wise RTP is currently <strong>disabled</strong>. Turn on <strong>Enable Game Wise RTP</strong> and save to activate this mode.');
+      } else {
+        $notice.html('Global RTP is currently <strong>disabled</strong>. Orders will not use this RTP pool until you enable it and save.');
+      }
+    }
   }
 
   function rtpSyncPoolSectionsEditable() {
@@ -1001,8 +1010,9 @@
     $input.prop('readonly', muted).toggleClass('rtp-field-muted', muted);
   }
 
-  function rtpApplyGameConfigData(data) {
+  function rtpApplyGameConfigData(data, options) {
     if (!data || typeof data !== 'object') return;
+    options = options || {};
     var cfg = window.RTP_LIVE_CFG || {};
     var isAllGames = !!(data.is_all_games || rtpIsAllGamesId(data.game_id));
     var rtpCfg = data.rtp_config || {};
@@ -1033,11 +1043,15 @@
     $('.rtp-pool-release-percent[data-pool="reserve"]').val(rtpCfg.reserve_pool_release_percent != null ? rtpCfg.reserve_pool_release_percent : 100);
     $('.rtp-pool-release-percent[data-pool="big"]').val(rtpCfg.big_pool_release_percent != null ? rtpCfg.big_pool_release_percent : 100);
     cfg.gameId = isAllGames ? (cfg.allGamesId || 'all') : (data.game_id || '');
+    if (data.saved_rtp_scope !== undefined && data.saved_rtp_scope !== null) {
+      cfg.savedScope = String(data.saved_rtp_scope || '');
+    }
     rtpApplySlabsFromData(data.rtp_prize_slabs || {});
     if (data.live_stats) {
       rtpApplyLiveStatsToDom(data.live_stats);
     }
-    updateRtpEnabledState();
+    // Re-sync enable toggle from saved scope after AJAX game load.
+    updateRtpEnabledState({ preserveToggle: !!options.preserveToggle });
     rtpSyncTargetRtpFieldState();
     rtpSyncPoolSectionsEditable();
     rtpSetScopeMessage(data.scope_message || '');
