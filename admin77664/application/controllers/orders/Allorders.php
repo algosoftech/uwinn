@@ -735,6 +735,8 @@ class Allorders extends CI_Controller {
 				$param1['update_date'] = (int)$this->timezone->utc_time();//currentDateTime();
 				$param1['refund_date'] = (int)$this->timezone->utc_time();//currentDateTime();
 				$param1['updated_by']  = (int)$this->session->userdata('UW_ADMIN_ID');
+				$param1['cancel_reason'] = 'Admin Cancel';
+				$param1['admin_id']      = (int)$this->session->userdata('UW_ADMIN_ID');
 				$cancleOrderWhereCon   = array('_id' => new MongoDB\BSON\ObjectId($changeStatusId));
 				$update1 = $this->mongodb_client->updateDocument($tblName, $cancleOrderWhereCon,  ['$set' => $param1],$session);
 
@@ -922,7 +924,7 @@ class Allorders extends CI_Controller {
 		// -----------------------------------------------------------------------------//
 		$resultType   = "count";
 		$tblName 	  = "uw_lotto_orders";
-		$totalRows 	  = $this->common_model->getOrderDetails($resultType,$whereCondition,'','',$tblName);
+		$totalRows 	  = $this->common_model->getOrderDetails($resultType,$whereCondition,'','',$tblName,true);
 		 
 		$itemsPerPage = 5000;
 		// ---------------------------------------------
@@ -1037,7 +1039,7 @@ class Allorders extends CI_Controller {
  		$startIndex  = ($page - 1)*$itemsPerPage;
  		$resultType  = '';
  		$tblName     = 'uw_lotto_orders';
-		$OrderData 	 = $this->common_model->getOrderDetails($resultType,$whereCondition,$startIndex,$itemsPerPage,$tblName);
+		$OrderData 	 = $this->common_model->getOrderDetails($resultType,$whereCondition,$startIndex,$itemsPerPage,$tblName,true);
 
 		$CSVData = array();
 		foreach($OrderData as $index => $itemsArray):
@@ -1614,7 +1616,7 @@ class Allorders extends CI_Controller {
 			$startIndex = ($page - 1) * $itemsPerPage;
 			$tblName = 'uw_lotto_orders';
 
-			$orderData = $this->common_model->getOrderDetails('', $whereCondition, $startIndex, $itemsPerPage, $tblName);
+			$orderData = $this->common_model->getOrderDetails('', $whereCondition, $startIndex, $itemsPerPage, $tblName, true);
 			if(!is_array($orderData)):
 				$orderData = array();
 			endif;

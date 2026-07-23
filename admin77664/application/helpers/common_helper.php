@@ -68,7 +68,7 @@ if (!function_exists('getUwinControllerPath')) {
 if (!function_exists('getCurrentControllerPath')) {
 	function getCurrentControllerPath($postfixUrl=''){
 		$CI =& get_instance();
-$functionArray 				=	array('index','addeditdata','deletedata','changestatus','imageUpload','imageDelete','deleteContent','memberDelete','viewdata','changedatastatus','getdatabyajax','getCoupon','getAllusers','prizeList','addwinners','winnerlist','exportexcel','exportexcelApi','exportshopexcel','exportshopexcelApi','exportshopexcelDownload','combinedexportexcel','combinedexportexcelDownload','combinedexportexcelApi','checkpreview','uploadVoucher','manageDrawTime','deleteDrawTime','redeeminglimits','redeeminglimit','reverseAmount','updatequickuser','changeRechargeCouponRedeemstatus');
+$functionArray 				=	array('index','addeditdata','deletedata','changestatus','imageUpload','imageDelete','deleteContent','memberDelete','viewdata','changedatastatus','getdatabyajax','getCoupon','getAllusers','prizeList','addwinners','winnerlist','exportexcel','exportexcelApi','exportexcelDownload','exportexcelProgress','exportshopexcel','exportshopexcelApi','exportshopexcelDownload','combinedexportexcel','combinedexportexcelDownload','combinedexportexcelApi','checkpreview','uploadVoucher','manageDrawTime','deleteDrawTime','redeeminglimits','redeeminglimit','reverseAmount','updatequickuser','changeRechargeCouponRedeemstatus');
 				$baseUrl 					=	getCurrentBasePath();
 		if(in_array($CI->uri->segment(4),$functionArray)):  
 		    $baseUrl 				=	$baseUrl.$CI->uri->segment(1).'/'.$CI->uri->segment(2).'/'.$CI->uri->segment(3).'/'.$postfixUrl;

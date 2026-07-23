@@ -8,28 +8,43 @@
             background: #fff;
             padding: 50px;
         }
-        .timer {
-            font-size: 2em;
-            margin: 20px 0;
+        .export-progress {
+            width: min(420px, 90%);
+            margin: 30px auto 15px;
         }
-        .timer-circle {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 5px solid #0071c5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto;
-            font-size: 1.5em;
-            position: relative;
+        .progress-track {
+            height: 28px;
+            overflow: hidden;
+            background: #e9ecef;
+            border-radius: 20px;
         }
-        .timer-circle span {
-            position: absolute;
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            background: #0071c5;
+            border-radius: 20px;
+            transition: width .3s ease;
+        }
+        #progressPercent {
+            margin-top: 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        #progressCount {
+            margin: 20px 0 4px;
+            color: #0071c5;
+            font-size: 42px;
+        }
+        #progressMessage.error-text {
+            color: #dc3545;
+        }
+        #downloadLink.disabled {
+            color: #999;
+            pointer-events: none;
+            text-decoration: none;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="pcoded-main-container">
@@ -53,12 +68,16 @@
                     <div class="card-body">
                         <div class="container">
                             <h1>Download Statement</h1>
-                            <div class="timer-circle">
-                                <span id="time">52</span>
-                                <div id="circle"></div>
+                            <div class="export-progress" id="exportProgress">
+                                <div class="progress-track">
+                                    <div class="progress-bar" id="progressBar"></div>
+                                </div>
+                                <div id="progressPercent">0%</div>
                             </div>
-                            <p>Thanks! Your statement download will start in few seconds...</p>
-                            <span style="text-align: center; margin: auto;">if not, <a id="downloadLink" class="download-button" href="#">Click here to download report.</a></span>
+                            <p id="progressMessage">Preparing order report, please wait...</p>
+                            <div id="progressCount">0</div>
+                            <p id="progressDetail">Generating file (0 of <?= (int)($total_page ?? 0) ?>)...</p>
+                            <span style="text-align: center; margin: auto;">if not, <a id="downloadLink" class="download-button disabled" href="javascript:void(0);">Click here to download report.</a></span>
                         </div>
                     </div>
                 </div>
@@ -66,111 +85,129 @@
         </div>
     </div>
 </div>
+<iframe id="exportDownloadFrame" name="exportDownloadFrame" style="display:none;width:0;height:0;border:0" title="download"></iframe>
 
 <script>
-    const timeDisplay     = document.getElementById('time');
-    const downloadLink    = document.getElementById('downloadLink');
-    var currentPage       = <?=json_encode($current_page);?>;
-    var totalPage         = <?=json_encode($total_page);?>;
-    var searchField       = <?=json_encode($searchField);?>;
-    var searchValue       = <?=json_encode($searchValue);?>;
-    var fromDate          = <?=json_encode($fromDate);?>;
-    var toDate            = <?=json_encode($toDate);?>;
-    var cancelled_order   = <?=json_encode($cancelled_order);?>;
-    var productIds          = <?=json_encode($productIds);?>;
-    let timeLeft          = totalPage == 1 ? 5 : 5 * totalPage + 5;
-    var allData           = [];
-    var responsesReceived = 0;
+    (function () {
+        var progressBar = document.getElementById('progressBar');
+        var progressPercent = document.getElementById('progressPercent');
+        var progressMessage = document.getElementById('progressMessage');
+        var progressCount = document.getElementById('progressCount');
+        var progressDetail = document.getElementById('progressDetail');
+        var downloadLink = document.getElementById('downloadLink');
+        var downloadFrame = document.getElementById('exportDownloadFrame');
 
-    function GETDATA() {
-        if (currentPage <= totalPage) {
-            $.ajax({
-                url: "<?=getCurrentControllerPath('exportexcelApi');?>",  
-                type: 'POST',
-                data: { pageno: currentPage || 1, searchField: searchField, searchValue: searchValue, fromDate: fromDate, toDate: toDate , cancelled_order :cancelled_order, productIds: productIds },
-                success: function(data) {
-                    allData = allData.concat(JSON.parse(data)); // Store the data
-                    responsesReceived++;
-                    if (responsesReceived == totalPage) {
-                        clearInterval(intervalId);
+        var totalPage = <?=json_encode((int)($total_page ?? 1));?>;
+        var progressApiUrl = <?=json_encode($progress_api_url ?? '');?>;
+        var serverDownloadUrl = <?=json_encode($server_download_url ?? '');?>;
 
-                        const curdate = new Date().toISOString().slice(0, 10).replace(/-/g, '-');
-                        const filename = 'U-WIN-Data-' + curdate + '.xlsx';
-                        downloadCSV(allData, filename);
+        var pollTimer = null;
+        var downloadStarted = false;
+        var downloadFinished = false;
 
-                        downloadLink.href = URL.createObjectURL(new Blob([convertToExcel(allData)], { type: 'text/xlsx' }));
-                        downloadLink.download = filename;
-                    }
-                } 
-            });
-            currentPage++;
-        }
-    }
-
-    // function convertToCSV(data) {
-    //     const array = Array.isArray(data) ? data : JSON.parse(data);
-    //     let str = '';
-
-    //     // Extract keys (headers)
-    //     let headers = Object.keys(array[0]).join(',');
-    //     str += headers + '\r\n';
-
-    //     // Extract values
-    //     for (let i = 0; i < array.length; i++) {
-    //         let line = '';
-    //         for (let index in array[i]) {
-    //             if (line !== '') line += ',';
-    //             line += array[i][index];
-    //         }
-    //         str += line + '\r\n';
-    //     }
-
-    //     return str;
-    // }
-
-    function convertToExcel(data) {
-            const array = Array.isArray(data) ? data : JSON.parse(data);
-            const workbook = XLSX.utils.book_new();
-            const worksheet = XLSX.utils.json_to_sheet(array);
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-            const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
-
-            function s2ab(s) {
-                const buf = new ArrayBuffer(s.length);
-                const view = new Uint8Array(buf);
-                for (let i = 0; i < s.length; i++) {
-                    view[i] = s.charCodeAt(i) & 0xFF;
-                }
-                return buf;
+        function updateProgressView(data) {
+            var percent = parseInt(data.percent, 10);
+            if (isNaN(percent)) {
+                percent = 0;
             }
 
-            return new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+            progressBar.style.width = percent + '%';
+            progressPercent.textContent = percent + '%';
+            progressCount.textContent = data.current_page || 0;
+
+            if (data.total_page) {
+                progressDetail.textContent = 'Generating file (' + (data.current_page || 0) + ' of ' + data.total_page + ')...';
+            }
+
+            if (data.message) {
+                progressMessage.textContent = data.message;
+            }
+
+            if (data.status === 'error') {
+                progressMessage.classList.add('error-text');
+                stopPolling();
+            }
+
+            if (data.status === 'done') {
+                downloadFinished = true;
+                progressMessage.classList.remove('error-text');
+                downloadLink.classList.remove('disabled');
+                stopPolling();
+            }
         }
 
-    async function downloadCSV(data, filename) {
-        /* dynamically import the scripts in the event listener */
-          const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
-          const cptable = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/cpexcel.full.mjs");
-          XLSX.set_cptable(cptable);
-          const ws = XLSX.utils.json_to_sheet(data);
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-          XLSX.writeFile(wb, filename);
-    }
+        function pollProgress() {
+            if (!progressApiUrl) {
+                return;
+            }
 
-    function updateTimer() {
-        if (timeLeft > 0) {
-            timeLeft--;
-            timeDisplay.textContent = timeLeft;
-            setTimeout(updateTimer, 1000);
-        } else {
-            $('.timer-circle').addClass('d-none');
+            $.ajax({
+                url: progressApiUrl,
+                type: 'GET',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    if (!data || typeof data !== 'object') {
+                        return;
+                    }
+                    updateProgressView(data);
+                }
+            });
         }
-    }
 
-    updateTimer();
-    var APIHITTIMEGAP = (timeLeft / totalPage) * 1000;
-    var intervalId = setInterval(GETDATA, APIHITTIMEGAP);
+        function startPolling() {
+            pollProgress();
+            pollTimer = setInterval(pollProgress, 1000);
+        }
+
+        function stopPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+
+        function triggerDownload() {
+            if (!serverDownloadUrl || downloadStarted) {
+                return;
+            }
+            downloadStarted = true;
+            downloadLink.classList.remove('disabled');
+            downloadFrame.src = serverDownloadUrl + (serverDownloadUrl.indexOf('?') >= 0 ? '&' : '?') + '_=' + new Date().getTime();
+        }
+
+        downloadLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            triggerDownload();
+        });
+
+        downloadFrame.addEventListener('load', function () {
+            if (!downloadStarted) {
+                return;
+            }
+            setTimeout(function () {
+                if (!downloadFinished) {
+                    updateProgressView({
+                        status: 'done',
+                        percent: 100,
+                        current_page: totalPage,
+                        total_page: totalPage,
+                        message: 'Your report is ready. Download complete.'
+                    });
+                }
+            }, 1500);
+        });
+
+        updateProgressView({
+            status: 'pending',
+            percent: 0,
+            current_page: 0,
+            total_page: totalPage,
+            message: 'Preparing order report, please wait...'
+        });
+        startPolling();
+        triggerDownload();
+    })();
 </script>
 </body>
 </html>

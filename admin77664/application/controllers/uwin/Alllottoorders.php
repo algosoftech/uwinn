@@ -1012,6 +1012,10 @@ class Alllottoorders extends CI_Controller {
 	{
 		$whereCondition = $this->buildHourlyExportBaseFilter();
 		$whereCondition['where']['is_winner'] = 'Y';
+		// Combined Excel should never include inactive winners
+		$whereCondition['where']['winning_status'] = array(
+			'$nin' => array('Inactive', 'inactive'),
+		);
 		return $whereCondition;
 	}
 
@@ -1100,7 +1104,8 @@ class Alllottoorders extends CI_Controller {
 			$whereCondition,
 			array('winner_uploaded_at' => -1),
 			$itemsPerPage,
-			$startIndex
+			$startIndex,
+			true // match before lookup: filter first, then join (lighter DB load)
 		);
 		$rows = array();
 		if(!is_array($orderData)):
@@ -1123,7 +1128,7 @@ class Alllottoorders extends CI_Controller {
 		$maxPage = ($page !== null) ? (int)$page : null;
 		while(true):
 			$startIndex = ($currentPage - 1) * $itemsPerPage;
-			$orderData = $this->common_model->getHourlyGameOrderData('multiple', 'uw_hourly_orders', $whereCondition, array('winner_uploaded_at' => -1), $itemsPerPage, $startIndex);
+			$orderData = $this->common_model->getHourlyGameOrderData('multiple', 'uw_hourly_orders', $whereCondition, array('winner_uploaded_at' => -1), $itemsPerPage, $startIndex, true);
 			if(!is_array($orderData) || empty($orderData)):
 				break;
 			endif;
@@ -1220,18 +1225,18 @@ class Alllottoorders extends CI_Controller {
 	{
 		list($fromDateStr, $toDateStr) = $this->getVoucherWinnerExportDateRange();
 		$pipeline = array();
+		// Only active big winners (status=1); inactive (status=0) must not export
+		$match = array(
+			'status' => 1,
+			'soft_delete' => array('$ne' => 1),
+		);
 		if($fromDateStr && $toDateStr):
-			$pipeline[] = array(
-				'$match' => array(
-					'status' => 1,
-					'soft_delete' => 0,
-					'created_at' => array(
-						'$gte' => $fromDateStr,
-						'$lte' => $toDateStr,
-					),
-				),
+			$match['created_at'] = array(
+				'$gte' => $fromDateStr,
+				'$lte' => $toDateStr,
 			);
 		endif;
+		$pipeline[] = array('$match' => $match);
 		$pipeline[] = array('$sort' => array('amount' => -1));
 		if($page !== null):
 			$startIndex = (max(1, (int)$page) - 1) * (int)$itemsPerPage;
@@ -1335,7 +1340,7 @@ class Alllottoorders extends CI_Controller {
 		list($fromDateStr, $toDateStr) = $this->getVoucherWinnerExportDateRange();
 		$this->mongo_db->where(array(
 			'status' => 1,
-			'soft_delete' => 0,
+			'soft_delete' => array('$ne' => 1),
 			'created_at' => array(
 				'$gte' => $fromDateStr,
 				'$lte' => $toDateStr,

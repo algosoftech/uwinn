@@ -1805,7 +1805,7 @@ class Common_model extends CI_Model
 	** Purpose       : This function used to get OrderDetails..
 	** Date 		 : 19 July 2024
 	************************************************************************/
-	public function getOrderDetails($resultType,$whereCon,$startIndex='',$itemsPerPage='',$tblName = "uw_lotto_orders")
+	public function getOrderDetails($resultType,$whereCon,$startIndex='',$itemsPerPage='',$tblName = "uw_lotto_orders",$matchBeforeLookup=false)
 	{  
 		$SelectFields = array(
 	  	  // 'pos_number'       => array('$arrayElemAt' => array('$users.pos_number', 0)), 
@@ -1964,7 +1964,7 @@ class Common_model extends CI_Model
 
     	$sortBy       = array('created_at' => -1);
 		$unwind       = array();
-	    $OrderData    = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$startIndex,$itemsPerPage);
+	    $OrderData    = $this->common_model->getAggregateData($tblName,$SelectFields,$whereCondition,$groupBy,$sortBy,$lookup,$unwind,$resultType,$startIndex,$itemsPerPage,$matchBeforeLookup);
 	    return $OrderData;
 	    die();
 	}	// END OF FUNCTION
@@ -2439,54 +2439,85 @@ class Common_model extends CI_Model
 	** Purpose       : This function used to get orice static report by condition..
 	** Date 		 : 25 May 2024
 	************************************************************************/
-	public function getAggregateData($tblName='',$SelectFields=array(),$whereCondition='',$groupBy='',$sortBy='',$lookup='',$unwind='',$resultType,$startIndex='',$itemsPerPage='')
-	{  
+	public function getAggregateData($tblName='',$SelectFields=array(),$whereCondition='',$groupBy='',$sortBy='',$lookup='',$unwind='',$resultType,$startIndex='',$itemsPerPage='',$matchBeforeLookup=false)
+	{
 		$query = array();
 
 		if($groupBy):
 			$query[] = array('$group' => $groupBy);
 		endif;
 
-		if($sortBy):
-			$query[] = array('$sort' => $sortBy);
-		endif;
+		if($matchBeforeLookup):
+			/*
+			 * Optimized order (same output, lighter DB load):
+			 * MATCH -> SORT -> SKIP/LIMIT -> LOOKUP -> PROJECT
+			 * Filter (and paginate) first so the expensive joins run
+			 * only on the rows we actually need instead of the whole collection.
+			 */
+			if($whereCondition):
+				$query[] = array('$match' => $whereCondition);
+			endif;
 
-		if($lookup && $resultType == ""):
-			foreach($lookup as $lookupItem):
-				$query[] = array('$lookup' => $lookupItem);
-			endforeach;
-			if($unwind):
-				foreach($unwind as $item):
-					$query[] = array('$unwind' => $item);
+			if($resultType == 'count'):
+				$query[] = array('$count' => 'totalCount');
+			else:
+				if($sortBy):
+					$query[] = array('$sort' => $sortBy);
+				endif;
+				if($itemsPerPage):
+					$query[] = array('$skip' => (int)$startIndex);
+					$query[] = array('$limit' => (int)$itemsPerPage);
+				endif;
+				if($lookup && $resultType == ""):
+					foreach($lookup as $lookupItem):
+						$query[] = array('$lookup' => $lookupItem);
+					endforeach;
+					if($unwind):
+						foreach($unwind as $item):
+							$query[] = array('$unwind' => $item);
+						endforeach;
+					endif;
+				endif;
+				if($SelectFields):
+					$query[] = array('$project' => $SelectFields);
+				endif;
+			endif;
+		else:
+			if($sortBy):
+				$query[] = array('$sort' => $sortBy);
+			endif;
+
+			if($lookup && $resultType == ""):
+				foreach($lookup as $lookupItem):
+					$query[] = array('$lookup' => $lookupItem);
 				endforeach;
+				if($unwind):
+					foreach($unwind as $item):
+						$query[] = array('$unwind' => $item);
+					endforeach;
+				endif;
+			endif;
+
+
+			if($whereCondition):
+				$query[] = array('$match' => $whereCondition);
+			endif;
+
+			if($SelectFields):
+				$query[] = array('$project' => $SelectFields);
+			endif;
+
+			if($resultType == 'count'):
+				$query[] = array('$count' => 'totalCount');
+			endif;
+
+			if($itemsPerPage):
+				$query[] = array('$skip' =>(int)$startIndex);
+				$query[] = array('$limit' =>(int)$itemsPerPage);
 			endif;
 		endif;
 
-
-		if($whereCondition):
-			$query[] = array('$match' => $whereCondition);
-		endif;
-
-		if($SelectFields):
-			$query[] = array('$project' => $SelectFields);
-		endif;
-
-		if($resultType == 'count'):
-			$query[] = array('$count' => 'totalCount');
-		endif;
-
-		if($itemsPerPage):
-			$query[] = array('$skip' =>(int)$startIndex);
-			$query[] = array('$limit' =>(int)$itemsPerPage);
-		endif; 
-
-		if($resultType == ''):
-			// echo "<pre>";
-			// print_r($query);
-			// die();
-		endif;
-
-		$result  = $this->mongo_db->aggregate($tblName,$query,array('batchSize'=>4)); 
+		$result  = $this->mongo_db->aggregate($tblName,$query,array('batchSize'=>4));
 		if($resultType == 'count'):
 			$result = $result[0]['totalCount'];
 		else:
@@ -3020,7 +3051,7 @@ class Common_model extends CI_Model
 	** Purpose       : This function used for getHourlyGameOrderData
 	** Date          : 23 April 2026
 	************************************************************************/
-	public function getHourlyGameOrderData($resultType='', $tblName="", $whereCon='', $shortField='', $itemsPerPage='', $startIndex='')
+	public function getHourlyGameOrderData($resultType='', $tblName="", $whereCon='', $shortField='', $itemsPerPage='', $startIndex='', $matchBeforeLookup=false)
 	{
 	    try {
 
@@ -3157,53 +3188,15 @@ class Common_model extends CI_Model
 	        );
 
 	        $tblName = "uw_hourly_orders";
-	        $query = array();
+	        $groupBy = '';
 
-	        if (!empty($whereCondition)):
-	            $query[] = array('$match' => $whereCondition);
-	        endif;
-
-	        if ($shortField):
-	            $query[] = array('$sort' => $shortField);
-	        endif;
-
-	        if ($resultType == 'multiple' || $resultType == 'single' || $resultType == 'count'):
-	            foreach ($lookup as $lookupItem):
-	                $query[] = array('$lookup' => $lookupItem);
-	            endforeach;
-	            foreach ($unwind as $item):
-	                $query[] = array('$unwind' => $item);
-	            endforeach;
-	        endif;
-
-	        $query[] = array('$project' => $SelectFields);
-
-	        if ($resultType == 'count'):
-	            $query[] = array('$count' => 'totalCount');
-	        endif;
-
-	        if ($itemsPerPage):
-	            $query[] = array('$skip' => (int)$startIndex);
-	            $query[] = array('$limit' => (int)$itemsPerPage);
-	        endif;
-
-	        $aggOpts = array('batchSize' => 128);
-	        $hourlyGameData = $this->mongo_db->aggregate($tblName, $query, $aggOpts);
-
-	        if ($resultType == 'count'):
-	            if (empty($hourlyGameData) || !isset($hourlyGameData[0]['totalCount'])):
-	                return 0;
-	            endif;
-	            return (int)$hourlyGameData[0]['totalCount'];
-	        endif;
-
+	        $hourlyGameData = $this->getAggregateData2( $tblName, $SelectFields, $whereCondition, $groupBy, $shortField, $lookup, $unwind, $resultType, $startIndex, $itemsPerPage, $matchBeforeLookup );
 	        return $hourlyGameData;
 
 	    } catch (Exception $e) {
 	        echo 'error';
 	    }
 	}
-    
 	/***********************************************************************
 	** Function name : getHourlyGameGroupByData
 	** Developed By  : Dilip Halder
