@@ -35,9 +35,6 @@
             color: #0071c5;
             font-size: 42px;
         }
-        #progressMessage.error-text {
-            color: #dc3545;
-        }
         #downloadLink.disabled {
             color: #999;
             pointer-events: none;
@@ -45,6 +42,7 @@
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="pcoded-main-container">
@@ -76,8 +74,8 @@
                             </div>
                             <p id="progressMessage">Preparing order report, please wait...</p>
                             <div id="progressCount">0</div>
-                            <p id="progressDetail">Generating file (0 of <?= (int)($total_page ?? 0) ?>)...</p>
-                            <span style="text-align: center; margin: auto;">if not, <a id="downloadLink" class="download-button disabled" href="javascript:void(0);">Click here to download report.</a></span>
+                            <p id="progressDetail">Generating file (0)...</p>
+                            <span style="text-align: center; margin: auto;">if not, <a id="downloadLink" class="download-button disabled" href="#">Click here to download report.</a></span>
                         </div>
                     </div>
                 </div>
@@ -85,129 +83,148 @@
         </div>
     </div>
 </div>
-<iframe id="exportDownloadFrame" name="exportDownloadFrame" style="display:none;width:0;height:0;border:0" title="download"></iframe>
 
 <script>
-    (function () {
-        var progressBar = document.getElementById('progressBar');
-        var progressPercent = document.getElementById('progressPercent');
-        var progressMessage = document.getElementById('progressMessage');
-        var progressCount = document.getElementById('progressCount');
-        var progressDetail = document.getElementById('progressDetail');
-        var downloadLink = document.getElementById('downloadLink');
-        var downloadFrame = document.getElementById('exportDownloadFrame');
+    const downloadLink    = document.getElementById('downloadLink');
+    const progressBar     = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressMessage = document.getElementById('progressMessage');
+    const progressCount   = document.getElementById('progressCount');
+    const progressDetail  = document.getElementById('progressDetail');
+    var currentPage       = <?=json_encode($current_page);?>;
+    var totalPage         = <?=json_encode($total_page);?>;
+    var searchField       = <?=json_encode($searchField);?>;
+    var searchValue       = <?=json_encode($searchValue);?>;
+    var fromDate          = <?=json_encode($fromDate);?>;
+    var toDate            = <?=json_encode($toDate);?>;
+    var cancelled_order   = <?=json_encode($cancelled_order);?>;
+    var productIds          = <?=json_encode($productIds);?>;
+    var allData           = [];
+    var responsesReceived = 0;
+    var downloadUrl       = '';
+    var downloadFilename  = '';
 
-        var totalPage = <?=json_encode((int)($total_page ?? 1));?>;
-        var progressApiUrl = <?=json_encode($progress_api_url ?? '');?>;
-        var serverDownloadUrl = <?=json_encode($server_download_url ?? '');?>;
+    function updateProgress(percent, message) {
+        percent = Math.max(0, Math.min(100, Math.round(percent)));
+        progressBar.style.width = percent + '%';
+        progressPercent.textContent = percent + '%';
+        if (message) {
+            progressMessage.textContent = message;
+        }
+        progressCount.textContent = responsesReceived;
+        progressDetail.textContent = 'Generating file (' + responsesReceived + ' of ' + totalPage + ')...';
+    }
 
-        var pollTimer = null;
-        var downloadStarted = false;
-        var downloadFinished = false;
+    function showError(message) {
+        progressMessage.textContent = message || 'Report generation failed. Please try again.';
+        progressMessage.style.color = '#dc3545';
+        progressDetail.textContent = '';
+    }
 
-        function updateProgressView(data) {
-            var percent = parseInt(data.percent, 10);
-            if (isNaN(percent)) {
-                percent = 0;
+    function GETDATA() {
+        if (currentPage > totalPage) {
+            prepareDownload();
+            return;
+        }
+
+        var requestedPage = currentPage++;
+        $.ajax({
+            url: "<?=getCurrentControllerPath('exportexcelApi');?>",
+            type: 'POST',
+            dataType: 'json',
+            data: { pageno: requestedPage, searchField: searchField, searchValue: searchValue, fromDate: fromDate, toDate: toDate, cancelled_order: cancelled_order, productIds: productIds },
+            success: function(data) {
+                if (!Array.isArray(data)) {
+                    showError('Invalid response received while preparing the report.');
+                    return;
+                }
+
+                allData = allData.concat(data);
+                responsesReceived++;
+                updateProgress((responsesReceived / Math.max(totalPage, 1)) * 90);
+
+                // Load the next page only after the current page completes.
+                setTimeout(GETDATA, 100);
+            },
+            error: function() {
+                showError('Failed to load report data. Please try again.');
+            }
+        });
+    }
+
+    // function convertToCSV(data) {
+    //     const array = Array.isArray(data) ? data : JSON.parse(data);
+    //     let str = '';
+
+    //     // Extract keys (headers)
+    //     let headers = Object.keys(array[0]).join(',');
+    //     str += headers + '\r\n';
+
+    //     // Extract values
+    //     for (let i = 0; i < array.length; i++) {
+    //         let line = '';
+    //         for (let index in array[i]) {
+    //             if (line !== '') line += ',';
+    //             line += array[i][index];
+    //         }
+    //         str += line + '\r\n';
+    //     }
+
+    //     return str;
+    // }
+
+    function convertToExcel(data) {
+            const array = Array.isArray(data) ? data : JSON.parse(data);
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.json_to_sheet(array);
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+            const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+
+            function s2ab(s) {
+                const buf = new ArrayBuffer(s.length);
+                const view = new Uint8Array(buf);
+                for (let i = 0; i < s.length; i++) {
+                    view[i] = s.charCodeAt(i) & 0xFF;
+                }
+                return buf;
             }
 
-            progressBar.style.width = percent + '%';
-            progressPercent.textContent = percent + '%';
-            progressCount.textContent = data.current_page || 0;
+            return new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+        }
 
-            if (data.total_page) {
-                progressDetail.textContent = 'Generating file (' + (data.current_page || 0) + ' of ' + data.total_page + ')...';
-            }
+    function prepareDownload() {
+        updateProgress(95, 'Generating Excel file, please wait...');
 
-            if (data.message) {
-                progressMessage.textContent = data.message;
-            }
+        // Let the browser render 95% before the CPU-heavy Excel conversion starts.
+        setTimeout(function() {
+            try {
+                const curdate = new Date().toISOString().slice(0, 10);
+                downloadFilename = 'U-WIN-Data-' + curdate + '.xlsx';
+                const excelBlob = convertToExcel(allData);
+                downloadUrl = URL.createObjectURL(excelBlob);
 
-            if (data.status === 'error') {
-                progressMessage.classList.add('error-text');
-                stopPolling();
-            }
-
-            if (data.status === 'done') {
-                downloadFinished = true;
-                progressMessage.classList.remove('error-text');
+                downloadLink.href = downloadUrl;
+                downloadLink.download = downloadFilename;
                 downloadLink.classList.remove('disabled');
-                stopPolling();
+
+                updateProgress(100, 'Your report is ready. Download is starting...');
+                progressDetail.textContent = 'File generated successfully.';
+                downloadLink.click();
+            } catch (error) {
+                console.error(error);
+                showError('Excel file generation failed. Please try again.');
             }
+        }, 50);
+    }
+
+    window.addEventListener('beforeunload', function() {
+        if (downloadUrl) {
+            URL.revokeObjectURL(downloadUrl);
         }
+    });
 
-        function pollProgress() {
-            if (!progressApiUrl) {
-                return;
-            }
-
-            $.ajax({
-                url: progressApiUrl,
-                type: 'GET',
-                dataType: 'json',
-                cache: false,
-                success: function (data) {
-                    if (!data || typeof data !== 'object') {
-                        return;
-                    }
-                    updateProgressView(data);
-                }
-            });
-        }
-
-        function startPolling() {
-            pollProgress();
-            pollTimer = setInterval(pollProgress, 1000);
-        }
-
-        function stopPolling() {
-            if (pollTimer) {
-                clearInterval(pollTimer);
-                pollTimer = null;
-            }
-        }
-
-        function triggerDownload() {
-            if (!serverDownloadUrl || downloadStarted) {
-                return;
-            }
-            downloadStarted = true;
-            downloadLink.classList.remove('disabled');
-            downloadFrame.src = serverDownloadUrl + (serverDownloadUrl.indexOf('?') >= 0 ? '&' : '?') + '_=' + new Date().getTime();
-        }
-
-        downloadLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            triggerDownload();
-        });
-
-        downloadFrame.addEventListener('load', function () {
-            if (!downloadStarted) {
-                return;
-            }
-            setTimeout(function () {
-                if (!downloadFinished) {
-                    updateProgressView({
-                        status: 'done',
-                        percent: 100,
-                        current_page: totalPage,
-                        total_page: totalPage,
-                        message: 'Your report is ready. Download complete.'
-                    });
-                }
-            }, 1500);
-        });
-
-        updateProgressView({
-            status: 'pending',
-            percent: 0,
-            current_page: 0,
-            total_page: totalPage,
-            message: 'Preparing order report, please wait...'
-        });
-        startPolling();
-        triggerDownload();
-    })();
+    updateProgress(0);
+    GETDATA();
 </script>
 </body>
 </html>

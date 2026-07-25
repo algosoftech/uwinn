@@ -12,6 +12,7 @@ $productIds = $productIds ?? array();
 $ALLHOURLYGAME = $ALLHOURLYGAME ?? array();
 $hourlyGameIds = $hourlyGameIds ?? array();
 $HourReport = $HourReport ?? array();
+$searchMode = $searchMode ?? 'default';
 $j = 0;
 
 $formatReportTime = function($value, $format = 'd-m-Y H:i') {
@@ -123,10 +124,10 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
                             <div class="col-sm-6 col-md-6">
                                 <div class="row" >
                                   <div class="col-sm-12 col-md-4">
-                                    <input type="datetime-local" name="fromDate" id="fromDate" autocomplete="off" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
+                                    <input type="datetime-local" name="fromDate" id="fromDate" step="1" autocomplete="off" value="<?php echo $fromDate; ?>" class="form-control form-control-sm" placeholder="From Date">
                                   </div>
                                   <div class="col-sm-12 col-md-4">
-                                    <input type="datetime-local" name="toDate" id="toDate" autocomplete="off" value="<?php echo $toDate; ?>" class="form-control form-control-sm  mr-2" placeholder="To Date">
+                                    <input type="datetime-local" name="toDate" id="toDate" step="1" autocomplete="off" value="<?php echo $toDate; ?>" class="form-control form-control-sm  mr-2" placeholder="To Date">
                                   </div>
                                   <div class="col-sm-12 col-md-1">
                                     <input type="submit" name="Search" value="Search" class="btn btn-sm btn-primary ">
@@ -227,8 +228,12 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
                     <?php  
                      $sales = 0;
                      $total_order = 0;
+                     $total_winning_amount = 0;
                      $ReportRecord = array();
                      $ArrayHeading = array();
+                     $hourly_total_order = (float)($hourly_total_order ?? 0);
+                     $hourly_total_sales = (float)($hourly_total_sales ?? 0);
+                     $hourly_total_winning = (float)($hourly_total_winning ?? 0);
                      
                      foreach ($HourReport as $key1 => $Report):
                       if(is_array($Report)):
@@ -237,10 +242,18 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
                             $ReportRecord[] = $ReportItems;
                             $sales          += $ReportItems['sales'] ?? 0;
                             $total_order    += $ReportItems['total_order'] ?? 0;
+                            $total_winning_amount += $ReportItems['winning_amount'] ?? 0;
                           endif;
                         endforeach;
                       endif;
                      endforeach;
+
+                     // Default / date-only search: add Hourly totals into grand totals
+                     if(($searchMode ?? 'default') === 'default'):
+                       $total_order += $hourly_total_order;
+                       $sales += $hourly_total_sales;
+                       $total_winning_amount += $hourly_total_winning;
+                     endif;
                      
                      foreach ($HourReport as $key1 => $Report):
                       if(is_array($Report)):
@@ -289,20 +302,55 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
 
                       <div class="row">
                         <div class="col-sm-12 col-md-12 col-lg-12">
-                          <table id="simpletable" class="table table-striped table-bordered nowrap dataTable w-25" role="grid" aria-describedby="simpletable_info">
+                          <?php if(($searchMode ?? 'default') === 'default'): ?>
+                          <?php
+                            $product_total_order = (float)$total_order - (float)$hourly_total_order;
+                            $product_total_sales = (float)$sales - (float)$hourly_total_sales;
+                          ?>
+                          <table id="simpletable" class="table table-striped table-bordered nowrap dataTable" role="grid" aria-describedby="simpletable_info">
+                            <thead style="text-align: center;">
+                              <tr role="row">
+                                <th>Total Product List Orders</th>
+                                <th>Total Product List Sales</th>
+                                <th>Total Hourly Game Orders</th>
+                                <th>Total Hourly Game Sales</th>
+                                <th>Total Orders</th>
+                                <th>Total Sales</th>
+                              </tr>
+                            </thead>
+                            <tbody style="text-align: center;">
+                              <tr>
+                                <td><?= $product_total_order; ?></td>
+                                <td><?= $product_total_sales; ?></td>
+                                <td><?= $hourly_total_order; ?></td>
+                                <td><?= $hourly_total_sales; ?></td>
+                                <td><?= $total_order; ?></td>
+                                <td><?= $sales; ?></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <?php else: ?>
+                          <table id="simpletable" class="table table-striped table-bordered nowrap dataTable <?php echo ($searchMode === 'hourly') ? 'w-50' : 'w-25'; ?>" role="grid" aria-describedby="simpletable_info">
                             <thead style="text-align: center;">
                               <tr role="row">
                                 <th width="5%">Total Orders</th>
                                 <th width="5%">Total Sales</th>
+                                <?php if($searchMode === 'hourly'): ?>
+                                <th width="5%">Total Winning Amount</th>
+                                <?php endif; ?>
                               </tr>
                             </thead>
                             <tbody style="text-align: center;">
                               <tr>
                                 <td><?=$total_order; ?></td>
                                 <td><?=$sales; ?></td>
+                                <?php if($searchMode === 'hourly'): ?>
+                                <td><?=$total_winning_amount; ?></td>
+                                <?php endif; ?>
                               </tr>
                             </tbody>
                           </table>
+                          <?php endif; ?>
                         </div>
                         <?php if(!empty($ArrayHeading)): ?>
                         <div class="col-sm-12 col-md-12 col-lg-12">
@@ -386,8 +434,8 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
 
 
   function resetDateRangeToDefault() {
-    let fromDate = "<?= date('Y-m-d', strtotime('-1 day')) . 'T22:01'; ?>";
-    let toDate   = "<?= date('Y-m-d') . 'T22:00'; ?>";
+    let fromDate = "<?= date('Y-m-d') . 'T00:00:00'; ?>";
+    let toDate   = "<?= date('Y-m-d') . 'T23:59:59'; ?>";
     $('#fromDate').val(fromDate);
     $('#toDate').val(toDate);
   }
@@ -408,7 +456,8 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
       pad2(dateObj.getMonth() + 1) + '-' +
       pad2(dateObj.getDate()) + 'T' +
       pad2(dateObj.getHours()) + ':' +
-      pad2(dateObj.getMinutes());
+      pad2(dateObj.getMinutes()) + ':' +
+      pad2(dateObj.getSeconds());
   }
 
   function applyProductDateRangeByDrawTime(drawTime, validUpto) {
@@ -446,12 +495,12 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
     $('#toDate').val(formatDateTimeLocal(toDate)).trigger('change');
   }
 
-  function applyHourlyDateRangeToday() {
+function applyHourlyDateRangeToday() {
     var today = new Date();
     var fromDateObj = new Date(today);
     fromDateObj.setHours(0, 0, 0, 0);
     var toDateObj = new Date(today);
-    toDateObj.setHours(23, 59, 0, 0);
+    toDateObj.setHours(23, 59, 59, 0);
     $('#fromDate').val(formatDateTimeLocal(fromDateObj)).trigger('change');
     $('#toDate').val(formatDateTimeLocal(toDateObj)).trigger('change');
   }
@@ -501,8 +550,14 @@ $formatReportTime = function($value, $format = 'd-m-Y H:i') {
       var startDate = $(this).attr('data-start-date') || '';
       var endDate = $(this).attr('data-end-date') || '';
 
-      applyHourlyDateRangeToday();
+      // if (startDate.indexOf(' ') > -1) startDate = startDate.replace(' ', 'T');
+      // if (endDate.indexOf(' ') > -1) endDate = endDate.replace(' ', 'T');
 
+      // if (startDate && endDate) {
+      //   $('#fromDate').val(startDate).trigger('change');
+      //   $('#toDate').val(endDate).trigger('change');
+      // }
+applyHourlyDateRangeToday();
       // Hourly mode: do not use product selection in search.
       $('input[name="productIds[]"]').prop('checked', false).prop('disabled', true);
 

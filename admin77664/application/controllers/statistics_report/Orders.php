@@ -176,27 +176,29 @@ class Orders extends CI_Controller {
 
 		
 
-		// Initialize date variables
+		// Initialize date variables — default: current day 00:00:00 to 23:59:59
 		$StartDate = '';
 		$EndDate = '';
 		$data['fromDate'] = '';
 		$data['toDate'] = '';
 		
 		if($this->input->get('fromDate')):
-			$normalizedFromDate = date('Y-m-d H:i', strtotime($this->input->get('fromDate')));  // 2023-03-16 15:13
-			if($searchMode === 'hourly'):
-				$normalizedFromDate = date('Y-m-d H:i:00', strtotime($normalizedFromDate));
-			endif;
-			$data['fromDate'] 	= date('Y-m-d\TH:i:s', strtotime($normalizedFromDate)); // For datetime-local input display
+			$normalizedFromDate = date('Y-m-d H:i:s', strtotime($this->input->get('fromDate')));
+			$data['fromDate'] 	= date('Y-m-d\TH:i:s', strtotime($normalizedFromDate));
 			$StartDate 			= $normalizedFromDate;
 		endif;
 		if($this->input->get('toDate')):
-			$normalizedToDate 	= date('Y-m-d H:i', strtotime($this->input->get('toDate')));  // 2023-03-16 15:13
-			if($searchMode === 'hourly'):
-				$normalizedToDate = date('Y-m-d H:i:59', strtotime($normalizedToDate));
-			endif;
-			$data['toDate'] 	= date('Y-m-d\TH:i:s', strtotime($normalizedToDate)); // For datetime-local input display
+			$normalizedToDate 	= date('Y-m-d H:i:s', strtotime($this->input->get('toDate')));
+			$data['toDate'] 	= date('Y-m-d\TH:i:s', strtotime($normalizedToDate));
 			$EndDate 			= $normalizedToDate;
+		endif;
+
+		// First page open / no dates in URL → current date full day
+		if(empty($StartDate) && empty($EndDate)):
+			$StartDate = date('Y-m-d 00:00:00');
+			$EndDate = date('Y-m-d 23:59:59');
+			$data['fromDate'] = date('Y-m-d\T00:00:00');
+			$data['toDate'] = date('Y-m-d\T23:59:59');
 		endif;
 
 		// Hourly mode base filter by game window range
@@ -214,6 +216,9 @@ class Orders extends CI_Controller {
 			else:
 			$hours = (int) $hours;
 			endif;
+			if($hours < 1):
+				$hours = 1;
+			endif;
 		  for($i =0; $i <=$hours; $i++):
 	    	
 		  	$Minutes = date('i', strtotime($StartDate) ) ;
@@ -225,11 +230,11 @@ class Orders extends CI_Controller {
 			endif;
 
 			if($i == 0){
-				$format = date('Y-m-d H:i', strtotime($StartDate));
+				$format = date('Y-m-d H:i:s', strtotime($StartDate));
 			}
 
 			if($i == $hours){
-				$format = date('Y-m-d H:i', strtotime($EndDate));
+				$format = date('Y-m-d H:i:s', strtotime($EndDate));
 			}
 			 
     		$date  = date($format, strtotime($StartDate . "{$i} hours") );
@@ -238,14 +243,14 @@ class Orders extends CI_Controller {
 		
 
 		else:
+		  // Fallback (should rarely hit — defaults above set current day)
+		  $StartDate = date('Y-m-d 00:00:00');
+		  $EndDate = date('Y-m-d 23:59:59');
 		  for($i =0; $i<=24; $i++):
-		  	$Time 		 = '21:30';
-		  	$CurrentTime =  date('H:i');
-		  	if($CurrentTime > $Time):
-	    		$date   = date('Y-m-d H:i', strtotime("{$i} hours 09:30 PM"));
-		  	else:
-	    		$date   = date('Y-m-d H:i', strtotime("-1 day +{$i} hours 09:30 PM"));
-		  	endif;
+    		$date   = date('Y-m-d H:i:s', strtotime($StartDate . " +{$i} hours"));
+			if($i == 24):
+				$date = $EndDate;
+			endif;
 			$dateArray[] = $date;
 		  endfor;
 		endif;
@@ -307,7 +312,7 @@ class Orders extends CI_Controller {
 				$edDateTime = date('Y-m-d H:i:59', $EndDateTime);
 				$stDateTime = strtotime($stDateTime); //comment for testing
 				$edDateTime = strtotime($edDateTime); //comment for testing
-				$iterWhereCondition['winner_uploaded_at'] = array('$gte' =>  $stDateTime, '$lte' => $edDateTime );
+				$iterWhereCondition['created_at'] = array('$gte' =>  $stDateTime, '$lte' => $edDateTime );
 			else:
 				// if($i == 0){
 				// 	$StartDateTime = date('Y-m-d H:i', strtotime($dateArray[$i]));
@@ -388,13 +393,67 @@ class Orders extends CI_Controller {
 			
 		endfor;
 		
-		// echo "<pre>";
-		// print_r($iterWhereCondition);
-		// die();
-		
+		// First load / date-only search: also include Hourly totals in summary
+		$hourlyTotalOrder = 0;
+		$hourlyTotalSales = 0;
+		$hourlyTotalWinning = 0;
+		if($searchMode === 'default' && !empty($dateArray)):
+			$hourlyRangeStart = strtotime(date('Y-m-d H:i:00', strtotime($dateArray[0])));
+			$hourlyRangeEnd = strtotime(date('Y-m-d H:i:59', strtotime($dateArray[count($dateArray) - 1])));
+			$hourlyWhere = array(
+				'status' => array('$in' => array('A', 'Redeemed')),
+				'created_at' => array(
+					'$gte' => $hourlyRangeStart,
+					'$lte' => $hourlyRangeEnd,
+				),
+			);
+			$hourlySelect = array(
+				'status' => 1,
+				'created_at' => 1,
+				'qty' => array(
+					'$convert' => array(
+						'input' => '$qty',
+						'to' => 'int',
+						'onError' => 0,
+						'onNull' => 0,
+					),
+				),
+				'total_price' => 1,
+				'is_winner' => 1,
+				'winning_amount' => 1,
+			);
+			$hourlyGroupBy = array(
+				'_id' => null,
+				'total_order' => array('$sum' => '$qty'),
+				'sales' => array('$sum' => '$total_price'),
+				'winning_amount' => array('$sum' => array(
+					'$cond' => array(
+						'if' => array('$eq' => array('$is_winner', 'Y')),
+						'then' => array('$ifNull' => array('$winning_amount', 0)),
+						'else' => 0,
+					),
+				)),
+			);
+			$hourlySummary = $this->geneal_model->GetGroupData(
+				'uw_hourly_orders',
+				$hourlySelect,
+				$hourlyWhere,
+				$hourlyGroupBy,
+				array('_id' => 1)
+			);
+			if(is_array($hourlySummary) && !empty($hourlySummary[0])):
+				$hourlyTotalOrder = (float)($hourlySummary[0]['total_order'] ?? 0);
+				$hourlyTotalSales = (float)($hourlySummary[0]['sales'] ?? 0);
+				$hourlyTotalWinning = (float)($hourlySummary[0]['winning_amount'] ?? 0);
+			endif;
+		endif;
+
 		$HourReport = array_filter($HourReport);
 		$data['HourReport']	= $HourReport;
 		$data['searchMode']	= $searchMode;
+		$data['hourly_total_order'] = $hourlyTotalOrder;
+		$data['hourly_total_sales'] = $hourlyTotalSales;
+		$data['hourly_total_winning'] = $hourlyTotalWinning;
 		$this->layouts->set_title('Statistics Report | Order | UWINN');
 		$this->layouts->admin_view('statistics/orders/index',array(),$data);
 	}	// END OF FUNCTION

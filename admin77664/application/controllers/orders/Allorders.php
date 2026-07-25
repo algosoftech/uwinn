@@ -924,7 +924,7 @@ class Allorders extends CI_Controller {
 		// -----------------------------------------------------------------------------//
 		$resultType   = "count";
 		$tblName 	  = "uw_lotto_orders";
-		$totalRows 	  = $this->common_model->getOrderDetails($resultType,$whereCondition,'','',$tblName,true);
+		$totalRows 	  = $this->common_model->getOrderDetails($resultType,$whereCondition,'','',$tblName);
 		 
 		$itemsPerPage = 5000;
 		// ---------------------------------------------
@@ -972,6 +972,107 @@ class Allorders extends CI_Controller {
 		$this->layouts->set_title('Export CSV | UWINN');
 		$this->layouts->admin_view('orders/allorders/exportexcel',array(),$data);
 	}	// END OF FUNCTION
+	// function exportexcel()
+	// {	
+	// 	$this->admin_model->authCheck('view_data');
+	// 	$data['error'] 			 = '';
+	// 	$data['activeMenu'] 	 = 'orders';
+	// 	$data['activeSubMenu'] 	 = 'allorders';
+		
+	// 	//Generating Logs
+	//     $this->common_model->generateLogs();
+
+	// 	// -----------------------------------------------------------------------------//
+	// 	$fromDate = '';
+	// 	$toDate = '';
+	// 	if($this->input->post('fromDate')):
+	// 		$fromDate	 = date('Y-m-d H:i', strtotime($this->input->post('fromDate')));
+	// 	endif;
+	// 	if($this->input->post('toDate')):
+	// 		$toDate	 	 = date('Y-m-d H:i', strtotime($this->input->post('toDate')));
+	// 	endif;
+	// 	$productIds = isset($_POST['productIds']) ? $_POST['productIds'] : [];
+	// 	$productIds = array_map(function($id) {
+	// 		return ($id <= PHP_INT_MAX) ? (int) $id : $id;
+	// 	}, $productIds);
+	// 	// -----------------------------------------------------------------------------//
+	// 	$searchField = $this->input->post('searchField');
+	// 	$searchValue = $this->input->post('searchValue');
+	// 	$cancelled_order = $this->input->post('cancelled_order');
+	// 	$whereCondition = array('where' => array());
+	// 	if($searchField == 'status'):
+	// 		if($fromDate):
+	// 			$whereCondition['where']['update_date']['$gte']  =  strtotime($fromDate);
+	// 		endif;
+	// 		if($toDate):
+	// 			$whereCondition['where']['update_date']['$lte']  =  strtotime($toDate);
+	// 		endif;
+	// 	else:
+	// 		if($fromDate):
+	// 			$whereCondition['where']['created_at']['$gte']  =  $fromDate;
+	// 		endif;
+	// 		if($toDate):
+	// 			$whereCondition['where']['created_at']['$lte']  =  $toDate;
+	// 		endif;
+	// 	endif;
+
+	// 	$whereCondition['where']['raffle_mode']   = array('$ne' => 'Y');
+		
+		
+	// 	// -----------------------------------------------------------------------------//
+	// 	if(!empty($searchField) && !empty($searchValue)):
+			
+	// 		if($searchField == 'order_code'):
+	// 			$whereCondition['where'][$searchField] = base64_encode($searchValue);
+	// 		elseif($searchField == 'ticket'):
+	// 			$whereCondition['where'][$searchField] = "[[".$searchValue."]]";
+	// 		else:
+	// 			$whereCondition['where'][$searchField] =  is_numeric($searchValue)?(int)$searchValue:$searchValue;
+	// 		endif;
+	// 	else:
+	// 		// Same as Statistics Report: Success + Active only (unless Cancelled Orders checked)
+	// 		if($cancelled_order == 'on'):
+	// 			$whereCondition['where']['order_status'] = array('$ne' => 'Initialize');
+	// 		else:
+	// 			$whereCondition['where']['order_status'] = 'Success';
+	// 			$whereCondition['where']['status'] = 'A';
+	// 		endif;
+	// 	endif;
+	// 		$whereCondition['where']['raffle_mode']    = array('$ne' => 'Y');
+	// 	if($productIds <> "" && count($productIds) > 0):
+	// 		$whereCondition['where']['product_id']['$in']  =  $productIds;
+	// 	endif;
+	// 	// -----------------------------------------------------------------------------//
+	// 	$resultType   = "count";
+	// 	$tblName 	  = "uw_lotto_orders";
+	// 	$totalRows 	  = $this->common_model->getOrderDetails($resultType,$whereCondition,'','',$tblName,true);
+		 
+	// 	$itemsPerPage = 5000;
+	// 	// ---------------------------------------------
+
+	// 	$longArray = $totalRows;
+		
+	// 	$pageno       = $this->input->get('page');
+	// 	// Current page number (received from URL query parameter, e.g., ?page=2)
+	// 	$page = isset($pageno) ? (int)$pageno : 1;
+
+	// 	// Calculate total number of pages
+	// 	$totalPages = $longArray > 0 ? (int)ceil($longArray / $itemsPerPage) : 1;
+	// 	$current_page = 1;
+ 		
+	// 	$data['current_page']   = $current_page;
+	// 	$data['total_page'] 	= $totalPages;
+		
+	// 	$data['searchField'] 	=   $searchField;
+	// 	$data['searchValue'] 	=   $searchValue;
+	// 	$data['fromDate'] 		=   $fromDate;
+	// 	$data['toDate'] 		=   $toDate;
+	// 	$data['cancelled_order']=   $cancelled_order;
+	// 	$data['productIds']		= 	json_encode($productIds);
+
+	// 	$this->layouts->set_title('Export CSV | UWINN');
+	// 	$this->layouts->admin_view('orders/allorders/exportexcel',array(),$data);
+	// }
 
 	/***********************************************************************
 	** Function name 	: exportexcelApi
@@ -1039,7 +1140,7 @@ class Allorders extends CI_Controller {
  		$startIndex  = ($page - 1)*$itemsPerPage;
  		$resultType  = '';
  		$tblName     = 'uw_lotto_orders';
-		$OrderData 	 = $this->common_model->getOrderDetails($resultType,$whereCondition,$startIndex,$itemsPerPage,$tblName,true);
+		$OrderData 	 = $this->common_model->getOrderDetails($resultType,$whereCondition,$startIndex,$itemsPerPage,$tblName);
 
 		$CSVData = array();
 		foreach($OrderData as $index => $itemsArray):
@@ -1085,7 +1186,127 @@ class Allorders extends CI_Controller {
 		echo json_encode($CSVData);
 		die();
 	}
+	// function exportexcelApi(){
+		
+	// 	$this->admin_model->authCheck('view_data');
+	// 	$data['error'] 		   = '';
+	// 	$data['activeMenu']    = 'orders';
+	// 	$data['activeSubMenu'] = 'allorders';
+		
+	// 	// -----------------------------------------------------------------------------//
+	// 	$fromDate = '';
+	// 	$toDate = '';
+	// 	if($this->input->post('fromDate')):
+	// 		$fromDate	 = date('Y-m-d H:i', strtotime($this->input->post('fromDate')));
+	// 	endif;
+	// 	if($this->input->post('toDate')):
+	// 		$toDate	 	 = date('Y-m-d H:i', strtotime($this->input->post('toDate')));
+	// 	endif;
+	// 	$productIds = isset($_POST['productIds']) ? json_decode($_POST['productIds'], true) : [];
+	// 	if(!is_array($productIds)):
+	// 		$productIds = array();
+	// 	endif;
+	// 	$productIds = array_map(function($id) {
+	// 		return ($id <= PHP_INT_MAX) ? (int) $id : $id;
+	// 	}, $productIds);
+	// 	// -----------------------------------------------------------------------------//
+	// 	$searchField = $this->input->post('searchField');
+	// 	$searchValue = $this->input->post('searchValue');
+	// 	$cancelled_order = $this->input->post('cancelled_order');
+	// 	$whereCondition = array('where' => array());
+	// 	if($searchField == 'status'):
+	// 		if($fromDate):
+	// 			$whereCondition['where']['update_date']['$gte']  =  strtotime($fromDate);
+	// 		endif;
+	// 		if($toDate):
+	// 			$whereCondition['where']['update_date']['$lte']  =  strtotime($toDate);
+	// 		endif;
+	// 	else:
+	// 		if($fromDate):
+	// 			$whereCondition['where']['created_at']['$gte']  =  $fromDate;
+	// 		endif;
+	// 		if($toDate):
+	// 			$whereCondition['where']['created_at']['$lte']  =  $toDate;
+	// 		endif;
+	// 	endif;
 
+	// 	// -----------------------------------------------------------------------------//
+	// 	if(!empty($searchField) && !empty($searchValue)):
+	// 		if($searchField == 'order_code'):
+	// 			$whereCondition['where'][$searchField] = base64_encode($searchValue);
+	// 		elseif($searchField == 'ticket'):
+	// 			$whereCondition['where'][$searchField] = "[[".$searchValue."]]";
+	// 		else:
+	// 			$whereCondition['where'][$searchField] =  is_numeric($searchValue)?(int)$searchValue:$searchValue;
+	// 		endif;
+	// 	else:
+	// 		// Same as Statistics Report: Success + Active only (unless Cancelled Orders checked)
+	// 		if($cancelled_order == 'on'):
+	// 			$whereCondition['where']['order_status'] = array('$ne' => 'Initialize');
+	// 		else:
+	// 			$whereCondition['where']['order_status'] = 'Success';
+	// 			$whereCondition['where']['status'] = 'A';
+	// 		endif;
+	// 	endif;
+	// 		$whereCondition['where']['raffle_mode']    = array('$ne' => 'Y');
+	// 	if($productIds <> "" && count($productIds) > 0):
+	// 		$whereCondition['where']['product_id']['$in']  =  $productIds;
+	// 	endif;
+	// 	// $page = $this->input->post('pageno');
+	// 	$page = (int)$this->input->post('pageno');
+	// 	if($page < 1):
+	// 		$page = 1;
+	// 	endif;
+ 	// 	$itemsPerPage = 5000;
+ 	// 	$startIndex  = ($page - 1)*$itemsPerPage;
+ 	// 	$resultType  = '';
+ 	// 	$tblName     = 'uw_lotto_orders';
+	// 	$OrderData 	 = $this->common_model->getOrderDetails($resultType,$whereCondition,$startIndex,$itemsPerPage,$tblName,true);
+	// 	if(!is_array($OrderData)):
+	// 		$OrderData = array();
+	// 	endif;
+
+	// 	$CSVData = array();
+	// 	foreach($OrderData as $index => $itemsArray):
+
+	// 		if(($itemsArray['status'] ?? '') == "CL"):
+	// 			$order_status = 'Cancelled';
+	// 		else:
+	// 			$order_status = $itemsArray['order_status'] ?? 'N/A';
+	// 		endif;
+
+			
+	// 		if(($itemsArray['users_type'] ?? '') == 'Users'):
+	// 			$itemsArray['bindwith_first_name'] = 'Admin';
+	// 			$seller_Store = $itemsArray['users_name'] ?? 'N/A';
+	// 		else:
+	// 			$seller_Store = $itemsArray['store_name'] ?? 'N/A';
+	// 		endif;
+
+
+	// 	    $CSVData[$index]['POS No.']            = !empty($itemsArray['pos_number']) ? $itemsArray['pos_number'] : 'N/A';
+	// 		$CSVData[$index]['Order ID']           = !empty($itemsArray['order_id']) ? $itemsArray['order_id'] : 'N/A';
+	// 		$CSVData[$index]['Product Name']       = !empty($itemsArray['product_name']) ? $itemsArray['product_name'] : 'N/A';
+	// 		// Keep Quantity numeric so Excel SUM matches Statistics TOTAL ORDERS (sum of product_qty)
+	// 		$CSVData[$index]['Quantity']           = (int)($itemsArray['product_qty'] ?? 0);
+	// 		$CSVData[$index]['Store Name']         = !empty($seller_Store) ? $seller_Store : 'N/A';
+	// 		if(($itemsArray['users_type'] ?? '') == 'Users'):
+	// 		 $CSVData[$index]['Seller Name']        = !empty($itemsArray['users_address']) ? $itemsArray['users_address'] : 'N/A';
+	// 		else:
+	// 		 $CSVData[$index]['Seller Name']        = !empty($itemsArray['users_area']) ? $itemsArray['users_area'] : 'N/A';
+	// 		endif;
+	// 		$CSVData[$index]['Seller Mobile']      = !empty($itemsArray['user_phone']) ? $itemsArray['user_phone'] : 'N/A';
+	// 		$CSVData[$index]['Bind With']          = !empty($itemsArray['bindwith_first_name']) ? $itemsArray['bindwith_first_name'] : 'N/A';
+	// 		$CSVData[$index]['Purchase Date']      = !empty($itemsArray['created_at']) ? $itemsArray['created_at'] : 'N/A';
+	// 		$CSVData[$index]['Total Amount']       = (float)($itemsArray['total_price'] ?? 0);
+	// 		$CSVData[$index]['Payment Mode']       = !empty($itemsArray['payment_mode']) ? $itemsArray['payment_mode'] : 'N/A';
+	// 		$CSVData[$index]['Payment Status']     = !empty($order_status) ? $order_status : 'N/A';
+			
+	// 	endforeach;
+
+	// 	echo json_encode(array_values($CSVData));
+	// 	die();
+	// }
 	/***********************************************************************
 	** Function name 	: generatecoupons
 	** Developed By 	: Dilip halder
@@ -1616,7 +1837,7 @@ class Allorders extends CI_Controller {
 			$startIndex = ($page - 1) * $itemsPerPage;
 			$tblName = 'uw_lotto_orders';
 
-			$orderData = $this->common_model->getOrderDetails('', $whereCondition, $startIndex, $itemsPerPage, $tblName, true);
+			$orderData = $this->common_model->getOrderDetails('', $whereCondition, $startIndex, $itemsPerPage, $tblName);
 			if(!is_array($orderData)):
 				$orderData = array();
 			endif;
