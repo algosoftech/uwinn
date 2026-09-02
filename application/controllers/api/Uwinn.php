@@ -958,7 +958,8 @@ class uwinn extends CI_Controller {
 				$buyerMobile 		 = $this->input->post('buyer_mobile');
 				$buyerEmail 		 = $this->input->post('buyer_email');
 				$txnID 			     = $this->input->post('txn_id');
-				
+
+
 				if(empty($userId)): 
 					throw new Exception(lang('USER_ID_EMPTY'), 1);
 				elseif(empty($prizeTitle)): 
@@ -1048,11 +1049,10 @@ class uwinn extends CI_Controller {
 								endif;
 								//Buffering time order duplication check.. END
 
-
 								/* ----- Raffle Mode Addon code  ---------*/
 								$orderIdss = floor((microtime(true) * 1000)).rand(100,999);
 								$ORparam["sequence_id"]		    		=	(int)$this->geneal_model->getNextSequence('uw_lotto_orders');
-								$ORparam["txn_id"]    					=   $txnID;
+								$ORparam["txn_id"]			    		=	$txnID;
 						        $ORparam["user_oid"] 					=	new MongoDB\BSON\ObjectId($user_oid);
 						        $ORparam["order_id"]		        	=	"UWINN".$orderIdss;//$this->geneal_model->getNextUWINOrderId();
 						        // $ORparam["order_id"]		        	=	$this->geneal_model->getNextUWINOrderId();
@@ -1173,38 +1173,6 @@ class uwinn extends CI_Controller {
 								// 	endif;
 							    // endif;
 
-								if(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message)):
-									if($otpSent == "SMS" || empty($otpSent) ):
-
-										$enableSmsFields = ['default_sms'];
-										$enableTblName   = 'uw_enablesms';
-										$enableSMSData   = $this->common_model->getSingleDataByParticularField($enableSmsFields,$enableTblName, 'status', 'A');
-										$defaultSMSGateway = $enableSMSData['default_sms'];
-										
-										$senderDetails['gateway']       = $defaultSMSGateway;
-										$senderDetails['users_mobile']  = $buyerMobile;
-										$senderDetails['country_code']  = $buyerCountryCode;
-										$senderDetails['message']       = $message;
-										$result = $this->sms_model->sendSMS($senderDetails);
-										// $this->sms_model->raffleWinnersSms($buyerCountryCode,$buyerMobile,$message);
-
-									elseif($otpSent == "WhatsApp"):
-										$senderDetails['country_code']  = $buyerCountryCode;
-										$senderDetails['users_mobile']  = $buyerMobile;
-										$senderDetails['message']       = $message;
-										$senderDetails['ORDERID']       = $ORparam["order_id"];
-										$senderDetails['CAMPAIGNAME']   = $ORparam["product_title"];
-										$senderDetails['CouponDetails'] = $CouponDetails;
-										$senderDetails['DDATE']         = $drawDate;
-										$senderDetails['LINK']          = 'https://tktinvoice.com/uwin-download-invoice/'.$ORparam["order_id"];
-										$this->sms_model->sendWhatsAppMessage($senderDetails);
-									endif;
-							    endif;
-
-								if(!empty($buyerEmail) && !empty($message)):
-									$subject = "Order Confirmation";
-									$this->emailsendgrid_model->sendEmail($buyerEmail,$subject,$message);
-								endif;
 
 
 							    // echo $ProductData['_id']->{'$id'};
@@ -1274,6 +1242,41 @@ class uwinn extends CI_Controller {
 								if($fromuserinsertResult || $FirstpurchaseinsertResult ){
 									$session->commitTransaction();
 		   							// $session->abortTransaction();
+
+									// send notification messages after commit
+									if(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message)):
+										if($otpSent == "SMS" || empty($otpSent) ):
+
+											$enableSmsFields = ['default_sms'];
+											$enableTblName   = 'uw_enablesms';
+											$enableSMSData   = $this->common_model->getSingleDataByParticularField($enableSmsFields,$enableTblName, 'status', 'A');
+											$defaultSMSGateway = $enableSMSData['default_sms'];
+
+											$senderDetails['gateway']       = $defaultSMSGateway;
+											$senderDetails['users_mobile']  = $buyerMobile;
+											$senderDetails['country_code']  = $buyerCountryCode;
+											$senderDetails['message']       = $message;
+											$result = $this->sms_model->sendSMS($senderDetails);
+											// $this->sms_model->raffleWinnersSms($buyerCountryCode,$buyerMobile,$message);
+
+										elseif($otpSent == "WhatsApp"):
+											$senderDetails['country_code']  = $buyerCountryCode;
+											$senderDetails['users_mobile']  = $buyerMobile;
+											$senderDetails['message']       = $message;
+											$senderDetails['ORDERID']       = $ORparam["order_id"];
+											$senderDetails['CAMPAIGNAME']   = $ORparam["product_title"];
+											$senderDetails['CouponDetails'] = $CouponDetails;
+											$senderDetails['DDATE']         = $drawDate;
+											$senderDetails['LINK']          = 'https://tktinvoice.com/uwin-download-invoice/'.$ORparam["order_id"];
+											$this->sms_model->sendWhatsAppMessage($senderDetails);
+										endif;
+							    	endif;
+
+									if(!empty($buyerEmail) && !empty($message)):
+										$subject = "Order Confirmation";
+										$this->emailsendgrid_model->sendEmail($buyerEmail,$subject,$message);
+									endif;
+
 	    		                    unset($ORparam["draw_date"]);
 		   							$result = $ORparam;
 									echo outPut(1,lang('SUCCESS_CODE'),lang('SUCCESS_MSG'),$result);
