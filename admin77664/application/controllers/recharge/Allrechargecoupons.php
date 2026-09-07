@@ -634,18 +634,21 @@ class Allrechargecoupons extends CI_Controller {
 			 	$data = $this->common_model->editMultipleDataByMultipleCondition($tableName, $can_Commission,$Can_Where_Commission);
 
 				//Fetching values from reachrge data in below variables.
-				$availableArabianPoints = $rechagreData['availableArabianPoints'];
 				$USERID 				= $rechagreData['created_by'];
-				$commission_amount 		= $rechagreData['commission_amount'];
-				$request_oid 			= $rechagreData['_id']->{'$id'};
+				$commission_amount 		= !empty($rechagreData['commission_amount']) ? (float)$rechagreData['commission_amount'] : 0;
+				$request_oid 			= $this->_mongoIdString($rechagreData['_id']);
 				$rc_id 					= $rechagreData['rc_id'];
 				$code					= $rechagreData['coupon_code'];
 				$coupon_amount  		= $rechagreData['coupon_code_amount'];
-				$user_oid 				= New MOngoDB\BSON\ObjectId((string)$rechagreData['user_oid']);
 
-				//generating laodbalance for deduted amount for respected user..
+				$ownerUser = $this->common_model->getData('single', 'uw_users', array('where' => array('users_id' => (int)$USERID)));
+				$availableArabianPoints = !empty($ownerUser['availableArabianPoints']) ? (float)$ownerUser['availableArabianPoints'] : (float)$rechagreData['availableArabianPoints'];
+				$userOidString = $this->_mongoIdString(!empty($ownerUser['_id']) ? $ownerUser['_id'] : $rechagreData['user_oid']);
+				$user_oid = new MongoDB\BSON\ObjectId($userOidString);
+
+				//generating laodbalance for credited amount for respected user..
 			  	$Param["load_balance_id"]		 =	(int)$this->common_model->getNextSequence('uw_loadBalance');
-				$Param["user_oid"] 				 =	new MongoDB\BSON\ObjectId($user_oid);
+				$Param["user_oid"] 				 =	$user_oid;
 		        $Param['request_id']      		 =  $rc_id;
 	            $Param['request_oid']     		 =  new MongoDB\BSON\ObjectId($request_oid);
 				$Param["user_id_cred"] 			 =	(int)$USERID;
@@ -657,29 +660,31 @@ class Allrechargecoupons extends CI_Controller {
 			    $Param["narration"]				 =	'Recharge Coupon Cancelled';
 		     	$Param["remarks"]				 =	"Serial No. ".$rechagreData['rc_id'];
 			    $Param["creation_ip"] 			 =	$this->input->ip_address();
-			    $Param["created_at"] 			 =	date('Y-m-d H:i');
+			    $Param["created_at"] 			 =	date('Y-m-d H:i:s');
 			    $Param["created_by"] 			 =	(int)$this->session->userdata('UW_ADMIN_ID');
 			    $Param["status"] 				 =	"A";
 		    	$loadbalanceResponce 			 = $this->common_model->addData('uw_loadBalance', $Param);
 
 		    	// Generating loadBalance for Commission amount deducting..
-                $commisionBalance['load_balance_id'] =  (int)$this->common_model->getNextSequence('uw_loadBalance');
-                $commisionBalance['user_oid']        =  new MongoDB\BSON\ObjectId($user_oid);
-                $commisionBalance['request_id']      =  $rc_id;
-                $commisionBalance['request_oid']     =  new MongoDB\BSON\ObjectId($request_oid);
-                $commisionBalance['user_id_deb']     =  (int)$USERID;
-                $commisionBalance['user_id_cred']    =  (int)0;
-                $commisionBalance["availableArabianPoints"] = (float)$availableArabianPoints + $coupon_amount;
-                $commisionBalance["end_balance"]            = (float)($availableArabianPoints + $coupon_amount) - $commission_amount;
-                $commisionBalance['record_type']     = 'Debit';
-                $commisionBalance['narration']       = 'Recharge Commission Reverted';
-                $commisionBalance['remarks']         = "Serial No. ".$rechagreData['rc_id'];
-                $commisionBalance['upoints']         = (float)$commission_amount;
-                $commisionBalance['creation_ip']     = $this->input->ip_address();;
-                $commisionBalance['created_at']      = date('Y-m-d H:i');
-                $commisionBalance['created_by']      = (int)$USERID;
-                $commisionBalance['status']          = 'A';
-                $this->common_model->addData('uw_loadBalance', $commisionBalance);
+				if($commission_amount > 0):
+	                $commisionBalance['load_balance_id'] =  (int)$this->common_model->getNextSequence('uw_loadBalance');
+	                $commisionBalance['user_oid']        =  $user_oid;
+	                $commisionBalance['request_id']      =  $rc_id;
+	                $commisionBalance['request_oid']     =  new MongoDB\BSON\ObjectId($request_oid);
+	                $commisionBalance['user_id_deb']     =  (int)$USERID;
+	                $commisionBalance['user_id_cred']    =  (int)0;
+	                $commisionBalance["availableArabianPoints"] = (float)$availableArabianPoints + $coupon_amount;
+	                $commisionBalance["end_balance"]            = (float)($availableArabianPoints + $coupon_amount) - $commission_amount;
+	                $commisionBalance['record_type']     = 'Debit';
+	                $commisionBalance['narration']       = 'Recharge Commission Reverted';
+	                $commisionBalance['remarks']         = "Serial No. ".$rechagreData['rc_id'];
+	                $commisionBalance['upoints']         = (float)$commission_amount;
+	                $commisionBalance['creation_ip']     = $this->input->ip_address();
+	                $commisionBalance['created_at']      = date('Y-m-d H:i:s');
+	                $commisionBalance['created_by']      = (int)$USERID;
+	                $commisionBalance['status']          = 'A';
+	                $this->common_model->addData('uw_loadBalance', $commisionBalance);
+				endif;
 
                 //cancelling recharged coupon by user... 
 				$rechagreParam['status'] = 'CL';		
@@ -857,5 +862,30 @@ class Allrechargecoupons extends CI_Controller {
 		$this->layouts->admin_view('rechargecoupons/allrechargecoupons/admin-index',array(),$data);
 
 	}	// END OF FUNCTION
+
+	private function _mongoIdString($value)
+	{
+		if ($value === null || $value === '') {
+			return '';
+		}
+		if (is_object($value)) {
+			if (isset($value->{'$id'}) && $value->{'$id'} !== '') {
+				return (string)$value->{'$id'};
+			}
+			if (isset($value->{'$oid'}) && $value->{'$oid'} !== '') {
+				return (string)$value->{'$oid'};
+			}
+			return (string)$value;
+		}
+		if (is_array($value)) {
+			if (!empty($value['$id'])) {
+				return (string)$value['$id'];
+			}
+			if (!empty($value['$oid'])) {
+				return (string)$value['$oid'];
+			}
+		}
+		return (string)$value;
+	}
 	 
 }

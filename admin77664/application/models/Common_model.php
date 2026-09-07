@@ -2338,7 +2338,7 @@ class Common_model extends CI_Model
 	                        '$expr' => array(
 				                '$and' => array(
 				                    array('$eq' => array('$request_oid', '$$rcId')),
-				                    array('$eq' => array('$narration', 'Recharge Commission')),
+				                    array('$in' => array('$narration', array('Recharge Commission', 'K-Points Purchase Commission'))),
 				                ),
 				            ),
 	                    ),

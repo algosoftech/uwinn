@@ -134,7 +134,7 @@ class Offline_draw extends CI_Controller {
            $page = 0;
        endif;
 		
-		$data['forAction'] 					= 	$baseUrl;
+		$data['forAction'] 					= 	$baseUrl; 
 		$data['combinedFromDate'] = date('Y-m-d 16:00', strtotime('-1 day'));
 		$data['combinedToDate']   = date('Y-m-d 22:00');
 		if($totalRows):
@@ -471,7 +471,7 @@ class Offline_draw extends CI_Controller {
 
 		$page = $this->input->post('pageno');
 		$tblName 		= 'uw_uwin_winner';
-		$shortField 	= array('modified_at'=>'DESC');
+		$shortField 	= array('modified_at'=>'ASC');
  		$itemsPerPage 	= 5000;
  		$startIndex   	= ($page - 1)*$itemsPerPage;
 		$RedeemlistData = 	$this->common_model->getData('multiple',$tblName,$whereCon,$shortField,$itemsPerPage,$startIndex);

@@ -88,7 +88,18 @@ class uwinn extends CI_Controller {
             //Products settings End 
 
 			$productData  			= array();
-			foreach($data2 as $iTems):
+			foreach($data2 as $key111 => $iTems):
+
+				if($usersId  == 100000000000016 || $usersId  == 100000000001252 || $usersId  == 2010194 || $usersId  == 100000000000514  || $usersId  == 100000000000843):
+					if($iTems['title'] != "SUPER 19"):
+						unset($data2[$key111]);
+					endif;
+				else:
+					if($items['title'] == "SUPER 19"):
+						unset($data2[$key111]);
+					endif;
+				endif;
+				
 
 				if($iTems['straight_game_name'] == '' && $iTems['rumble_game_name'] == '' && $iTems['reverse_game_name'] == "" ):
 					$iTems['straight_game_name'] = $straight_game_name;
@@ -911,7 +922,7 @@ class uwinn extends CI_Controller {
 	 * * Updated By   	: Dilip Halder
 	 * * Updated Date 	: 12 April 2024
 	 * * **********************************************************************/
-	public function paymentCapture()
+	 public function paymentCapture()
 	 {	
 		try {
 
@@ -2465,7 +2476,235 @@ class uwinn extends CI_Controller {
 	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 	// 	endif;
 	//  }
-    public function redeemByMode()
+    // public function redeemByMode()
+	// {
+	// 	$apiHeaderData 		=	getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 			= 	array();
+
+	// 	if(requestAuthenticate(APIKEY,'POST')):
+	// 		$userID 	  =  $this->input->post('users_id');
+	// 		$tickectID 	  =  $this->input->post('tickect_id');
+	// 		// $voucherId 	  =  $this->input->post('voucher_id');
+	// 		$redeemStatus =  $this->input->post('redeem_status');
+	// 		$redeemByMode =  $this->input->post('redeem_by_mode');
+	// 		$posDeviceId  =  $this->input->post('pos_device_id');
+	// 		$ipAddress    =  $this->input->post('ip_address');
+
+	// 		try {
+
+	// 			if(empty($userID)):
+	// 				throw new Exception(lang('USER_ID_EMPTY'));
+	// 			elseif(empty($tickectID)):
+	// 				throw new Exception(lang('EMPTY_TICKET'));
+	// 			// elseif(empty($voucherId)):
+	// 			// 	throw new Exception(lang('EMPTY_VOUCHER'));
+	// 			elseif(empty($redeemStatus)):
+	// 				throw new Exception(lang('EMPTY_REDEEMSTATUS'));
+	// 			elseif(empty($redeemStatus)):
+	// 				throw new Exception(lang('EMPTY_RedeemByMode'));
+	// 			else:
+
+	// 				/* Checked User Validation */
+	// 				$requestFrom 	  = "app";
+	// 				$validationResult = $this->common_model->userValidate($userID,$requestFrom);
+
+	// 				$whereCon1['where'] = array('order_id' => $tickectID );
+	// 				$orderDetails 	    = $this->common_model->getOrderDetail($whereCon1);
+	// 				// echo "<pre>";print_r($orderDetails);die();
+
+	// 				if(empty($orderDetails)):
+	// 					$this->hourlyGameWinnersRedeemByMode();
+	// 				endif;
+					
+	// 				if(!empty($orderDetails) && $orderDetails['status'] == "A" ):
+						
+	// 					// Checking winning tickets..
+	// 					$tableName  = "uw_uwin_winner";
+	// 					$whereCon['where']['order_id']   = $tickectID;
+	// 					$whereCon['where']['status']     = (int)1;
+	// 					$whereCon['where']['created_at'] = array('$gte' => $orderDetails['created_at']);
+	// 					$WinnerList  = $this->common_model->getData('multiple',$tableName,$whereCon);
+
+	// 					if(!empty($WinnerList)):
+							
+	// 						$totalPrizeAmount     = 0;
+	// 						$totalPaidPrizeAmount = 0;
+	// 						foreach ($WinnerList as $key => $items) :
+	// 							if($items['redeem_status'] != 'paid' && $items['status'] == 1 ):
+	// 							$totalPrizeAmount     = $totalPrizeAmount+ $items['amount'];
+	// 							elseif($totalPaidPrizeAmount == 'paid' && $items['status'] == 1):
+	// 							$totalPaidPrizeAmount = $totalPaidPrizeAmount+ $items['amount'];
+	// 							endif;
+	// 						endforeach;
+
+	// 						$tableName1	    = "uw_users";
+	// 						$Fields 	    = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit','redeem_limit_mode');
+	// 						$sellerDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$userID);
+	// 						$defaultRedeemingAmountLimit = 499;
+	// 						$redeeming_amount_limit = $sellerDetails['redeeming_amount_limit']?$sellerDetails['redeeming_amount_limit'] : $defaultRedeemingAmountLimit; 
+	// 						$redeemLimitMode = isset($sellerDetails['redeem_limit_mode']) ? strtolower((string) $sellerDetails['redeem_limit_mode']) : 'fixed';
+
+	// 						if($totalPrizeAmount > $redeeming_amount_limit &&  $userID != 100000000000110):
+	// 							throw new Exception(lang('BIG_WINNER_TEXT'));
+	// 						elseif(!empty($totalPrizeAmount) && $totalPrizeAmount >=1 ):
+	// 							//fetching placed order details..
+	// 							if(!empty($orderDetails)):
+	// 								// Added redeeming Param..
+	// 								$this->session->sess_regenerate();
+	// 								$session = $this->mongodb_client->client->startSession();
+	// 								$session->startTransaction();
+	// 								$updateParams['pos_device_id'] 	= $posDeviceId;
+	// 								$updateParams["user_type"]      = $orderDetails['user_type'];
+	// 								$updateParams['redeem_status'] 	= $redeemStatus;
+	// 								$updateParams['redeem_by_mode'] = $redeemByMode;
+	// 								$updateParams["modified_at"]    = date('Y-m-d H:i');
+	// 								$updateParams['created_ip'] 	= $ip_address;
+	// 								$updateParams['seller_id'] 		= (int)$userID;
+	// 								$WInnner_whereCon = array('order_id' => $tickectID, 'status' => (int)'1','redeem_status' => array('$ne' => 'paid') );
+	// 								// $record = $this->common_model->editMultipleDataByMultipleCondition('uw_uwin_winner', $updateParams,$WInnner_whereCon);
+	// 								$record = $this->mongodb_client->updateDocument(
+	// 									'uw_uwin_winner',         // Collection name
+	// 									$WInnner_whereCon,        // Filter / condition for which document to update
+	// 									['$set' => $updateParams],// Proper MongoDB update syntax
+	// 									$session                  // MongoDB session (optional)
+	// 								);
+										
+	// 								/* Load Balance Table -- after Sign Up*/
+	// 								$Redeemparam["load_balance_id"]          =   (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+	// 								$Redeemparam["user_oid"]        	     =   new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
+	// 								$Redeemparam["order_oid"]       		 =   new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+	// 								$Redeemparam["order_id"]       		     =   $tickectID;
+	// 								$Redeemparam["user_type"]       		 =   $orderDetails['user_type'];
+	// 								$Redeemparam["product_id"]       		 =   (int)$orderDetails['product_id'];
+	// 								$Redeemparam["user_id_deb"]              =   (int)$userID;
+	// 								$Redeemparam["user_id_cred"]             =   (int)0;
+	// 								$Redeemparam["upoints"]       		     =   (float)$totalPrizeAmount;
+	// 								$Redeemparam["record_type"]              =   'Debit';
+	// 								$Redeemparam["narration"]  			     =   'Redeem Prize';
+	// 								$Redeemparam["remarks"]  			     =   "Redeemed Prize ".$totalPrizeAmount." AED in cash";
+	// 								$Redeemparam["availableArabianPoints"] 	 =   (float)$sellerDetails['availableArabianPoints'];
+	// 								$Redeemparam["end_balance"] 		 	 =   (float)$sellerDetails['availableArabianPoints'];
+	// 								$Redeemparam["creation_ip"]         	 =   currentIp();
+	// 								$Redeemparam["created_at"]          	 =   date('Y-m-d H:i');
+	// 								$Redeemparam["created_by"]         	  	 =   (int)$userID;
+	// 								$Redeemparam["status"]               	 =   "A";
+									
+	// 								// $reddemData = $this->geneal_model->addData('uw_loadBalance', $Redeemparam);
+	// 								$reddemData  = $this->mongodb_client->insertDocument('uw_loadBalance', $Redeemparam, $session);
+	// 								if (is_object($reddemData['_id']) && property_exists($reddemData['_id'], '$id')) {
+	// 									$reddem_id = new MongoDB\BSON\ObjectId($reddemData['_id']->{'$id'});
+	// 								} else {
+	// 									$reddem_id = new MongoDB\BSON\ObjectId($reddemData['_id']);
+	// 								}
+									
+	// 								$this->geneal_model->addRedeem_Cash_Amount_TO_Seller($userID,(float)$totalPrizeAmount);
+									
+	// 								//Adding loadbalkance records for users..
+	// 								if($orderDetails['user_type'] == 'Users'):
+
+	// 									// User Details
+	// 									$tableName1	  = "uw_users";
+	// 									$Fields 	  = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit');
+	// 									$userDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$orderDetails['user_id']);
+
+	// 									/* Load Balance Table -- after Sign Up*/
+	// 									$Redeemparam11["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+	// 									$Redeemparam11["user_oid"]        	       = new MongoDB\BSON\ObjectId((string)$orderDetails['user_oid']);
+	// 									$Redeemparam11['request_id'] 			   = $reddem_id;
+	// 									$Redeemparam11["order_id"]       		   = $tickectID;
+	// 									$Redeemparam11["user_id_deb"]              = (int)0;
+	// 									$Redeemparam11["user_id_cred"]             = (int)$orderDetails['user_id'];
+	// 									$Redeemparam11["upoints"]       		   = (float)$totalPrizeAmount;
+	// 									$Redeemparam11["record_type"]              = 'Credit';
+	// 									$Redeemparam11["narration"]  			   = 'Winning Ticket Redeemed';
+	// 									$Redeemparam11["remarks"]  			       = "Completed ( " .$tickectID." )";
+	// 									$Redeemparam11["availableArabianPoints"]   = (float)$userDetails['availableArabianPoints'];
+	// 									$Redeemparam11["end_balance"] 		 	   = (float)$userDetails['availableArabianPoints'];
+	// 									$Redeemparam11["creation_ip"]         	   = currentIp();
+	// 									$Redeemparam11["created_at"]          	   = date('Y-m-d H:i');
+	// 									$Redeemparam11["created_by"]         	   = (int)$orderDetails['user_id'];
+	// 									$Redeemparam11["status"]               	   = "A";
+	// 									$red2 = $this->mongodb_client->insertDocument('uw_loadBalance', $Redeemparam11, $session);
+	// 									// $this->geneal_model->addData('uw_loadBalance', $Redeemparam11);
+
+	// 									$commission_percentage = 5;
+	// 									$commission_amount     = $totalPrizeAmount*$commission_percentage/100;
+	// 									/* Load Balance Table -- after Cash voucher Redeeming */
+	// 									$RedeemCashparam["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+	// 									$RedeemCashparam["request_id"]               = $VoucherData['voucher_id'];
+	// 									$RedeemCashparam['request_oid'] 			 = $reddem_id;
+	// 									$RedeemCashparam["user_oid"]                 = new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
+	// 									$RedeemCashparam["order_oid"]                = new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+	// 									$RedeemCashparam["order_id"]                 = $orderDetails['order_id'];
+	// 									$RedeemCashparam["user_type"]                = $orderDetails['user_type'];
+	// 									$RedeemCashparam["product_id"]               = $orderDetails['product_id'];
+	// 									$RedeemCashparam["user_id_deb"]              = (int)0;
+	// 									$RedeemCashparam["user_id_cred"]             = (int)$sellerDetails['users_id'];
+	// 									$RedeemCashparam["upoints"]                  = (float)$commission_amount;
+	// 									$RedeemCashparam["record_type"]              = "Debit";
+	// 									$RedeemCashparam["narration"]                = "Redeem Prize Commission";
+	// 									$RedeemCashparam["remarks"]                  = "Redeemed Prize ".$totalPrizeAmount." AED in cash for " .$tickectID;
+	// 									$RedeemCashparam["availableArabianPoints"]   = (float)$sellerDetails['availableArabianPoints'];
+	// 									$RedeemCashparam["end_balance"]              = (float)$sellerDetails['availableArabianPoints'] + $commission_amount;
+	// 									$RedeemCashparam["creation_ip"]              = currentIp();
+	// 									$RedeemCashparam["created_at"]               = date('Y-m-d H:i');
+	// 									$RedeemCashparam["created_by"]               = (int)$users_id;
+	// 									$RedeemCashparam["status"]                   = "A";
+	// 									// $this->geneal_model->addData('uw_loadBalance', $RedeemCashparam);
+	// 									$this->mongodb_client->insertDocument('uw_loadBalance', $RedeemCashparam, $session);
+	// 									//Creaditing amount to selelr account..
+	// 									$availableArabianPoints = (float)$sellerDetails['availableArabianPoints'];
+	// 									$totalArabianPoints     = (float)$sellerDetails['totalArabianPoints'] + (float)$commission_amount;
+
+	// 									$uparam['availableArabianPoints']    =   $availableArabianPoints + $commission_amount;
+	// 									$uparam['totalArabianPoints']        =   $totalArabianPoints;
+	// 									$uparam['update_date']               =   date('Y-m-d h:m');
+	// 									$isUpdate = $this->common_model->editData('uw_users',$uparam, 'users_id',(int)$sellerDetails['users_id']);
+										
+	// 									$result = array('payment_date' => date('Y-m-d H:i'));
+	// 								endif;
+	// 								if($record && $reddemData ){
+	// 										if($totalPrizeAmount >$defaultRedeemingAmountLimit  && $userID != 100000000000110 && $redeemLimitMode !== 'global'):
+	// 											$uLimitParam['redeeming_amount_limit']    = $defaultRedeemingAmountLimit;
+	// 											$uLimitParam['update_date']               =   date('Y-m-d h:m');
+	// 											$this->common_model->editData('uw_users',$uLimitParam, 'users_id',(int)$userID);
+	// 										endif;
+	// 									$session->commitTransaction();
+	// 									$result = array('payment_date' => date('Y-m-d H:i'));
+	// 									echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die(); 
+	// 								}else{
+	// 									$session->abortTransaction();
+	// 									echo outPut(0,lang('BAD_REQUEST_CODE'),'Error: Unable to reddem',[]);
+	// 									die();
+	// 						    	}
+									
+	// 							else:
+	// 								throw new Exception(lang('ORDET_ID_INVALID'));
+	// 							endif;
+								
+	// 						elseif(!empty($totalPaidPrizeAmount) && $totalPaidPrizeAmount >=1 ):
+	// 							throw new Exception(lang('ALREADY_REDEEM'));
+	// 						endif;
+	// 					else:
+	// 						throw new Exception(lang('NOT_WINNER'));
+	// 					endif;
+						
+	// 				elseif($orderDetails['status'] == "CL"):
+	// 					throw new Exception(lang('CANCELLED_ORDER'));
+	// 				else:
+	// 					throw new Exception(lang('ORDET_ID_INVALID')); //Error added for invalid order id.
+	// 				endif;
+				
+	// 			endif;
+	// 		} catch (Exception $e) {
+	// 			echo outPut(0, lang('SUCCESS_CODE'), $e->getMessage());
+	// 		}
+	// 	else:
+	// 		echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
+	// 	endif;
+	// }
+	public function redeemByMode()
 	{
 		$apiHeaderData 		=	getApiHeaderData();
 		$this->generatelogs->putLog('APP',logOutPut($_POST));
@@ -2528,7 +2767,7 @@ class uwinn extends CI_Controller {
 							endforeach;
 
 							$tableName1	    = "uw_users";
-							$Fields 	    = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit','redeem_limit_mode');
+							$Fields 	    = array('_id','users_id' ,'availableArabianPoints','redeeming_amount_limit','redeem_limit_mode','redeeming_commission_percentage');
 							$sellerDetails  = $this->common_model->getSingleDataByParticularField($Fields,$tableName1,'users_id',(int)$userID);
 							$defaultRedeemingAmountLimit = 499;
 							$redeeming_amount_limit = $sellerDetails['redeeming_amount_limit']?$sellerDetails['redeeming_amount_limit'] : $defaultRedeemingAmountLimit; 
@@ -2617,40 +2856,41 @@ class uwinn extends CI_Controller {
 										$red2 = $this->mongodb_client->insertDocument('uw_loadBalance', $Redeemparam11, $session);
 										// $this->geneal_model->addData('uw_loadBalance', $Redeemparam11);
 
-										$commission_percentage = 5;
-										$commission_amount     = $totalPrizeAmount*$commission_percentage/100;
-										/* Load Balance Table -- after Cash voucher Redeeming */
-										$RedeemCashparam["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
-										$RedeemCashparam["request_id"]               = $VoucherData['voucher_id'];
-										$RedeemCashparam['request_oid'] 			 = $reddem_id;
-										$RedeemCashparam["user_oid"]                 = new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
-										$RedeemCashparam["order_oid"]                = new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
-										$RedeemCashparam["order_id"]                 = $orderDetails['order_id'];
-										$RedeemCashparam["user_type"]                = $orderDetails['user_type'];
-										$RedeemCashparam["product_id"]               = $orderDetails['product_id'];
-										$RedeemCashparam["user_id_deb"]              = (int)0;
-										$RedeemCashparam["user_id_cred"]             = (int)$sellerDetails['users_id'];
-										$RedeemCashparam["upoints"]                  = (float)$commission_amount;
-										$RedeemCashparam["record_type"]              = "Debit";
-										$RedeemCashparam["narration"]                = "Redeem Prize Commission";
-										$RedeemCashparam["remarks"]                  = "Redeemed Prize ".$totalPrizeAmount." AED in cash for " .$tickectID;
-										$RedeemCashparam["availableArabianPoints"]   = (float)$sellerDetails['availableArabianPoints'];
-										$RedeemCashparam["end_balance"]              = (float)$sellerDetails['availableArabianPoints'] + $commission_amount;
-										$RedeemCashparam["creation_ip"]              = currentIp();
-										$RedeemCashparam["created_at"]               = date('Y-m-d H:i');
-										$RedeemCashparam["created_by"]               = (int)$users_id;
-										$RedeemCashparam["status"]                   = "A";
-										// $this->geneal_model->addData('uw_loadBalance', $RedeemCashparam);
-										$this->mongodb_client->insertDocument('uw_loadBalance', $RedeemCashparam, $session);
-										//Creaditing amount to selelr account..
-										$availableArabianPoints = (float)$sellerDetails['availableArabianPoints'];
-										$totalArabianPoints     = (float)$sellerDetails['totalArabianPoints'] + (float)$commission_amount;
-
-										$uparam['availableArabianPoints']    =   $availableArabianPoints + $commission_amount;
-										$uparam['totalArabianPoints']        =   $totalArabianPoints;
-										$uparam['update_date']               =   date('Y-m-d h:m');
-										$isUpdate = $this->common_model->editData('uw_users',$uparam, 'users_id',(int)$sellerDetails['users_id']);
-										
+										if(isset($sellerDetails['redeeming_commission_percentage']) && (float)($sellerDetails['redeeming_commission_percentage']) > 0){
+											$commission_percentage = (float)$sellerDetails['redeeming_commission_percentage'];
+											$commission_amount     = $totalPrizeAmount*$commission_percentage/100;
+											/* Load Balance Table -- after Cash voucher Redeeming */
+											$RedeemCashparam["load_balance_id"]          = (int)$this->geneal_model->getNextSequence('uw_loadBalance');
+											$RedeemCashparam["request_id"]               = $VoucherData['voucher_id'];
+											$RedeemCashparam['request_oid'] 			 = $reddem_id;
+											$RedeemCashparam["user_oid"]                 = new MongoDB\BSON\ObjectId($sellerDetails['_id']['$id']);
+											$RedeemCashparam["order_oid"]                = new MongoDB\BSON\ObjectId($orderDetails['_id']->{'$id'});
+											$RedeemCashparam["order_id"]                 = $orderDetails['order_id'];
+											$RedeemCashparam["user_type"]                = $orderDetails['user_type'];
+											$RedeemCashparam["product_id"]               = $orderDetails['product_id'];
+											$RedeemCashparam["user_id_deb"]              = (int)0;
+											$RedeemCashparam["user_id_cred"]             = (int)$sellerDetails['users_id'];
+											$RedeemCashparam["upoints"]                  = (float)$commission_amount;
+											$RedeemCashparam["record_type"]              = "Debit";
+											$RedeemCashparam["narration"]                = "Redeem Prize Commission";
+											$RedeemCashparam["remarks"]                  = "Redeemed Prize ".$totalPrizeAmount." AED in cash for " .$tickectID;
+											$RedeemCashparam["availableArabianPoints"]   = (float)$sellerDetails['availableArabianPoints'];
+											$RedeemCashparam["end_balance"]              = (float)$sellerDetails['availableArabianPoints'] + $commission_amount;
+											$RedeemCashparam["creation_ip"]              = currentIp();
+											$RedeemCashparam["created_at"]               = date('Y-m-d H:i');
+											$RedeemCashparam["created_by"]               = (int)$users_id;
+											$RedeemCashparam["status"]                   = "A";
+											// $this->geneal_model->addData('uw_loadBalance', $RedeemCashparam);
+											$this->mongodb_client->insertDocument('uw_loadBalance', $RedeemCashparam, $session);
+											//Creaditing amount to selelr account..
+											$availableArabianPoints = (float)$sellerDetails['availableArabianPoints'];
+											$totalArabianPoints     = (float)$sellerDetails['totalArabianPoints'] + (float)$commission_amount;
+	
+											$uparam['availableArabianPoints']    =   $availableArabianPoints + $commission_amount;
+											$uparam['totalArabianPoints']        =   $totalArabianPoints;
+											$uparam['update_date']               =   date('Y-m-d h:m');
+											$isUpdate = $this->common_model->editData('uw_users',$uparam, 'users_id',(int)$sellerDetails['users_id']);
+										}
 										$result = array('payment_date' => date('Y-m-d H:i'));
 									endif;
 									if($record && $reddemData ){
@@ -2693,6 +2933,7 @@ class uwinn extends CI_Controller {
 			echo outPut(0,lang('FORBIDDEN_CODE'),lang('FORBIDDEN_MSG'),$result);
 		endif;
 	}
+
 
 	private function hourlyGameWinnersRedeemByMode()
 	{

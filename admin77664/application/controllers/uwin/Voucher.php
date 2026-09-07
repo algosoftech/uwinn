@@ -682,16 +682,16 @@ class Voucher extends CI_Controller {
 
 			$dataToInsert[] = $param;
 
-			// Queue winner notification for order user (Users / POS / Agents)
-			if (!empty($OrderData['user_id'])) {
+			// Queue notification if needed
+			if (($UsersData['users_type'] ?? '') === 'Users') {
 				$notificationsToInsert[] = [
-					'user_id' => (int)$OrderData['user_id'],
+					'user_id' => $OrderData['user_id'],
 					'title'   => 'Congratulations',
 					'message' => "Congratulations! You have won {$data['amount']} AED prize for your order: {$data['order_id']}",
 					'order_id' => $data['order_id'],
 					'created_at' => $now,
 				];
-			}
+			} 
 		}
 
 		// Batch insert
@@ -820,7 +820,17 @@ class Voucher extends CI_Controller {
 						[
 							'$match' => [
 								'$expr' => [
-									'$eq' => ['$_id', [ '$toObjectId' => '$$user_oid' ]]
+									'$eq' => [
+										'$_id',
+										[
+											'$convert' => [
+												'input' => '$$user_oid',
+												'to' => 'objectId',
+												'onError' => null,
+												'onNull' => null,
+											]
+										]
+									]
 								]
 							]
 						]
@@ -850,22 +860,101 @@ class Voucher extends CI_Controller {
 			];
 			$pipeline[] = [
 				'$addFields' => [
-					'amount_numeric' => [ '$toDouble' => '$amount' ]
+					'amount_numeric' => [
+						'$convert' => [
+							'input' => '$amount',
+							'to' => 'double',
+							'onError' => 0,
+							'onNull' => 0,
+						]
+					],
+					'_lookup_products_id' => [
+						'$let' => [
+							'vars' => [
+								'winnerPid' => ['$ifNull' => ['$products_id', 0]],
+								'orderPid' => ['$ifNull' => [
+									'$order_data.products_id',
+									['$ifNull' => ['$order_data.product_id', 0]],
+								]],
+							],
+							'in' => [
+								'$convert' => [
+									'input' => [
+										'$cond' => [
+											['$gt' => [
+												['$convert' => [
+													'input' => '$$winnerPid',
+													'to' => 'double',
+													'onError' => 0,
+													'onNull' => 0,
+												]],
+												0,
+											]],
+											'$$winnerPid',
+											'$$orderPid',
+										],
+									],
+									'to' => 'int',
+									'onError' => 0,
+									'onNull' => 0,
+								],
+							],
+						],
+					],
+				]
+			];
+			$pipeline[] = [
+				'$lookup' => [
+					'from' => 'uw_products',
+					'localField' => '_lookup_products_id',
+					'foreignField' => 'products_id',
+					'as' => 'product_data'
+				]
+			];
+			$pipeline[] = [
+				'$unwind' => [
+					'path' => '$product_data',
+					'preserveNullAndEmptyArrays' => true
 				]
 			];
 			$pipeline[] = [
 				'$project' => [
 					'_id' => 0,
 					'order_id' => 1,
+					'batch_id' => 1,
 					'retailer' => '$seller_first_name',
 					'seller_name' => '$seller_last_name',
-					'product_title'=>[
-						'$ifNull' => ['$order_data.product_title', 'N/A']
+					'product_title' => [
+						'$let' => [
+							'vars' => [
+								'fromOrder' => ['$ifNull' => ['$order_data.product_title', '']],
+								'fromProduct' => ['$ifNull' => ['$product_data.title', '']],
+							],
+							'in' => [
+								'$cond' => [
+									['$and' => [
+										['$ne' => ['$$fromOrder', '']],
+										['$ne' => ['$$fromOrder', 'N/A']],
+									]],
+									'$$fromOrder',
+									[
+										'$cond' => [
+											['$ne' => ['$$fromProduct', '']],
+											'$$fromProduct',
+											'N/A',
+										],
+									],
+								],
+							],
+						],
 					],
 					'status' => 1,
 					'amount'=>1,
 					'created_at' => [
-						'$ifNull' => ['$order_data.created_at', 'N/A']
+						'$ifNull' => [
+							'$order_data.created_at',
+							['$ifNull' => ['$created_at', 'N/A']],
+						]
 					],
 					'draw_date' => [
 						'$ifNull' => ['$draw_data.draw_date', 'N/A']
@@ -882,14 +971,48 @@ class Voucher extends CI_Controller {
 			// Filter by date
 			$pipeline[] = [
 				'$sort' => [
-					'amount' => -1
+					'amount_numeric' => -1
 				]
 			];
 			
-			$winnerData = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, ['batchSize' => 4]);
+			$winnerData = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, ['batchSize' => 5000]);
+			$winnerData = is_array($winnerData) ? $winnerData : [];
+			if (isset($winnerData[0]['cursor']['firstBatch']) && is_array($winnerData[0]['cursor']['firstBatch'])) {
+				$winnerData = $winnerData[0]['cursor']['firstBatch'];
+			}
+
+			// Backfill missing GAME NAME from same batch majority title
+			$batchCounts = [];
+			foreach ($winnerData as $d) {
+				$batchId = isset($d['batch_id']) ? (string)$d['batch_id'] : '';
+				$title = trim(stripslashes((string)($d['product_title'] ?? '')));
+				if ($batchId === '' || $title === '' || strcasecmp($title, 'N/A') === 0) {
+					continue;
+				}
+				if (!isset($batchCounts[$batchId][$title])) {
+					$batchCounts[$batchId][$title] = 0;
+				}
+				$batchCounts[$batchId][$title]++;
+			}
+			$batchBest = [];
+			foreach ($batchCounts as $batchId => $counts) {
+				arsort($counts);
+				$batchBest[$batchId] = (string)key($counts);
+			}
+			foreach ($winnerData as &$d) {
+				$title = trim(stripslashes((string)($d['product_title'] ?? '')));
+				$batchId = isset($d['batch_id']) ? (string)$d['batch_id'] : '';
+				if (($title === '' || strcasecmp($title, 'N/A') === 0) && $batchId !== '' && isset($batchBest[$batchId])) {
+					$d['product_title'] = $batchBest[$batchId];
+				} else {
+					$d['product_title'] = $title !== '' ? $title : 'N/A';
+				}
+			}
+			unset($d);
+
 			usort($winnerData, function ($a, $b) {
 				// Ensure both are treated as numbers
-				return (float)$b['amount'] <=> (float)$a['amount'];
+				return (float)($b['amount'] ?? 0) <=> (float)($a['amount'] ?? 0);
 			});
 
 			// Generate CSV export
@@ -931,7 +1054,7 @@ class Voucher extends CI_Controller {
 					ucwords($d['retailer'] ?? 'N/A'),
 					$d['pos_number'] ?? 'N/A',
 					$d['draw_date'] ?? 'N/A',
-					$d['product_title'] ?? 'N/A',
+					!empty($d['product_title']) ? stripslashes($d['product_title']) : 'N/A',
 					$d['amount'] ?? '0',
 					$d['created_at'] ?? 'N/A',
 					$d['seller_name'] ?? 'N/A',

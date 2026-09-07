@@ -96,8 +96,16 @@ class Wallet_statements extends CI_Controller {
 			// echo "<pre>"; print_r($userdetails); die();
 			if(!empty($userdetails)):
 			$user_OId     = $userdetails['_id']->{'$id'};
-			$walletwhereCon['where']  = array('user_oid' => new MongoDB\BSON\ObjectId($user_OId));
-			$dingWalletWhereCon['where'] = array('users_oid' => new MongoDB\BSON\ObjectId($user_OId));
+			$userOidObj   = new MongoDB\BSON\ObjectId($user_OId);
+			$usersIdInt   = (int)$userdetails['users_id'];
+			$walletwhereCon['where'] = array(
+				'$or' => array(
+					array('user_oid' => $userOidObj),
+					array('user_id_cred' => $usersIdInt),
+					array('user_id_deb' => $usersIdInt),
+				)
+			);
+			$dingWalletWhereCon['where'] = array('users_oid' => $userOidObj);
 			// Statements query start...
 			if($start_date):
 				$walletwhereCon['where_gte'] = 	array(array('0' => 'created_at', '1' => trim($start_date)));
@@ -220,8 +228,14 @@ class Wallet_statements extends CI_Controller {
 			$data['page_name'] = $userdetails['users_name'];
 			
 			$user_OId     = $userdetails['_id']->{'$id'};
-			$whereCondition['where']['user_oid'] =  new MongoDB\BSON\ObjectId($user_OId);
-			$dingWhereCondition['where']['users_oid'] =  new MongoDB\BSON\ObjectId($user_OId);
+			$userOidObj   = new MongoDB\BSON\ObjectId($user_OId);
+			$usersIdInt   = (int)$userdetails['users_id'];
+			$whereCondition['where']['$or'] = array(
+				array('user_oid' => $userOidObj),
+				array('user_id_cred' => $usersIdInt),
+				array('user_id_deb' => $usersIdInt),
+			);
+			$dingWhereCondition['where']['users_oid'] = $userOidObj;
 			// echo "<pre>";print_r($whereCondition);die();
 		endif;
 
@@ -312,8 +326,14 @@ class Wallet_statements extends CI_Controller {
 			$tblName 	  = 'uw_users';
 			$userdetails  = $this->common_model->getData('single',$tblName, $whereCon, $shortField);
 			$user_OId     = $userdetails['_id']->{'$id'};
-			$whereCondition['where']['user_oid'] =  new MongoDB\BSON\ObjectId($user_OId);
-			$dingWhereCondition['where']['users_oid'] =  new MongoDB\BSON\ObjectId($user_OId);
+			$userOidObj   = new MongoDB\BSON\ObjectId($user_OId);
+			$usersIdInt   = (int)$userdetails['users_id'];
+			$whereCondition['where']['$or'] = array(
+				array('user_oid' => $userOidObj),
+				array('user_id_cred' => $usersIdInt),
+				array('user_id_deb' => $usersIdInt),
+			);
+			$dingWhereCondition['where']['users_oid'] = $userOidObj;
 			// echo "<pre>";print_r($whereCondition);die();
 			
 			// $page = $this->input->post('pageno');
@@ -393,6 +413,31 @@ class Wallet_statements extends CI_Controller {
 		unset($row);
 
 		$merged = array_merge($walletList, $dingList);
+		$unique = array();
+		foreach ($merged as $row) {
+			$rowId = '';
+			if (isset($row['_id'])) {
+				if (is_object($row['_id']) && isset($row['_id']->{'$id'})) {
+					$rowId = (string)$row['_id']->{'$id'};
+				} elseif (is_object($row['_id'])) {
+					$rowId = (string)$row['_id'];
+				} elseif (is_array($row['_id']) && isset($row['_id']['$id'])) {
+					$rowId = (string)$row['_id']['$id'];
+				} elseif (isset($row['load_balance_id'])) {
+					$rowId = 'lb-'.$row['load_balance_id'];
+				}
+			} elseif (isset($row['load_balance_id'])) {
+				$rowId = 'lb-'.$row['load_balance_id'];
+			}
+			if ($rowId === '') {
+				$unique[] = $row;
+				continue;
+			}
+			if (!isset($unique[$rowId])) {
+				$unique[$rowId] = $row;
+			}
+		}
+		$merged = array_values($unique);
 		usort($merged, function($a, $b) {
 			return $this->_getWalletStatementSortTime($b) - $this->_getWalletStatementSortTime($a);
 		});

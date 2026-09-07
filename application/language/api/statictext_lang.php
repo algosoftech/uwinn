@@ -103,7 +103,7 @@ $lang['COLLECTION_CODE_EMPTY']							= 'Collection code is empty';
 $lang['PRODUCT_COLLECTED']								= 'Product is collected';
 $lang['DATA_NOT_FOUND']									= 'Data not found';
 $lang['PRODUCT_OUT_OF_STOCK']							= 'Product is out of stock';
-
+$lang['PRODUCT_NOT_FOUND']								= 'Product not found';
 $lang['RECHARGE_AMOUNT_EMPTY']							= 'Recharge amount is empty.';
 
 $lang['LOW_BALANCE']				  					= "You don't have sufficient balance";
@@ -116,6 +116,7 @@ $lang['GET_winner_DATA']	   							= "Get winner list successfully";
 
 $lang['Search_success']	   								= "Get search data successfully";
 $lang['Product_not_found']	   							= "Product not found";
+
 
 $lang['get_profile_success']	   						= "Get profile data successfully";
 $lang['refresh_point_success']	   						= "Refresh point successfully";
@@ -394,4 +395,3 @@ $lang['DING_RECHARGE_FAILED']							= 'Ding recharge failed. Please try again.';
 $lang['INVALID_SKU_CODE']								= 'Invalid SKU code.';
 $lang['INSUFFICIENT_BALANCE']							= 'Insufficient recharge balance.';
 $lang['DRAW_TIME_REQUIRED']								= 'Draw time is required.';
-$lang['GAME_MODE_EMPTY']							    = 'Game mode is empty';

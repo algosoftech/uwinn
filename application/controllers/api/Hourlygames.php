@@ -38,13 +38,33 @@ class Hourlygames extends CI_Controller {
 		$result 	   = array();
 		try {
 			if(requestAuthenticate(APIKEY,'GET')):
+
+
+				$usersId = $this->input->get('users_id');
+				
 				$tblName    = 'uw_hourly_games';
 				$whereCon['where']['status']         = "A";
 				$whereCon['where']['start_date']     = array('$lte' => strtotime(date('Y-m-d H:i:s')));
 				$whereCon['where']['expiry_date']    = array('$gt' => strtotime(date('Y-m-d H:i')));
 				$whereCon['where']['prize_setting']  = "enabled";
+				
 				$shortField = array('seq_order' => 1);
 				$resultData = $this->common_model->getData('multiple',$tblName,$whereCon,$shortField);
+
+				// if($usersId  == 100000000000016 || $usersId  == 100000000001252 || $usersId  == 2010194 || $usersId  == 100000000000514  || $usersId  == 100000000000843):
+					// foreach($resultData as $key => $items):
+					// 	// if($items['is_24_hours'] != "Y" && empty($items['title']) == "ROCKET 6/24"):
+					// 	if($items['title'] !== "ROCKET 6/24"):
+					// 		unset($resultData[$key]);
+					// 	endif;
+					// endforeach;
+				// else:
+				// 	foreach($resultData as $key => $items):
+				// 		if($items['title'] == "ROCKET 6/24"):
+				// 			unset($resultData[$key]);
+				// 		endif;
+				// 	endforeach;
+				// endif;
 
 				if($resultData):
 					$dd = array();
@@ -181,6 +201,18 @@ class Hourlygames extends CI_Controller {
 	// 					// ------------------------------------------------------------
 
 
+	// 					if( empty($is24Hours) || $is24Hours != 'Y'):
+	// 						if(strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+	// 							throw new Exception('Campaign expired. Please refresh the page and try again.');
+	// 						endif;
+	
+	// 						if($userData['users_type'] == "Users" && strtotime('-2 minutes',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+	// 							throw new Exception('Campaign expired. Please refresh the page and try again.');
+	// 						elseif( $userData['users_type'] != "Users" && strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+	// 							throw new Exception('Campaign expired. Please refresh the page and try again.');
+	// 						endif;
+	// 					endif;
+						
 	// 					if(empty($isCouponsRequired)):
 	// 						$isCouponsRequired = "Y";
 	// 					endif;
@@ -262,18 +294,7 @@ class Hourlygames extends CI_Controller {
 	// 							$drawTimeTs     = strtotime($drawTi);
 	// 							$drawTimeString = $drawTi;
 	// 						endif;
-
-	// 						$now = time();
-	// 						if(empty($drawTimeTs) || $drawTimeTs <= 0):
-	// 							throw new Exception(lang('DRAW_TIME_REQUIRED'), 1);
-	// 						endif;
-	// 						if($userData['users_type'] == "Users"):
-	// 							if(strtotime('-2 minutes', $drawTimeTs) < $now):
-	// 								throw new Exception('Campaign expired. Please refresh the page and try again.');
-	// 							endif;
-	// 						elseif(strtotime('-10 seconds', $drawTimeTs) < $now):
-	// 							throw new Exception('Campaign expired. Please refresh the page and try again.');
-	// 						endif;
+							
 
 	// 						$orderSeq      = floor((microtime(true) * 1000)).rand(100,999);
 	// 						$totalPrice    = $gameData['price'] * $qty;
@@ -406,13 +427,14 @@ class Hourlygames extends CI_Controller {
 	// 							}
 
 	// 							$CouponDetails = implode('. ', $output);
-
-	// 							if(!empty($drawTimeTs)):
-	// 								$drawDate = date('d.m.Y h:iA', $drawTimeTs);
+								
+	// 							if(!empty($$drawTimeTs)):
+	// 								$drawDate = date('d.m.Y h:iA', $$drawTimeTs);
 	// 							else:
 	// 								$drawDate = date('d.m.Y h:iA', $gameData['draw_time']);
 	// 							endif;
-
+								
+	// 							$drawDate = date('d.m.Y h:iA', $gameData['draw_time']);
 	// 							$message = 'Order ID '.$result['order_id'].' of '.$gameData['title'].' with coupons '.$CouponDetails.' Ddate '.$drawDate.' You can download the invoice here https://tktinvoice.com/uwin-download-invoice/'.$result['order_id'];
 
 	// 							if(!empty($buyerCountryCode) && !empty($buyerMobile) && !empty($message) && $smsType == "SMS"):
@@ -491,6 +513,9 @@ class Hourlygames extends CI_Controller {
 				$drawTimeString  = $this->input->post('draw_time_string');
 				$postedDrawTimeString = $drawTimeString;
 
+				$ddd['user_data'] = $_POST;
+				$this->common_model->addData('uw_debug',$ddd);
+
 				if(empty($usersId)):
 					throw new Exception(lang('USER_ID_EMPTY'), 1);
 				elseif(empty($productsId)):
@@ -543,16 +568,31 @@ class Hourlygames extends CI_Controller {
 						// endif;
 						// ------------------------------------------------------------
 
+					    // commented code on 20-08-26 to add new 3 min restriction
+						if($userData['users_type'] ==  "Users"){
+							// Restrict purchasing within last 3 minutes before draw time
+							$purchaseCutoffMsg = 'The draw has expired. Please choose a different draw time.';
 
-						// Restrict purchasing within last 3 minutes before draw time
-						$purchaseCutoffMsg = 'Purchasing is closed 3 minutes before draw time. Please try the next draw.';
-
-						if( empty($is24Hours) || $is24Hours != 'Y'):
-							$nowTs = strtotime(date('Y-m-d H:i:s'));
-							if(strtotime('-3 minutes', $gameData['draw_time']) < $nowTs):
-								throw new Exception($purchaseCutoffMsg);
+							if( empty($is24Hours) || $is24Hours != 'Y'):
+								$nowTs = strtotime(date('Y-m-d H:i:s'));
+								if(strtotime('-3 minutes', $gameData['draw_time']) < $nowTs):
+									throw new Exception($purchaseCutoffMsg);
+								endif;
 							endif;
-						endif;
+						} else {
+							if( empty($is24Hours) || $is24Hours != 'Y'):
+								if(strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+									throw new Exception('Campaign expired. Please refresh the page and try again.');
+								endif;
+							
+								if($userData['users_type'] == "Users" && strtotime('-2 minutes',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+									throw new Exception('Campaign expired. Please refresh the page and try again.');
+								elseif( $userData['users_type'] != "Users" && strtotime('-10 seconds',$gameData['draw_time']) < strtotime(date('Y-m-d H:i:s'))):
+									throw new Exception('Campaign expired. Please refresh the page and try again.');
+								endif;
+							endif;
+						}
+						
 						
 						if(empty($isCouponsRequired)):
 							$isCouponsRequired = "Y";
@@ -635,10 +675,16 @@ class Hourlygames extends CI_Controller {
 								if(empty($drawTimeTs) || $drawTimeTs <= 0):
 									throw new Exception(lang('DRAW_TIME_REQUIRED'), 1);
 								endif;
-								// Restrict purchasing within last 3 minutes before selected draw time
-								if(strtotime('-3 minutes', $drawTimeTs) < $now):
-									throw new Exception('Purchasing is closed 3 minutes before draw time. Please try the next draw.');
-								endif;
+								if($userData['users_type'] ==  "Users"){
+									// Restrict purchasing within last 3 minutes before selected draw time
+									if(strtotime('-3 minutes', $drawTimeTs) < $now):
+										throw new Exception('The draw has expired. Please choose a different draw time.');
+									endif;
+								} else {
+									if(strtotime('-10 seconds', $drawTimeTs) < $now):
+										throw new Exception('Campaign expired. Please refresh the page and try again.');
+									endif;
+								}
 							endif;
 
 							$orderSeq      = floor((microtime(true) * 1000)).rand(100,999);
@@ -825,6 +871,7 @@ class Hourlygames extends CI_Controller {
 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
 		}
 	}
+
 	/* * *********************************************************************
 	 * * Function name : updateOrder
 	 * * Developed By  : Dilip Halder
@@ -956,6 +1003,110 @@ class Hourlygames extends CI_Controller {
 	 * * Purpose  	   : This function used to cancellation order details.
 	 * * Date 		   : 20 May 2026
 	 * * **********************************************************************/
+	// public function cancellationOrder()
+	// {
+	// 	$apiHeaderData = getApiHeaderData();
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST));
+	// 	$result 	   = array();
+	// 	try {
+	// 		if(requestAuthenticate(APIKEY,'POST')):
+	// 			$usersId    = $this->input->post('users_id');
+	// 			$orderOId   = $this->input->post('order_oid');
+
+	// 			// $this->session->sess_regenerate();
+	// 			// $session = $this->mongodb_client->startSession();
+	// 			// $session->startTransaction();
+
+	// 			if(empty($usersId)):
+	// 				throw new Exception(lang('USER_ID_EMPTY'), 1);
+	// 			elseif(empty($orderOId)):
+	// 				throw new Exception(lang('ORDER_ID_EMPTY'), 1);
+	// 			else:
+
+	// 				$whereCon['where'] = array('users_id' => (int)$usersId);
+	// 				$FieldList = array('users_id', 'status', 'availableArabianPoints');
+	// 				$UserData   = $this->common_model->getParticularFieldByMultipleCondition($FieldList,'uw_users',$whereCon );
+
+	// 				if(empty($UserData)):
+	// 					throw new Exception(lang('USER_NOT_FOUND'), 1);
+	// 				elseif($UserData['status'] != 'A'):
+	// 					throw new Exception(lang('INVALID_USER'), 1);
+	// 				else:
+
+	// 					$tblName = 'uw_hourly_orders';
+	// 					$whereCon['where'] = array();
+	// 					$whereCon['where']['_id'] = new MongoDB\BSON\ObjectID($orderOId);
+	// 					$orderDetails = $this->common_model->getData('single',$tblName,$whereCon);
+
+	// 					$currentDateTime = date('Y-m-d H:i:s');
+	// 					$currentDateTime = strtotime($currentDateTime);
+						
+	// 					if(empty($orderDetails)):
+	// 						throw new Exception(lang('DATA_NOT_FOUND'), 1);
+	// 					elseif($orderDetails['status'] == 'CL'):
+	// 						throw new Exception(lang('ORDER_ALREADY_CANCELLED'), 1);
+	// 					elseif($currentDateTime >= $orderDetails['expiry_date'] ):
+	// 						throw new Exception(lang('CANNOT_CANCEL_ORDER'), 1);
+	// 					elseif($orderDetails['status'] == 'A'):
+
+	// 						/* updated order status */
+	// 						$param1['status']		= 'CL';
+	// 						$param1['update_ip']	= currentIp();
+	// 						$param1['update_date']  = (int)$this->timezone->utc_time();//currentDateTime();
+	// 						$param1['refund_date']	= (int)$this->timezone->utc_time();//currentDateTime();
+	// 						$param1['updated_by']	= (int)$usersId;
+	// 						$param1['cancel_reason']= 'android api Hourly Game';
+	// 						$orderWhereCon          = array('_id' => new MongoDB\BSON\ObjectId($orderOId));
+	// 						$update1 = $this->common_model->editData('uw_hourly_orders',$param1,'_id', new MongoDB\BSON\ObjectID($orderOId));
+	// 						$update2 = $this->common_model->editMultipleDataByMultipleCondition('uw_hourly_tickets', $param1, $orderWhereCon);
+	// 						// $update1 = $this->mongodb_client->updateDocument('uw_hourly_orders',$orderWhereCon, ['$set' => $param1],$session);
+	// 						// $update2 = $this->mongodb_client->updateDocument('uw_hourly_tickets',$orderWhereCon, ['$set' => $param1],$session);
+
+	// 						/* Generating order cancellation record in loadbalance */
+	// 						$loadBalanceParam['users_id']        = (int)$usersId;
+	// 						$loadBalanceParam['user_oid']        = new MongoDB\BSON\ObjectID($UserData['_id']['$id']);
+	// 						$loadBalanceParam['load_balance_id'] = $this->common_model->getNextSequence('loadBalance');
+	// 						$loadBalanceParam['order_oid']     = new MongoDB\BSON\ObjectID($orderOId);
+	// 						$loadBalanceParam['product_oid']   = new MongoDB\BSON\ObjectID($orderDetails['products_oid']);
+	// 						$loadBalanceParam['user_id_deb']   = (int)0;
+	// 						$loadBalanceParam['user_id_cred']  = (int)$usersId;
+	// 						$loadBalanceParam['order_id']      = $orderDetails['order_id'];
+	// 						$loadBalanceParam['upoints']       = (float)$orderDetails['total_price'];
+	// 						$loadBalanceParam['availableArabianPoints'] = (float)$UserData['availableArabianPoints'];
+	// 						$loadBalanceParam['end_balance']   = (float)$UserData['availableArabianPoints'] + (float)$orderDetails['total_price'];
+	// 						$loadBalanceParam['record_type']   = 'Credit';
+	// 						$loadBalanceParam['narration']     = 'Hourly Game Order Cancelled';
+	// 						$loadBalanceParam['remarks']       = 'Order ID: '.$orderDetails['order_id'];
+	// 						$loadBalanceParam['created_at']    = date('Y-m-d H:i:s');
+	// 						$loadBalanceParam['created_by']    = (int)$usersId;
+	// 						$loadBalanceParam['status']        = 'A';	
+	// 						// echo "<pre>";print_r($loadBalanceParam);die();
+	// 						$update2 = $this->common_model->addData('uw_loadBalance',$loadBalanceParam);
+	// 						// $update2 = $this->mongodb_client->insertDocument('uw_loadBalance', $loadBalanceParam, $session);
+							
+	// 						/* Balance Updated.. */
+	// 						$updateBalance['availableArabianPoints'] = (float)$loadBalanceParam['end_balance'];
+	// 						$update3 = $this->common_model->editData('uw_users',$updateBalance,'users_id',(int)$usersId);
+	// 						// $update3 = $this->mongodb_client->updateDocument(
+	// 						// 	'uw_users',         				// Collection name
+	// 						// 	['users_id' => (int)$usersId],       // Filter / condition for which document to update
+	// 						// 	['$set' => $updateBalance],         // Proper MongoDB update syntax
+	// 						// 	$session                            // MongoDB session (optional)
+	// 						// );
+
+	// 						// $session->commitTransaction();
+	// 						// $this->mongodb_client->commitTransaction($session);
+	// 						echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_CANCELLED_SUCCESSFULLY'),$result);
+	// 					endif;
+	// 				endif;
+	// 			endif;
+	// 		else:
+	// 			throw new Exception(lang('FORBIDDEN_MSG'),1);
+	// 		endif;
+	// 	} catch (Exception $e) {
+	// 		echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);	
+	// 	}
+	// }
 	public function cancellationOrder()
 	{
 		$apiHeaderData = getApiHeaderData();
@@ -1942,6 +2093,7 @@ class Hourlygames extends CI_Controller {
 					$whereCondition = array();
 
 					if(!empty($productName)):
+						$productName = str_replace('_', '/', $productName);
 						$whereConProduct['where']['title'] = $productName;
 						$whereConProduct['select']         = array('_id' => 1);
 						$productData = $this->common_model->getData('single','uw_hourly_games',$whereConProduct);
@@ -1953,10 +2105,11 @@ class Hourlygames extends CI_Controller {
 						endif;
 					endif;
 
-					$whereCondition['where']['created_at'] = array(
-						'$gte' => strtotime(date('Y-m-d H:i:00', strtotime($startDate))),
-						'$lte' => strtotime(date('Y-m-d H:i:59', strtotime($endDate)))
-					);
+					// $whereCondition['where']['created_at'] = array(
+					// 	'$gte' => strtotime(date('Y-m-d H:i:00', strtotime($startDate))),
+					// 	'$lte' => strtotime(date('Y-m-d H:i:59', strtotime($endDate)))
+					// );
+					$whereCondition['where']['draw_time'] =  strtotime($startDate);
 					// $whereCondition['where']['status'] = "A";
 					$whereCondition['where']['status'] = array('$in' => array('A', 'Redeemed'));
 
@@ -2370,4 +2523,5 @@ class Hourlygames extends CI_Controller {
 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
 		}
 	}
+	
 }

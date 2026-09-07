@@ -89,13 +89,24 @@
                 data: { pageno: currentPage, searchField: searchField, searchValue: searchValue, fromDate: fromDate, toDate: toDate },
                 success: function(data) {
                     allData = allData.concat(JSON.parse(data)); // Store the data
-                    allData = allData.map((row, index) => {
-                        return { "Sl.No": index + 1, ...row };
-                    });
                     
                     responsesReceived++;
                     if (responsesReceived == totalPage) {
                         clearInterval(intervalId);
+
+                        // Date and time both ASC: day 1 then day 2, 00:00 then 23:59
+                        allData.sort(function(a, b) {
+                            var da = String(a['Settled Date'] || '');
+                            var db = String(b['Settled Date'] || '');
+                            if (da === db) {
+                                return 0;
+                            }
+                            return da < db ? -1 : 1;
+                        });
+                        allData = allData.map(function(row, index) {
+                            delete row['Sl.No'];
+                            return Object.assign({ "Sl.No": index + 1 }, row);
+                        });
 
                         const curdate = new Date().toISOString().slice(0, 10).replace(/-/g, '-');
                         const filename = 'U-WIN-Winners-' + curdate + '.xlsx';

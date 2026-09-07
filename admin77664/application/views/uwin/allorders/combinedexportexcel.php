@@ -157,8 +157,56 @@
             });
         }
 
+        function backfillGameNamesByBatch(rows) {
+            var batchCounts = {};
+            (rows || []).forEach(function (row) {
+                var batchId = row && row['BATCH ID'] !== undefined && row['BATCH ID'] !== null
+                    ? String(row['BATCH ID']).trim()
+                    : '';
+                var gameName = row && row['GAME NAME'] !== undefined && row['GAME NAME'] !== null
+                    ? String(row['GAME NAME']).trim()
+                    : '';
+                if (!batchId || !gameName || gameName.toUpperCase() === 'N/A') {
+                    return;
+                }
+                if (!batchCounts[batchId]) {
+                    batchCounts[batchId] = {};
+                }
+                batchCounts[batchId][gameName] = (batchCounts[batchId][gameName] || 0) + 1;
+            });
+
+            var batchBest = {};
+            Object.keys(batchCounts).forEach(function (batchId) {
+                var bestName = '';
+                var bestCount = -1;
+                Object.keys(batchCounts[batchId]).forEach(function (gameName) {
+                    if (batchCounts[batchId][gameName] > bestCount) {
+                        bestCount = batchCounts[batchId][gameName];
+                        bestName = gameName;
+                    }
+                });
+                if (bestName) {
+                    batchBest[batchId] = bestName;
+                }
+            });
+
+            return (rows || []).map(function (row) {
+                var next = Object.assign({}, row);
+                var batchId = next['BATCH ID'] !== undefined && next['BATCH ID'] !== null
+                    ? String(next['BATCH ID']).trim()
+                    : '';
+                var gameName = next['GAME NAME'] !== undefined && next['GAME NAME'] !== null
+                    ? String(next['GAME NAME']).trim()
+                    : '';
+                if ((!gameName || gameName.toUpperCase() === 'N/A') && batchId && batchBest[batchId]) {
+                    next['GAME NAME'] = batchBest[batchId];
+                }
+                return next;
+            });
+        }
+
         function mergeExportRows(hourly, bigWinners) {
-            var allRows = (hourly || []).concat(bigWinners || []).filter(isMeaningfulRow);
+            var allRows = backfillGameNamesByBatch((hourly || []).concat(bigWinners || [])).filter(isMeaningfulRow);
             if (!allRows.length) {
                 return [{'No data': ''}];
             }
@@ -246,7 +294,7 @@
         }
 
         function fetchBigWinnersPage() {
-            if (bigWinnersCurrentPage > bigWinnersTotalPage) {
+            if (bigWinnersTotalPage < 1 || bigWinnersCurrentPage > bigWinnersTotalPage) {
                 buildExcelFile();
                 return;
             }
@@ -258,7 +306,7 @@
             fetchApiPage('big_winners', bigWinnersCurrentPage).then(function (rows) {
                 bigWinnersData = bigWinnersData.concat(rows);
                 bigWinnersCurrentPage++;
-                if (!rows.length || rows.length < 5000) {
+                if (bigWinnersCurrentPage > bigWinnersTotalPage) {
                     buildExcelFile();
                     return;
                 }

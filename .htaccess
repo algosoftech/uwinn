@@ -1,27 +1,22 @@
-# Options +FollowSymlinks
-# RewriteEngine On
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 
-# # Caching rules
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-# ExpiresByType image/png "access plus 1 day"
-# ExpiresByType image/gif "access plus 1 day"
-# ExpiresByType image/jpeg "access plus 1 day"
-# ExpiresByType text/css "access plus 1 day"
+    RewriteCond %{REQUEST_URI} ^/system.*
+    RewriteRule ^(.*)$ index.php?/$1 [L]
 
-# RewriteCond %{REQUEST_URI} ^/system.*
-# RewriteRule ^(.*)$ index.php?/$1 [L]
-# RewriteCond %{REQUEST_FILENAME} !-f
-# RewriteCond %{REQUEST_FILENAME} !-d
-# RewriteRule ^(.+)$ index.php?/$1 [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.+)$ index.php?/$1 [L]
+</IfModule>
 
-# RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
-# RewriteRule ^(.*)$ https://%1%{REQUEST_URI} [R=301,QSA,NC,L]
+<IfModule mod_expires.c>
+    ExpiresByType image/png "access plus 1 day"
+    ExpiresByType image/gif "access plus 1 day"
+    ExpiresByType image/jpeg "access plus 1 day"
+    ExpiresByType text/css "access plus 1 day"
+</IfModule>
 
-Options +FollowSymlinks
-RewriteEngine On
-
-RewriteCond %{REQUEST_URI} ^/system.*
-RewriteRule ^(.*)$ index.php?/$1 [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.+)$ index.php?/$1 [L]
+Options -Indexes

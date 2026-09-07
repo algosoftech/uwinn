@@ -86,14 +86,16 @@ class CommonReportSummary extends CI_Controller {
             );
 
             // ── 3. Hourly / getHourlyReportSummary ────────────────────────
-            $fmtStart  = date('Y-m-d H:i:01', strtotime($startDate));
-            $fmtEnd    = date('Y-m-d H:i:59', strtotime($endDate));
+            $fmtStart    = date('Y-m-d H:i:00', strtotime($startDate));
+            $fmtEnd      = date('Y-m-d H:i:59', strtotime($endDate));
+            $ledgerStart = date('Y-m-d H:i', strtotime($startDate));
+            $ledgerEnd   = date('Y-m-d H:i', strtotime($endDate));
             $result['hourly_summary'] = $this->getHourlyReportSummary(
                 $userData,
                 strtotime($fmtStart),
                 strtotime($fmtEnd),
-                $fmtStart,
-                $fmtEnd,
+                $ledgerStart,
+                $ledgerEnd,
                 $productTitle
             );
 
@@ -617,8 +619,12 @@ class CommonReportSummary extends CI_Controller {
 			else:
 
 				
-				if( (string)$order['users_oid']  == $userOid &&  $order['created_at'] > $startTs  && $order['created_at'] < $endTs):
-					$productMap[$productKey]['sales_count'] += $order['qty'];
+				if(
+					(string)$order['users_oid'] === (string)$userOid &&
+					(int)$order['created_at'] >= (int)$startTs &&
+					(int)$order['created_at'] <= (int)$endTs
+				):
+					$productMap[$productKey]['sales_count'] += (int)($order['qty'] ?? 1);
 					$productMap[$productKey]['totalSalesCount'] += 1;
 					$productMap[$productKey]['sales'] += (float)($order['total_price'] ?? 0);
 				endif;
@@ -670,6 +676,8 @@ class CommonReportSummary extends CI_Controller {
 				endif;
 			endforeach;
 		endif;
+
+		$this->_mergeMissingHourlyOrdersFromLedger($userOid, $startDate, $endDate, $allOrderIds, $productMap, $startTs, $endTs);
 
 		foreach($productMap as $key => $item):
 			$gameDetails = array();
@@ -724,6 +732,9 @@ class CommonReportSummary extends CI_Controller {
 			$commissionAmount = 0;
 			$cancelAmount = 0;
 			$customerPaid = 0;
+			$salesAmount = !empty($orderIds)
+				? $this->_getHourlyTotalSalesFromLoadBalance($userOid, '', '', $orderIds)
+				: 0;
 
 			foreach($loadRows as $row):
 				$narration = isset($row['narration']) ? $row['narration'] : '';
@@ -739,6 +750,9 @@ class CommonReportSummary extends CI_Controller {
 				endif;
 			endforeach;
 
+			if(!empty($orderIds)):
+				$totalProductDetails[$idx]['sales'] = $salesAmount;
+			endif;
 			$totalProductDetails[$idx]['commissionAmount'] = round($commissionAmount, 2);
 			$totalProductDetails[$idx]['totalcancelOrderAmount'] = round($cancelAmount, 2);
 			$totalProductDetails[$idx]['totalCustomerPaid'] = round($customerPaid, 2);
@@ -767,6 +781,10 @@ class CommonReportSummary extends CI_Controller {
 		endforeach;
 		$totalProductDetails = array_values($totalProductDetails);
 
+		if(empty($productTitle)):
+			$totalSales = $this->_getHourlyTotalSalesFromLoadBalance($userOid, $startDate, $endDate);
+		endif;
+
 		$dueBalance = $totalSales - $totalCommission - $totalPaid;
 		return array(
 			'totalSalesCount' => (string)$totalSalesCount,
@@ -778,5 +796,119 @@ class CommonReportSummary extends CI_Controller {
 			'totalProductDetails' => $totalProductDetails
 		);
 	}
+
+    /**
+     * Net hourly sales from load balance ledger (same date logic as lotto totalSales).
+     */
+    private function _getHourlyTotalSalesFromLoadBalance($userOid, $ledgerStart = '', $ledgerEnd = '', $orderIds = array())
+    {
+        $whereCon = array(
+            'user_oid'  => $userOid,
+            'narration' => array('$in' => array('Hourly Game Order', 'Hourly Game Order Cancelled'))
+        );
+        if($ledgerStart !== '' && $ledgerEnd !== ''):
+            $whereCon['created_at'] = array('$gte' => $ledgerStart, '$lte' => $ledgerEnd);
+        endif;
+        if(!empty($orderIds)):
+            $whereCon['order_id'] = array('$in' => array_values(array_unique($orderIds)));
+        endif;
+
+        $loadCon['where'] = $whereCon;
+        $rows = $this->common_model->getData('multiple', 'uw_loadBalance', $loadCon);
+        $netSales = 0;
+        if(!empty($rows)):
+            foreach($rows as $row):
+                $narration = isset($row['narration']) ? $row['narration'] : '';
+                $upoints   = (float)($row['upoints'] ?? 0);
+                if($narration == 'Hourly Game Order'):
+                    $netSales += $upoints;
+                elseif($narration == 'Hourly Game Order Cancelled'):
+                    $netSales -= $upoints;
+                endif;
+            endforeach;
+        endif;
+        return round($netSales, 2);
+    }
+
+    /**
+     * Add hourly orders that exist in load balance but were missed by order query.
+     */
+    private function _mergeMissingHourlyOrdersFromLedger($userOid, $ledgerStart, $ledgerEnd, &$allOrderIds, &$productMap, $startTs, $endTs)
+    {
+        $ledgerCon['where'] = array(
+            'user_oid'   => $userOid,
+            'created_at' => array('$gte' => $ledgerStart, '$lte' => $ledgerEnd),
+            'narration'  => 'Hourly Game Order'
+        );
+        $ledgerRows = $this->common_model->getData('multiple', 'uw_loadBalance', $ledgerCon);
+        if(empty($ledgerRows)):
+            return;
+        endif;
+
+        $knownOrderIds = array_flip(array_values(array_unique((array)$allOrderIds)));
+        foreach($ledgerRows as $ledgerRow):
+            $orderId = isset($ledgerRow['order_id']) ? (string)$ledgerRow['order_id'] : '';
+            if($orderId === '' || isset($knownOrderIds[$orderId])):
+                continue;
+            endif;
+
+            $orderCon['where']['order_id'] = $orderId;
+            $orderInfo = $this->common_model->getData('single', 'uw_hourly_orders', $orderCon);
+            if(empty($orderInfo)):
+                continue;
+            endif;
+
+            if((string)$orderInfo['users_oid'] !== (string)$userOid):
+                continue;
+            endif;
+
+            $productKey = '';
+            if(!empty($orderInfo['products_oid']) && isset($orderInfo['products_oid']->{'$id'})):
+                $productKey = $orderInfo['products_oid']->{'$id'};
+            else:
+                $productKey = isset($orderInfo['products_name']) ? $orderInfo['products_name'] : 'N/A';
+            endif;
+
+            if(!isset($productMap[$productKey])):
+                $productMap[$productKey] = array(
+                    '_id' => isset($orderInfo['products_name']) ? $orderInfo['products_name'] : 'N/A',
+                    'price' => 0,
+                    'sales_count' => 0,
+                    'totalSalesCount' => 0,
+                    'sales' => 0,
+                    'product_image' => '',
+                    'product_id' => isset($orderInfo['products_id']) ? (int)$orderInfo['products_id'] : 0,
+                    'draw_date' => '',
+                    'draw_time' => '',
+                    'commissionAmount' => 0,
+                    'totalcancelOrderAmount' => 0,
+                    'totalCustomerPaid' => 0,
+                    'order_ids' => array(),
+                    'products_oid_str' => (!empty($orderInfo['products_oid']) && isset($orderInfo['products_oid']->{'$id'})) ? (string)$orderInfo['products_oid']->{'$id'} : '',
+                    'products_name' => isset($orderInfo['products_name']) ? (string)$orderInfo['products_name'] : ''
+                );
+            endif;
+
+            if(isset($orderInfo['status']) && $orderInfo['status'] != 'CL'):
+                if(
+                    (int)$orderInfo['created_at'] >= (int)$startTs &&
+                    (int)$orderInfo['created_at'] <= (int)$endTs
+                ):
+                    $productMap[$productKey]['sales_count'] += (int)($orderInfo['qty'] ?? 1);
+                    $productMap[$productKey]['totalSalesCount'] += 1;
+                    $productMap[$productKey]['sales'] += (float)($orderInfo['total_price'] ?? 0);
+                endif;
+            endif;
+
+            $productMap[$productKey]['order_ids'][] = $orderId;
+            $allOrderIds[] = $orderId;
+            $knownOrderIds[$orderId] = true;
+
+            if(empty($productMap[$productKey]['draw_date']) && !empty($orderInfo['expiry_date']) && is_numeric($orderInfo['expiry_date'])):
+                $productMap[$productKey]['draw_date'] = date('Y-m-d', (int)$orderInfo['expiry_date']);
+                $productMap[$productKey]['draw_time'] = date('H:i', (int)$orderInfo['expiry_date']);
+            endif;
+        endforeach;
+    }
 	
 }

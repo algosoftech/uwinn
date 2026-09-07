@@ -960,6 +960,7 @@ class Alllottoorders extends CI_Controller {
 			'PURCHASE DATE' => $purchaseDate,
 			'AREA' => !empty($itemsArray['area']) ? $itemsArray['area'] : 'N/A',
 			'BIND WITH' => !empty($itemsArray['seller_users_bind_person_name']) ? $itemsArray['seller_users_bind_person_name'] : 'N/A',
+			'BATCH ID' => '',
 		);
 	}
 
@@ -1237,7 +1238,20 @@ class Alllottoorders extends CI_Controller {
 			);
 		endif;
 		$pipeline[] = array('$match' => $match);
-		$pipeline[] = array('$sort' => array('amount' => -1));
+		// Numeric sort so low prize amounts (e.g. 15) are not cut incorrectly across pages
+		$pipeline[] = array(
+			'$addFields' => array(
+				'amount_sort' => array(
+					'$convert' => array(
+						'input' => '$amount',
+						'to' => 'double',
+						'onError' => 0,
+						'onNull' => 0,
+					),
+				),
+			),
+		);
+		$pipeline[] = array('$sort' => array('amount_sort' => -1, 'voucher_id' => 1));
 		if($page !== null):
 			$startIndex = (max(1, (int)$page) - 1) * (int)$itemsPerPage;
 			$pipeline[] = array('$skip' => $startIndex);
@@ -1265,7 +1279,17 @@ class Alllottoorders extends CI_Controller {
 					array(
 						'$match' => array(
 							'$expr' => array(
-								'$eq' => array('$_id', array('$toObjectId' => '$$user_oid')),
+								'$eq' => array(
+									'$_id',
+									array(
+										'$convert' => array(
+											'input' => '$$user_oid',
+											'to' => 'objectId',
+											'onError' => null,
+											'onNull' => null,
+										),
+									),
+								),
 							),
 						),
 					),
@@ -1293,16 +1317,98 @@ class Alllottoorders extends CI_Controller {
 				'preserveNullAndEmptyArrays' => true,
 			),
 		);
+		// Prefer winner.products_id, else order.products_id / product_id
+		$pipeline[] = array(
+			'$addFields' => array(
+				'_lookup_products_id' => array(
+					'$let' => array(
+						'vars' => array(
+							'winnerPid' => array('$ifNull' => array('$products_id', 0)),
+							'orderPid' => array('$ifNull' => array(
+								'$order_data.products_id',
+								array('$ifNull' => array('$order_data.product_id', 0)),
+							)),
+						),
+						'in' => array(
+							'$convert' => array(
+								'input' => array(
+									'$cond' => array(
+										array('$gt' => array(
+											array('$convert' => array(
+												'input' => '$$winnerPid',
+												'to' => 'double',
+												'onError' => 0,
+												'onNull' => 0,
+											)),
+											0,
+										)),
+										'$$winnerPid',
+										'$$orderPid',
+									),
+								),
+								'to' => 'int',
+								'onError' => 0,
+								'onNull' => 0,
+							),
+						),
+					),
+				),
+			),
+		);
+		$pipeline[] = array(
+			'$lookup' => array(
+				'from' => 'uw_products',
+				'localField' => '_lookup_products_id',
+				'foreignField' => 'products_id',
+				'as' => 'product_data',
+			),
+		);
+		$pipeline[] = array(
+			'$unwind' => array(
+				'path' => '$product_data',
+				'preserveNullAndEmptyArrays' => true,
+			),
+		);
 		$pipeline[] = array(
 			'$project' => array(
 				'_id' => 0,
 				'order_id' => 1,
+				'batch_id' => 1,
+				'csv_name' => 1,
 				'retailer' => '$seller_first_name',
 				'seller_name' => '$seller_last_name',
-				'product_title' => array('$ifNull' => array('$order_data.product_title', 'N/A')),
+				'product_title' => array(
+					'$let' => array(
+						'vars' => array(
+							'fromOrder' => array('$ifNull' => array('$order_data.product_title', '')),
+							'fromProduct' => array('$ifNull' => array('$product_data.title', '')),
+						),
+						'in' => array(
+							'$cond' => array(
+								array('$and' => array(
+									array('$ne' => array('$$fromOrder', '')),
+									array('$ne' => array('$$fromOrder', 'N/A')),
+								)),
+								'$$fromOrder',
+								array(
+									'$cond' => array(
+										array('$ne' => array('$$fromProduct', '')),
+										'$$fromProduct',
+										'N/A',
+									),
+								),
+							),
+						),
+					),
+				),
 				'status' => 1,
 				'amount' => 1,
-				'created_at' => array('$ifNull' => array('$order_data.created_at', 'N/A')),
+				'created_at' => array(
+					'$ifNull' => array(
+						'$order_data.created_at',
+						array('$ifNull' => array('$created_at', 'N/A')),
+					),
+				),
 				'draw_date' => array('$ifNull' => array('$draw_data.draw_date', 'N/A')),
 				'bind_person_name' => array('$ifNull' => array('$user_data.bind_person_name', 'N/A')),
 				'pos_number' => array('$ifNull' => array('$user_data.pos_number', 'N/A')),
@@ -1322,17 +1428,62 @@ class Alllottoorders extends CI_Controller {
 	private function mapVoucherWinnerRowForCombined(array $row)
 	{
 		$posNumber = $row['pos_number'] ?? 'N/A';
+		$gameName = !empty($row['product_title']) ? stripslashes($row['product_title']) : 'N/A';
+		if($gameName === '' || strcasecmp($gameName, 'N/A') === 0):
+			$gameName = 'N/A';
+		endif;
 		return array(
 			'ORDER ID' => !empty($row['order_id']) ? $row['order_id'] : 'N/A',
 			'RETAILER' => !empty($row['retailer']) ? ucwords($row['retailer']) : 'N/A',
 			'POS NUMBER' => is_numeric($posNumber) ? (int)$posNumber : $posNumber,
 			'DRAW DATE' => $this->formatCombinedExportDrawDate($row['draw_date'] ?? 'N/A'),
-			'GAME NAME' => !empty($row['product_title']) ? $row['product_title'] : 'N/A',
+			'GAME NAME' => $gameName,
 			'PRIZE MONEY' => $this->normalizeCombinedExportAmount($row['amount'] ?? 0),
 			'PURCHASE DATE' => $this->formatCombinedExportPurchaseDateTime($row['created_at'] ?? 'N/A'),
 			'AREA' => !empty($row['seller_name']) ? $row['seller_name'] : 'N/A',
 			'BIND WITH' => !empty($row['bind_person_name']) ? $row['bind_person_name'] : 'N/A',
+			'BATCH ID' => isset($row['batch_id']) && $row['batch_id'] !== '' && $row['batch_id'] !== null
+				? (int)$row['batch_id']
+				: '',
 		);
+	}
+
+	/**
+	 * When order lookup misses product_title, copy the majority GAME NAME from the same batch.
+	 */
+	private function backfillCombinedGameNamesByBatch(array $rows)
+	{
+		$batchCounts = array();
+		foreach($rows as $row):
+			$batchId = isset($row['BATCH ID']) ? trim((string)$row['BATCH ID']) : '';
+			$gameName = isset($row['GAME NAME']) ? trim((string)$row['GAME NAME']) : '';
+			if($batchId === '' || $gameName === '' || strcasecmp($gameName, 'N/A') === 0):
+				continue;
+			endif;
+			if(!isset($batchCounts[$batchId])):
+				$batchCounts[$batchId] = array();
+			endif;
+			if(!isset($batchCounts[$batchId][$gameName])):
+				$batchCounts[$batchId][$gameName] = 0;
+			endif;
+			$batchCounts[$batchId][$gameName]++;
+		endforeach;
+
+		$batchBest = array();
+		foreach($batchCounts as $batchId => $counts):
+			arsort($counts);
+			$batchBest[$batchId] = (string)key($counts);
+		endforeach;
+
+		foreach($rows as &$row):
+			$batchId = isset($row['BATCH ID']) ? trim((string)$row['BATCH ID']) : '';
+			$gameName = isset($row['GAME NAME']) ? trim((string)$row['GAME NAME']) : '';
+			if(($gameName === '' || strcasecmp($gameName, 'N/A') === 0) && $batchId !== '' && isset($batchBest[$batchId])):
+				$row['GAME NAME'] = $batchBest[$batchId];
+			endif;
+		endforeach;
+		unset($row);
+		return $rows;
 	}
 
 	private function countVoucherWinnerExportRows()
@@ -1353,10 +1504,11 @@ class Alllottoorders extends CI_Controller {
 	{
 		$itemsPerPage = 5000;
 		$pipeline = $this->buildVoucherWinnerExportPipeline($page, $itemsPerPage);
-		$winnerData = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, array('batchSize' => 500));
+		$winnerData = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, array('batchSize' => 5000));
 		$winnerData = $this->unwrapMongoAggregateResult($winnerData);
-		if(!is_array($winnerData) || empty($winnerData)):
-			return array();
+		$rawCount = is_array($winnerData) ? count($winnerData) : 0;
+		if($rawCount < 1):
+			return array('rows' => array(), 'raw_count' => 0);
 		endif;
 		$rows = array();
 		foreach($winnerData as $row):
@@ -1365,7 +1517,7 @@ class Alllottoorders extends CI_Controller {
 				$rows[] = $mappedRow;
 			endif;
 		endforeach;
-		return $rows;
+		return array('rows' => $rows, 'raw_count' => $rawCount);
 	}
 
 	private function buildVoucherLottoExportRowsAll()
@@ -1375,16 +1527,18 @@ class Alllottoorders extends CI_Controller {
 		$itemsPerPage = 5000;
 		while(true):
 			$chunk = $this->buildVoucherLottoExportRowsPage($page);
-			if(empty($chunk)):
+			$rawCount = (int)($chunk['raw_count'] ?? 0);
+			$pageRows = isset($chunk['rows']) && is_array($chunk['rows']) ? $chunk['rows'] : array();
+			if($rawCount < 1):
 				break;
 			endif;
-			$rows = array_merge($rows, $chunk);
-			if(count($chunk) < $itemsPerPage):
+			$rows = array_merge($rows, $pageRows);
+			if($rawCount < $itemsPerPage):
 				break;
 			endif;
 			$page++;
 		endwhile;
-		return $rows;
+		return $this->backfillCombinedGameNamesByBatch($rows);
 	}
 
 	private function buildCombinedSheetRows(array $hourlyRows, array $bigWinnerRows)
@@ -1672,7 +1826,8 @@ class Alllottoorders extends CI_Controller {
 
 		try {
 			if($source === 'big_winners' || $source === 'lotto'):
-				$rows = $this->buildVoucherLottoExportRowsPage($page);
+				$chunk = $this->buildVoucherLottoExportRowsPage($page);
+				$rows = isset($chunk['rows']) && is_array($chunk['rows']) ? $chunk['rows'] : array();
 			else:
 				$rows = $this->buildHourlyWinnerRowsFromOrderPage($page);
 			endif;

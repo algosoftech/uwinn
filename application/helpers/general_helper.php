@@ -892,13 +892,3 @@ if (!function_exists('countryCodeList')) {
 		return $countryCodeArray;
 	}
 }
-
-if (!function_exists('customround')) {
-	/**
-	 * Round amount up to nearest 0.05 slab (e.g. 16.96 => 17.00, 5.75 => 5.75).
-	 */
-	function customround($amount)
-	{
-		return ceil(((float) $amount + 0.00001) * 20) / 20;
-	}
-}
