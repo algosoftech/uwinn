@@ -157,15 +157,32 @@
             });
         }
 
+        function normalizeExportGameName(name) {
+            var n = String(name || '').replace(/\s+/g, ' ').trim();
+            if (!n || n.toUpperCase() === 'N/A') {
+                return 'N/A';
+            }
+            if (/^4\s*you$/i.test(n)) {
+                return '4YOU';
+            }
+            var compact = n.toLowerCase().replace(/[\s_\-]+/g, '').replace(/plus|＋/g, '+');
+            if (compact === 'max3+1' || compact === 'max31' || compact === 'max3plus1') {
+                return 'MAX3+1';
+            }
+            return n;
+        }
+
         function backfillGameNamesByBatch(rows) {
             var batchCounts = {};
             (rows || []).forEach(function (row) {
                 var batchId = row && row['BATCH ID'] !== undefined && row['BATCH ID'] !== null
                     ? String(row['BATCH ID']).trim()
                     : '';
-                var gameName = row && row['GAME NAME'] !== undefined && row['GAME NAME'] !== null
-                    ? String(row['GAME NAME']).trim()
-                    : '';
+                var gameName = normalizeExportGameName(
+                    row && row['GAME NAME'] !== undefined && row['GAME NAME'] !== null
+                        ? String(row['GAME NAME']).trim()
+                        : ''
+                );
                 if (!batchId || !gameName || gameName.toUpperCase() === 'N/A') {
                     return;
                 }
@@ -195,18 +212,61 @@
                 var batchId = next['BATCH ID'] !== undefined && next['BATCH ID'] !== null
                     ? String(next['BATCH ID']).trim()
                     : '';
-                var gameName = next['GAME NAME'] !== undefined && next['GAME NAME'] !== null
-                    ? String(next['GAME NAME']).trim()
-                    : '';
-                if ((!gameName || gameName.toUpperCase() === 'N/A') && batchId && batchBest[batchId]) {
+                // Force entire batch onto majority game name (matches Voucher CSV batch)
+                if (batchId && batchBest[batchId]) {
                     next['GAME NAME'] = batchBest[batchId];
+                } else if (next['GAME NAME']) {
+                    next['GAME NAME'] = normalizeExportGameName(next['GAME NAME']);
                 }
                 return next;
             });
         }
 
+        function dedupeRowsByOrderId(rows) {
+            var seen = {};
+            var out = [];
+            (rows || []).forEach(function (row) {
+                var docId = row && row['DOC ID'] !== undefined && row['DOC ID'] !== null
+                    ? String(row['DOC ID']).trim()
+                    : '';
+                var voucherId = row && row['VOUCHER ID'] !== undefined && row['VOUCHER ID'] !== null
+                    ? String(row['VOUCHER ID']).trim()
+                    : '';
+                var code = row && row['MATCH CODE'] !== undefined && row['MATCH CODE'] !== null
+                    ? String(row['MATCH CODE']).trim()
+                    : '';
+                var orderId = row && row['ORDER ID'] !== undefined && row['ORDER ID'] !== null
+                    ? String(row['ORDER ID']).trim()
+                    : '';
+                var batchId = row && row['BATCH ID'] !== undefined && row['BATCH ID'] !== null
+                    ? String(row['BATCH ID']).trim()
+                    : '';
+                var prize = row && row['PRIZE MONEY'] !== undefined && row['PRIZE MONEY'] !== null
+                    ? String(row['PRIZE MONEY']).trim()
+                    : '';
+                var key;
+                if (docId) {
+                    key = 'd:' + docId;
+                } else if (voucherId && voucherId !== '0') {
+                    // voucher_id is unique per winner — keep every prize line
+                    key = 'v:' + voucherId;
+                } else {
+                    key = ('o:' + batchId + '|' + orderId + '|' + code + '|' + prize).toLowerCase();
+                }
+                if (seen[key]) {
+                    return;
+                }
+                seen[key] = true;
+                out.push(row);
+            });
+            return out;
+        }
+
         function mergeExportRows(hourly, bigWinners) {
-            var allRows = backfillGameNamesByBatch((hourly || []).concat(bigWinners || [])).filter(isMeaningfulRow);
+            // Big winners first so dedupe keeps lotto row on order_id collision
+            var allRows = dedupeRowsByOrderId(
+                backfillGameNamesByBatch((bigWinners || []).concat(hourly || []))
+            ).filter(isMeaningfulRow);
             if (!allRows.length) {
                 return [{'No data': ''}];
             }
@@ -226,6 +286,9 @@
                     } else if (header === 'POS NUMBER') {
                         var pos = parseInt(String(raw).replace(/,/g, ''), 10);
                         normalized[header] = isNaN(pos) ? raw : pos;
+                    } else if (header === 'GAME NAME') {
+                        // Keep as plain text (MAX3+1 must not become Excel formula / blank)
+                        normalized[header] = normalizeExportGameName(raw);
                     } else {
                         normalized[header] = raw;
                     }
@@ -258,6 +321,35 @@
                 var combinedRows = mergeExportRows(hourlyData, bigWinnersData);
                 var workbook = XLSX.utils.book_new();
                 var sheet = XLSX.utils.json_to_sheet(combinedRows);
+                // Force GAME NAME column to text so values like MAX3+1 stay visible in filters
+                var gameNameCol = null;
+                Object.keys(sheet).forEach(function (addr) {
+                    if (!/^[A-Z]+1$/.test(addr)) {
+                        return;
+                    }
+                    var cell = sheet[addr];
+                    if (cell && String(cell.v) === 'GAME NAME') {
+                        gameNameCol = addr.replace(/1$/, '');
+                    }
+                });
+                if (gameNameCol) {
+                    Object.keys(sheet).forEach(function (addr) {
+                        if (addr.indexOf(gameNameCol) !== 0 || addr === gameNameCol + '1') {
+                            return;
+                        }
+                        if (!new RegExp('^' + gameNameCol + '[0-9]+$').test(addr)) {
+                            return;
+                        }
+                        var cell = sheet[addr];
+                        if (!cell) {
+                            return;
+                        }
+                        cell.t = 's';
+                        cell.v = String(cell.v == null ? '' : cell.v);
+                        delete cell.w;
+                        delete cell.f;
+                    });
+                }
                 XLSX.utils.book_append_sheet(workbook, sheet, 'Combined Report');
                 XLSX.writeFile(workbook, getCombinedExportFilename());
                 markDownloadComplete(hourlyData.length, bigWinnersData.length, combinedRows.length);

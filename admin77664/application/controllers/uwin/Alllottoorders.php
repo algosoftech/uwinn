@@ -955,7 +955,10 @@ class Alllottoorders extends CI_Controller {
 			'RETAILER' => $retailer !== 'N/A' ? ucwords($retailer) : 'N/A',
 			'POS NUMBER' => is_numeric($posNumber) ? (int)$posNumber : $posNumber,
 			'DRAW DATE' => $drawDate,
-			'GAME NAME' => !empty($itemsArray['products_name']) ? $itemsArray['products_name'] : 'N/A',
+			// Prefix so Hourly names never collide with Voucher games (4YOU / GRAND 6 / Mark 6)
+			'GAME NAME' => !empty($itemsArray['products_name'])
+				? ('Hourly - '.trim(stripslashes((string)$itemsArray['products_name'])))
+				: 'Hourly - N/A',
 			'PRIZE MONEY' => $this->normalizeCombinedExportAmount($itemsArray['winning_amount'] ?? 0),
 			'PURCHASE DATE' => $purchaseDate,
 			'AREA' => !empty($itemsArray['area']) ? $itemsArray['area'] : 'N/A',
@@ -1158,16 +1161,14 @@ class Alllottoorders extends CI_Controller {
 
 	private function unwrapMongoAggregateResult($result)
 	{
+		// Prefer flat document lists from cursor iteration.
+		// Never return only cursor.firstBatch — that truncates mid-page and drops low prize rows.
 		if(!is_array($result) || empty($result)):
 			return array();
 		endif;
-		if(isset($result[0]['cursor']['firstBatch']) && is_array($result[0]['cursor']['firstBatch'])):
-			return $result[0]['cursor']['firstBatch'];
-		endif;
-		if(isset($result[0]['ok']) && isset($result[0]['cursor'])):
-			return isset($result[0]['cursor']['firstBatch']) && is_array($result[0]['cursor']['firstBatch'])
-				? $result[0]['cursor']['firstBatch']
-				: array();
+		if(isset($result[0]['cursor']) || (isset($result[0]['ok']) && array_key_exists('cursor', $result[0]))):
+			log_message('error', 'Combined export aggregate returned raw cursor payload; refusing truncated firstBatch');
+			return array();
 		endif;
 		return $result;
 	}
@@ -1222,294 +1223,90 @@ class Alllottoorders extends CI_Controller {
 		return 'Big Winners '.$datePart.'.xlsx';
 	}
 
-	private function buildVoucherWinnerExportPipeline($page = null, $itemsPerPage = 5000)
+	private function buildVoucherWinnerExportWhere()
 	{
 		list($fromDateStr, $toDateStr) = $this->getVoucherWinnerExportDateRange();
-		$pipeline = array();
-		// Only active big winners (status=1); inactive (status=0) must not export
-		$match = array(
-			'status' => 1,
-			'soft_delete' => array('$ne' => 1),
-		);
-		if($fromDateStr && $toDateStr):
-			$match['created_at'] = array(
-				'$gte' => $fromDateStr,
-				'$lte' => $toDateStr,
-			);
-		endif;
-		$pipeline[] = array('$match' => $match);
-		// Numeric sort so low prize amounts (e.g. 15) are not cut incorrectly across pages
-		$pipeline[] = array(
-			'$addFields' => array(
-				'amount_sort' => array(
-					'$convert' => array(
-						'input' => '$amount',
-						'to' => 'double',
-						'onError' => 0,
-						'onNull' => 0,
-					),
-				),
-			),
-		);
-		$pipeline[] = array('$sort' => array('amount_sort' => -1, 'voucher_id' => 1));
-		if($page !== null):
-			$startIndex = (max(1, (int)$page) - 1) * (int)$itemsPerPage;
-			$pipeline[] = array('$skip' => $startIndex);
-			$pipeline[] = array('$limit' => (int)$itemsPerPage);
-		endif;
-		$pipeline[] = array(
-			'$lookup' => array(
-				'from' => 'uw_lotto_orders',
-				'localField' => 'order_id',
-				'foreignField' => 'order_id',
-				'as' => 'order_data',
-			),
-		);
-		$pipeline[] = array(
-			'$unwind' => array(
-				'path' => '$order_data',
-				'preserveNullAndEmptyArrays' => true,
-			),
-		);
-		$pipeline[] = array(
-			'$lookup' => array(
-				'from' => 'uw_users',
-				'let' => array('user_oid' => '$order_data.user_oid'),
-				'pipeline' => array(
-					array(
-						'$match' => array(
-							'$expr' => array(
-								'$eq' => array(
-									'$_id',
-									array(
-										'$convert' => array(
-											'input' => '$$user_oid',
-											'to' => 'objectId',
-											'onError' => null,
-											'onNull' => null,
-										),
-									),
-								),
-							),
-						),
-					),
-				),
-				'as' => 'user_data',
-			),
-		);
-		$pipeline[] = array(
-			'$unwind' => array(
-				'path' => '$user_data',
-				'preserveNullAndEmptyArrays' => true,
-			),
-		);
-		$pipeline[] = array(
-			'$lookup' => array(
-				'from' => 'uw_products_draw_records',
-				'localField' => 'order_data.draw_id',
-				'foreignField' => 'draw_id',
-				'as' => 'draw_data',
-			),
-		);
-		$pipeline[] = array(
-			'$unwind' => array(
-				'path' => '$draw_data',
-				'preserveNullAndEmptyArrays' => true,
-			),
-		);
-		// Prefer winner.products_id, else order.products_id / product_id
-		$pipeline[] = array(
-			'$addFields' => array(
-				'_lookup_products_id' => array(
-					'$let' => array(
-						'vars' => array(
-							'winnerPid' => array('$ifNull' => array('$products_id', 0)),
-							'orderPid' => array('$ifNull' => array(
-								'$order_data.products_id',
-								array('$ifNull' => array('$order_data.product_id', 0)),
-							)),
-						),
-						'in' => array(
-							'$convert' => array(
-								'input' => array(
-									'$cond' => array(
-										array('$gt' => array(
-											array('$convert' => array(
-												'input' => '$$winnerPid',
-												'to' => 'double',
-												'onError' => 0,
-												'onNull' => 0,
-											)),
-											0,
-										)),
-										'$$winnerPid',
-										'$$orderPid',
-									),
-								),
-								'to' => 'int',
-								'onError' => 0,
-								'onNull' => 0,
-							),
-						),
-					),
-				),
-			),
-		);
-		$pipeline[] = array(
-			'$lookup' => array(
-				'from' => 'uw_products',
-				'localField' => '_lookup_products_id',
-				'foreignField' => 'products_id',
-				'as' => 'product_data',
-			),
-		);
-		$pipeline[] = array(
-			'$unwind' => array(
-				'path' => '$product_data',
-				'preserveNullAndEmptyArrays' => true,
-			),
-		);
-		$pipeline[] = array(
-			'$project' => array(
-				'_id' => 0,
-				'order_id' => 1,
-				'batch_id' => 1,
-				'csv_name' => 1,
-				'retailer' => '$seller_first_name',
-				'seller_name' => '$seller_last_name',
-				'product_title' => array(
-					'$let' => array(
-						'vars' => array(
-							'fromOrder' => array('$ifNull' => array('$order_data.product_title', '')),
-							'fromProduct' => array('$ifNull' => array('$product_data.title', '')),
-						),
-						'in' => array(
-							'$cond' => array(
-								array('$and' => array(
-									array('$ne' => array('$$fromOrder', '')),
-									array('$ne' => array('$$fromOrder', 'N/A')),
-								)),
-								'$$fromOrder',
-								array(
-									'$cond' => array(
-										array('$ne' => array('$$fromProduct', '')),
-										'$$fromProduct',
-										'N/A',
-									),
-								),
-							),
-						),
-					),
-				),
-				'status' => 1,
-				'amount' => 1,
-				'created_at' => array(
-					'$ifNull' => array(
-						'$order_data.created_at',
-						array('$ifNull' => array('$created_at', 'N/A')),
-					),
-				),
-				'draw_date' => array('$ifNull' => array('$draw_data.draw_date', 'N/A')),
-				'bind_person_name' => array('$ifNull' => array('$user_data.bind_person_name', 'N/A')),
-				'pos_number' => array('$ifNull' => array('$user_data.pos_number', 'N/A')),
-			),
-		);
-
-		return $pipeline;
-	}
-
-	private function sortVoucherWinnerExportRows(array &$winnerData)
-	{
-		usort($winnerData, function ($a, $b) {
-			return (float)($b['amount'] ?? 0) <=> (float)($a['amount'] ?? 0);
-		});
-	}
-
-	private function mapVoucherWinnerRowForCombined(array $row)
-	{
-		$posNumber = $row['pos_number'] ?? 'N/A';
-		$gameName = !empty($row['product_title']) ? stripslashes($row['product_title']) : 'N/A';
-		if($gameName === '' || strcasecmp($gameName, 'N/A') === 0):
-			$gameName = 'N/A';
-		endif;
 		return array(
-			'ORDER ID' => !empty($row['order_id']) ? $row['order_id'] : 'N/A',
-			'RETAILER' => !empty($row['retailer']) ? ucwords($row['retailer']) : 'N/A',
-			'POS NUMBER' => is_numeric($posNumber) ? (int)$posNumber : $posNumber,
-			'DRAW DATE' => $this->formatCombinedExportDrawDate($row['draw_date'] ?? 'N/A'),
-			'GAME NAME' => $gameName,
-			'PRIZE MONEY' => $this->normalizeCombinedExportAmount($row['amount'] ?? 0),
-			'PURCHASE DATE' => $this->formatCombinedExportPurchaseDateTime($row['created_at'] ?? 'N/A'),
-			'AREA' => !empty($row['seller_name']) ? $row['seller_name'] : 'N/A',
-			'BIND WITH' => !empty($row['bind_person_name']) ? $row['bind_person_name'] : 'N/A',
-			'BATCH ID' => isset($row['batch_id']) && $row['batch_id'] !== '' && $row['batch_id'] !== null
-				? (int)$row['batch_id']
-				: '',
+			'where' => array(
+				'status' => array('$in' => array(1, '1')),
+				'soft_delete' => array('$nin' => array(1, '1')),
+				'created_at' => array(
+					'$gte' => $fromDateStr,
+					'$lte' => $toDateStr,
+				),
+			),
 		);
 	}
 
 	/**
-	 * When order lookup misses product_title, copy the majority GAME NAME from the same batch.
+	 * Batches that touch the selected date range — export FULL batch (like Voucher totals).
 	 */
-	private function backfillCombinedGameNamesByBatch(array $rows)
+	private function getCombinedExportBatchIdsInRange()
 	{
-		$batchCounts = array();
-		foreach($rows as $row):
-			$batchId = isset($row['BATCH ID']) ? trim((string)$row['BATCH ID']) : '';
-			$gameName = isset($row['GAME NAME']) ? trim((string)$row['GAME NAME']) : '';
-			if($batchId === '' || $gameName === '' || strcasecmp($gameName, 'N/A') === 0):
-				continue;
-			endif;
-			if(!isset($batchCounts[$batchId])):
-				$batchCounts[$batchId] = array();
-			endif;
-			if(!isset($batchCounts[$batchId][$gameName])):
-				$batchCounts[$batchId][$gameName] = 0;
-			endif;
-			$batchCounts[$batchId][$gameName]++;
-		endforeach;
-
-		$batchBest = array();
-		foreach($batchCounts as $batchId => $counts):
-			arsort($counts);
-			$batchBest[$batchId] = (string)key($counts);
-		endforeach;
-
-		foreach($rows as &$row):
-			$batchId = isset($row['BATCH ID']) ? trim((string)$row['BATCH ID']) : '';
-			$gameName = isset($row['GAME NAME']) ? trim((string)$row['GAME NAME']) : '';
-			if(($gameName === '' || strcasecmp($gameName, 'N/A') === 0) && $batchId !== '' && isset($batchBest[$batchId])):
-				$row['GAME NAME'] = $batchBest[$batchId];
-			endif;
-		endforeach;
-		unset($row);
-		return $rows;
+		static $cached = null;
+		if($cached !== null):
+			return $cached;
+		endif;
+		$whereCon = $this->buildVoucherWinnerExportWhere();
+		$shortField = array('batch_id' => 1);
+		$rows = $this->common_model->getData('multiple', 'uw_uwin_winner', $whereCon, $shortField, 50000, 0);
+		$batchIds = array();
+		if(!empty($rows)):
+			foreach($rows as $row):
+				if(!isset($row['batch_id']) || $row['batch_id'] === '' || $row['batch_id'] === null):
+					continue;
+				endif;
+				$batchIds[] = (int)$row['batch_id'];
+			endforeach;
+		endif;
+		$cached = array_values(array_unique($batchIds));
+		return $cached;
 	}
 
-	private function countVoucherWinnerExportRows()
+	/**
+	 * Same scope as Voucher winner list / batch totals: full batch by batch_id only
+	 * (no status / soft_delete filter — Voucher addeditdata uses only batch_id).
+	 */
+	private function buildCombinedExportBatchWhere()
 	{
-		list($fromDateStr, $toDateStr) = $this->getVoucherWinnerExportDateRange();
-		$this->mongo_db->where(array(
-			'status' => 1,
-			'soft_delete' => array('$ne' => 1),
-			'created_at' => array(
-				'$gte' => $fromDateStr,
-				'$lte' => $toDateStr,
+		$batchIds = $this->getCombinedExportBatchIdsInRange();
+		if(empty($batchIds)):
+			return null;
+		endif;
+		return array(
+			'where' => array(
+				'batch_id' => array('$in' => $batchIds),
 			),
-		));
-		return (int)$this->mongo_db->count('uw_uwin_winner');
+		);
 	}
 
+	/**
+	 * Fetch winners by full batch (same scope as Voucher winner list totals).
+	 */
 	private function buildVoucherLottoExportRowsPage($page)
 	{
 		$itemsPerPage = 5000;
-		$pipeline = $this->buildVoucherWinnerExportPipeline($page, $itemsPerPage);
-		$winnerData = $this->mongo_db->aggregate('uw_uwin_winner', $pipeline, array('batchSize' => 5000));
-		$winnerData = $this->unwrapMongoAggregateResult($winnerData);
-		$rawCount = is_array($winnerData) ? count($winnerData) : 0;
-		if($rawCount < 1):
+		$page = max(1, (int)$page);
+		$startIndex = ($page - 1) * $itemsPerPage;
+		$whereCon = $this->buildCombinedExportBatchWhere();
+		if($whereCon === null):
 			return array('rows' => array(), 'raw_count' => 0);
 		endif;
+
+		// Stable sort — unstable batch_id/voucher_id paging can skip 1 row across pages
+		$shortField = array('_id' => 1);
+		$winnerData = $this->common_model->getData(
+			'multiple',
+			'uw_uwin_winner',
+			$whereCon,
+			$shortField,
+			$itemsPerPage,
+			$startIndex
+		);
+		if(!is_array($winnerData) || empty($winnerData)):
+			return array('rows' => array(), 'raw_count' => 0);
+		endif;
+		$rawCount = count($winnerData);
 		$rows = array();
 		foreach($winnerData as $row):
 			$mappedRow = $this->mapVoucherWinnerRowForCombined($row);
@@ -1517,7 +1314,17 @@ class Alllottoorders extends CI_Controller {
 				$rows[] = $mappedRow;
 			endif;
 		endforeach;
+		$rows = $this->enrichCombinedWinnerDisplayFields($rows);
 		return array('rows' => $rows, 'raw_count' => $rawCount);
+	}
+
+	private function countVoucherWinnerExportRows()
+	{
+		$whereCon = $this->buildCombinedExportBatchWhere();
+		if($whereCon === null):
+			return 0;
+		endif;
+		return (int)$this->common_model->getData('count', 'uw_uwin_winner', $whereCon);
 	}
 
 	private function buildVoucherLottoExportRowsAll()
@@ -1538,6 +1345,342 @@ class Alllottoorders extends CI_Controller {
 			endif;
 			$page++;
 		endwhile;
+		$rows = $this->backfillCombinedGameNamesByBatch($rows);
+		return $this->dedupeCombinedExportRowsByOrderId($rows);
+	}
+
+	/**
+	 * GAME NAME: CSV first (Voucher batch), then products_id, else N/A.
+	 * Enrich may still fill from order.product_title when CSV/product missing.
+	 */
+	private function resolveCombinedExportGameName(array $row)
+	{
+		$csvName = isset($row['csv_name']) ? trim((string)$row['csv_name']) : '';
+		if($csvName !== ''):
+			$fromCsv = $this->parseGameNameFromWinnerCsvName($csvName);
+			if($fromCsv !== ''):
+				return $this->normalizeCombinedExportGameName($fromCsv);
+			endif;
+		endif;
+
+		$productId = 0;
+		if(isset($row['products_id']) && $row['products_id'] !== '' && $row['products_id'] !== null):
+			$productId = (int)$row['products_id'];
+		endif;
+		if($productId > 0):
+			$title = $this->getCombinedExportProductTitleById($productId);
+			if($title !== ''):
+				return $this->normalizeCombinedExportGameName($title);
+			endif;
+		endif;
+
+		return 'N/A';
+	}
+
+	/**
+	 * Parse game name from upload CSV filename.
+	 * Supports: 9,2_winners_4YOU_2026_09_07.csv | winners_MAX3+1_2026_09_07.csv
+	 * Also space-separated and missing-date variants.
+	 */
+	private function parseGameNameFromWinnerCsvName($csvName)
+	{
+		$csvName = trim(stripslashes((string)$csvName));
+		if($csvName === ''):
+			return '';
+		endif;
+		$base = preg_replace('/\.(csv|xlsx?)$/i', '', $csvName);
+		$base = trim($base);
+		// ...winners_NAME_YYYY_MM_DD (underscores / spaces / hyphens)
+		if(preg_match('/winners[_\s\-]+(.+?)[_\s\-]+(\d{4})[_\s\-]+(\d{1,2})[_\s\-]+(\d{1,2})\s*$/iu', $base, $m)):
+			$name = trim(str_replace('_', ' ', $m[1]));
+			return $name;
+		endif;
+		// ...winners_NAME (no date suffix)
+		if(preg_match('/winners[_\s\-]+(.+)$/iu', $base, $m)):
+			$name = trim(str_replace('_', ' ', $m[1]));
+			$name = trim(preg_replace('/[_\s\-]+\d{4}([_\s\-]+\d{1,2}){0,2}$/', '', $name));
+			return $name;
+		endif;
+		return '';
+	}
+
+	private function getCombinedExportProductTitleById($productId)
+	{
+		static $cache = array();
+		$productId = (int)$productId;
+		if($productId < 1):
+			return '';
+		endif;
+		if(array_key_exists($productId, $cache)):
+			return $cache[$productId];
+		endif;
+		$title = '';
+		try {
+			$product = $this->common_model->getDataByParticularField('uw_products', 'products_id', $productId);
+			$product = $this->toCombinedExportArray($product);
+			if(!empty($product['title'])):
+				$title = trim(stripslashes((string)$product['title']));
+			endif;
+		} catch (\Throwable $e) {
+			$title = '';
+		}
+		$cache[$productId] = $title;
+		return $title;
+	}
+
+	private function normalizeCombinedExportGameName($name)
+	{
+		$name = trim(preg_replace('/\s+/', ' ', (string)$name));
+		if($name === '' || strcasecmp($name, 'N/A') === 0):
+			return 'N/A';
+		endif;
+		// CSV can be winners_4YOU_… or winners_4_YOU_… — one Excel filter only
+		if(preg_match('/^4\s*you$/i', $name)):
+			return '4YOU';
+		endif;
+		// MAX3+1 / MAX 3+1 / MAX3 1 / MAX3_1
+		$compact = strtolower(preg_replace('/[\s_\-]+/', '', $name));
+		$compact = str_replace(array('plus', '＋'), '+', $compact);
+		if($compact === 'max3+1' || $compact === 'max31' || $compact === 'max3plus1'):
+			return 'MAX3+1';
+		endif;
+		return $name;
+	}
+
+	private function extractCombinedExportDocId($id)
+	{
+		if($id === null || $id === ''):
+			return '';
+		endif;
+		if(is_array($id) && isset($id['$id'])):
+			return (string)$id['$id'];
+		endif;
+		if(is_object($id)):
+			if(isset($id->{'$id'})):
+				return (string)$id->{'$id'};
+			endif;
+			if(method_exists($id, '__toString')):
+				return (string)$id;
+			endif;
+		endif;
+		if(is_string($id) || is_numeric($id)):
+			return (string)$id;
+		endif;
+		return '';
+	}
+
+	private function toCombinedExportArray($value)
+	{
+		if(is_array($value)):
+			return $value;
+		endif;
+		if(is_object($value)):
+			return (array)$value;
+		endif;
+		return array();
+	}
+
+	private function mapVoucherWinnerRowForCombined($row)
+	{
+		$row = $this->toCombinedExportArray($row);
+		$purchaseSource = !empty($row['created_at']) ? $row['created_at'] : ($row['order_date'] ?? 'N/A');
+		$retailer = !empty($row['store_name']) ? $row['store_name'] : ($row['retailer'] ?? 'N/A');
+		$docId = $this->extractCombinedExportDocId($row['_id'] ?? null);
+		$area = 'N/A';
+		if(!empty($row['seller_name'])):
+			$area = stripslashes((string)$row['seller_name']);
+		elseif(!empty($row['seller_last_name'])):
+			$area = stripslashes((string)$row['seller_last_name']);
+		endif;
+		return array(
+			'ORDER ID' => !empty($row['order_id']) ? (string)$row['order_id'] : 'N/A',
+			'RETAILER' => $retailer !== 'N/A' ? ucwords(stripslashes((string)$retailer)) : 'N/A',
+			'POS NUMBER' => 'N/A',
+			'DRAW DATE' => $this->formatCombinedExportDrawDate($purchaseSource),
+			'GAME NAME' => $this->resolveCombinedExportGameName($row),
+			'PRIZE MONEY' => $this->normalizeCombinedExportAmount($row['amount'] ?? 0),
+			'PURCHASE DATE' => $this->formatCombinedExportPurchaseDateTime($purchaseSource),
+			'AREA' => $area !== '' ? $area : 'N/A',
+			'BIND WITH' => 'N/A',
+			'BATCH ID' => isset($row['batch_id']) && $row['batch_id'] !== '' && $row['batch_id'] !== null
+				? (int)$row['batch_id']
+				: '',
+			'VOUCHER ID' => isset($row['voucher_id']) && $row['voucher_id'] !== '' && $row['voucher_id'] !== null
+				? (int)$row['voucher_id']
+				: '',
+			'MATCH CODE' => isset($row['code']) ? trim((string)$row['code']) : '',
+			'DOC ID' => $docId,
+		);
+	}
+
+	/**
+	 * Force every row in a batch onto that batch's CSV-derived GAME NAME.
+	 */
+	private function backfillCombinedGameNamesByBatch(array $rows)
+	{
+		$batchBest = array();
+		foreach($rows as $row):
+			$batchId = isset($row['BATCH ID']) ? trim((string)$row['BATCH ID']) : '';
+			$gameName = isset($row['GAME NAME']) ? trim((string)$row['GAME NAME']) : '';
+			if($batchId === '' || $gameName === '' || strcasecmp($gameName, 'N/A') === 0):
+				continue;
+			endif;
+			if(!isset($batchBest[$batchId])):
+				$batchBest[$batchId] = array();
+			endif;
+			if(!isset($batchBest[$batchId][$gameName])):
+				$batchBest[$batchId][$gameName] = 0;
+			endif;
+			$batchBest[$batchId][$gameName]++;
+		endforeach;
+
+		$batchName = array();
+		foreach($batchBest as $batchId => $counts):
+			arsort($counts);
+			$batchName[$batchId] = (string)key($counts);
+		endforeach;
+
+		foreach($rows as &$row):
+			$batchId = isset($row['BATCH ID']) ? trim((string)$row['BATCH ID']) : '';
+			if($batchId !== '' && isset($batchName[$batchId])):
+				$row['GAME NAME'] = $batchName[$batchId];
+			endif;
+		endforeach;
+		unset($row);
+		return $rows;
+	}
+
+	/**
+	 * Keep every prize line. Same order_id can win twice (different match codes).
+	 * Prefer unique DOC ID / voucher_id; never collapse on order_id alone.
+	 */
+	private function dedupeCombinedExportRowsByOrderId(array $rows)
+	{
+		$seen = array();
+		$out = array();
+		foreach($rows as $row):
+			if(!is_array($row)):
+				continue;
+			endif;
+			$docId = isset($row['DOC ID']) ? trim((string)$row['DOC ID']) : '';
+			$voucherId = isset($row['VOUCHER ID']) ? trim((string)$row['VOUCHER ID']) : '';
+			$code = isset($row['MATCH CODE']) ? trim((string)$row['MATCH CODE']) : '';
+			$orderId = isset($row['ORDER ID']) ? trim((string)$row['ORDER ID']) : '';
+			$prize = isset($row['PRIZE MONEY']) ? (string)$row['PRIZE MONEY'] : '';
+			$batchId = isset($row['BATCH ID']) ? trim((string)$row['BATCH ID']) : '';
+
+			if($docId !== ''):
+				$key = 'd:'.$docId;
+			elseif($voucherId !== '' && $voucherId !== '0'):
+				// voucher_id is unique per winner row
+				$key = 'v:'.$voucherId;
+			else:
+				// Last resort — include all fields so multi-win same order is kept
+				$key = strtolower('o:'.$batchId.'|'.$orderId.'|'.$code.'|'.$prize.'|'.md5(json_encode($row)));
+			endif;
+
+			if(isset($seen[$key])):
+				continue;
+			endif;
+			$seen[$key] = true;
+			$out[] = $row;
+		endforeach;
+		return $out;
+	}
+
+	/**
+	 * Fill POS / BIND / purchase date from orders without multiplying Excel rows.
+	 */
+	private function enrichCombinedWinnerDisplayFields(array $rows)
+	{
+		$orderIds = array();
+		foreach($rows as $row):
+			$orderId = isset($row['ORDER ID']) ? trim((string)$row['ORDER ID']) : '';
+			if($orderId !== '' && strcasecmp($orderId, 'N/A') !== 0):
+				$orderIds[] = $orderId;
+			endif;
+		endforeach;
+		$orderIds = array_values(array_unique($orderIds));
+		if(empty($orderIds)):
+			return $rows;
+		endif;
+
+		$orderMap = array();
+		$userOidMap = array();
+		foreach(array_chunk($orderIds, 500) as $chunkIds):
+			$orderCon = array('where' => array('order_id' => array('$in' => $chunkIds)));
+			$orders = $this->common_model->getData('multiple', 'uw_lotto_orders', $orderCon);
+			if(empty($orders)):
+				continue;
+			endif;
+			foreach($orders as $order):
+				$order = $this->toCombinedExportArray($order);
+				$oid = isset($order['order_id']) ? (string)$order['order_id'] : '';
+				if($oid === '' || isset($orderMap[$oid])):
+					continue;
+				endif;
+				$orderMap[$oid] = $order;
+				if(!empty($order['user_oid'])):
+					$userOidMap[$oid] = $order['user_oid'];
+				endif;
+			endforeach;
+		endforeach;
+
+		$userMap = array();
+		$userOidStrings = array();
+		foreach($userOidMap as $userOid):
+			$extracted = $this->extractCombinedExportDocId($userOid);
+			if($extracted !== '' && strlen($extracted) === 24):
+				$userOidStrings[] = $extracted;
+			endif;
+		endforeach;
+		$userOidStrings = array_values(array_unique($userOidStrings));
+		foreach($userOidStrings as $oidStr):
+			try {
+				$user = $this->common_model->getDataByParticularField('uw_users', '_id', new MongoDB\BSON\ObjectID($oidStr));
+				if(!empty($user)):
+					$userMap[$oidStr] = $this->toCombinedExportArray($user);
+				endif;
+			} catch (\Throwable $e) {
+				continue;
+			}
+		endforeach;
+
+		foreach($rows as &$row):
+			$orderId = isset($row['ORDER ID']) ? trim((string)$row['ORDER ID']) : '';
+			if($orderId === '' || !isset($orderMap[$orderId])):
+				continue;
+			endif;
+			$order = $orderMap[$orderId];
+			if(!empty($order['created_at'])):
+				$row['PURCHASE DATE'] = $this->formatCombinedExportPurchaseDateTime($order['created_at']);
+				$row['DRAW DATE'] = $this->formatCombinedExportDrawDate($order['created_at']);
+			endif;
+			$gameName = isset($row['GAME NAME']) ? trim((string)$row['GAME NAME']) : '';
+			if($gameName === '' || strcasecmp($gameName, 'N/A') === 0):
+				$fromOrder = '';
+				if(!empty($order['product_title'])):
+					$fromOrder = trim(stripslashes((string)$order['product_title']));
+				endif;
+				if($fromOrder === '' && !empty($order['products_id'])):
+					$fromOrder = $this->getCombinedExportProductTitleById((int)$order['products_id']);
+				endif;
+				if($fromOrder !== '' && strcasecmp($fromOrder, 'N/A') !== 0):
+					$row['GAME NAME'] = $this->normalizeCombinedExportGameName($fromOrder);
+				endif;
+			endif;
+			$userOidStr = $this->extractCombinedExportDocId($order['user_oid'] ?? null);
+			if($userOidStr !== '' && isset($userMap[$userOidStr])):
+				$user = $userMap[$userOidStr];
+				if(!empty($user['pos_number'])):
+					$row['POS NUMBER'] = is_numeric($user['pos_number']) ? (int)$user['pos_number'] : $user['pos_number'];
+				endif;
+				if(!empty($user['bind_person_name'])):
+					$row['BIND WITH'] = $user['bind_person_name'];
+				endif;
+			endif;
+		endforeach;
+		unset($row);
 		return $this->backfillCombinedGameNamesByBatch($rows);
 	}
 
@@ -1547,8 +1690,9 @@ class Alllottoorders extends CI_Controller {
 		$dataHeaders = array_values(array_filter($headers, function($header) {
 			return $header !== 'SL.NO';
 		}));
+		// Big winners first so dedupe keeps lotto row if order_id collides with hourly
 		$allRows = array();
-		foreach(array_merge($hourlyRows, $bigWinnerRows) as $row):
+		foreach(array_merge($bigWinnerRows, $hourlyRows) as $row):
 			if(!is_array($row)):
 				continue;
 			endif;
@@ -1556,6 +1700,13 @@ class Alllottoorders extends CI_Controller {
 			foreach($dataHeaders as $header):
 				$normalized[$header] = $this->normalizeCombinedExportCellValue($header, $row[$header] ?? '');
 			endforeach;
+			// Keep internal keys for dedupe only (not written to Excel headers)
+			if(isset($row['BATCH ID'])):
+				$normalized['BATCH ID'] = $row['BATCH ID'];
+			endif;
+			if(isset($row['VOUCHER ID'])):
+				$normalized['VOUCHER ID'] = $row['VOUCHER ID'];
+			endif;
 			if($this->isCombinedExportRowMeaningful($normalized)):
 				$allRows[] = $normalized;
 			endif;
@@ -1563,6 +1714,8 @@ class Alllottoorders extends CI_Controller {
 		if(empty($allRows)):
 			return array();
 		endif;
+
+		$allRows = $this->dedupeCombinedExportRowsByOrderId($allRows);
 
 		usort($allRows, function($a, $b) {
 			return (float)($b['PRIZE MONEY'] ?? 0) <=> (float)($a['PRIZE MONEY'] ?? 0);
