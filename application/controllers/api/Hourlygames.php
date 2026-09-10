@@ -945,7 +945,7 @@ class Hourlygames extends CI_Controller {
 							$orderOid = $result['_id']->{'$id'};
 							$qty      = $result['qty'];
 							$totalQty = count($tickets);
-							if($totalQty == $qty):
+							if($totalQty == $qty && $result['status'] == 'INI'):
 
 								//Updating status in order table
 								$param['status']      = 'A';
