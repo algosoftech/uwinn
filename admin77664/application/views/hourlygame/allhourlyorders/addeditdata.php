@@ -87,6 +87,7 @@
                                                     <li><?php echo "Ticket: ".$items->ticket ?? 'N/A'; ?></li>
                                                     <li><?php echo "Points: ".$items->points .' AED'?? 'N/A'; ?></li>
                                                     <li><?php echo "Type: ".$items->type ?? 'N/A'; ?></li>
+                                                    <li><?php echo "Created At: " . date('d M Y h:i:s A', $items->created_at) ?? 'N/A'; ?></li>
                                                     <hr>
                                                 <?php endforeach; ?>
                                                </ul>
@@ -133,12 +134,43 @@
                                             </td>
                                         </tr>
 
-
-
                                         <tr>
                                             <th>Status</th>
                                             <td><?php echo htmlspecialchars($order['status'] ?? 'N/A'); ?></td>
                                         </tr>
+
+                                        <?php if ($order['status'] == 'CL'): ?>
+                                        <tr>
+                                            <th>Refund Status</th>
+                                             <td>    
+                                                <?php
+                                                $ua = $order['updatedAt'] ?? null;
+                                                if ($ua instanceof MongoDB\BSON\UTCDateTime) {
+                                                    // Convert MongoDB UTCDateTime to PHP DateTime and UAE Timezone
+                                                    $date = $ua->toDateTime();
+                                                    $date->setTimezone(new DateTimeZone('Asia/Dubai'));
+                                                    echo $date->format('d M Y h:i:s A');
+                                                } elseif ($ua) {
+                                                    // If numeric, treat as timestamp, else as string; always show as UAE time
+                                                    if (is_numeric($ua)) {
+                                                        $date = new DateTime('@'.$ua);
+                                                        $date->setTimezone(new DateTimeZone('Asia/Dubai'));
+                                                        echo $date->format('d M Y h:i:s A');
+                                                    } else {
+                                                        $date = new DateTime($ua);
+                                                        $date->setTimezone(new DateTimeZone('Asia/Dubai'));
+                                                        echo $date->format('d M Y h:i:s A');
+                                                    }
+                                                } else {
+                                                    echo 'N/A';
+                                                }
+                                     
+                                     
+                                                ?>
+                                           
+                                            </td>
+                                        </tr>
+                                        <?php endif; ?>
                                     </table>
                                 </div>
                             </div>

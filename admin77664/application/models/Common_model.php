@@ -3123,6 +3123,8 @@ class Common_model extends CI_Model
 	            'product_price'  => '$product.price',
 	            'product_status' => '$product.status',
 				'tickets'        => '$tickets',
+				'updatedAt'      => '$updatedAt',
+				'update_date'    => '$update_date'
 	        );
 
 	        $whereCondition = array();
