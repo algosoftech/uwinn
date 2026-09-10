@@ -2276,6 +2276,7 @@ class Hourlygames extends CI_Controller {
 	 * * Developed By  : Sumit Bedwal
 	 * * Purpose  	   : This function used to moveToWallet
 	 * * Date 		   : 01 May 2026
+	 * * Updated By    : Dilip Halder --added order calcelled status alert only line no -- 2316-2317
 	 * * **********************************************************************/
 	public function moveToWallet() { 
 		$apiHeaderData = getApiHeaderData(); 
@@ -2312,6 +2313,8 @@ class Hourlygames extends CI_Controller {
 
 						if(empty($userData) || $userData['status'] != "A"): 
 							throw new Exception(lang('INVALID_USER'), 1);
+						elseif($orderData['status'] == 'CL'): 
+							throw new Exception(lang('ORDER_CANCELLED'), 1);
 						else: 
 							// update uw_hourly_orders table 
 							$updateParams['winning_status']   = 'paid';
