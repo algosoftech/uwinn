@@ -712,15 +712,18 @@ class Hourlygames extends CI_Controller {
 							$param['is_24_hours']     = $is24Hours?$is24Hours:"N";
 							$param['status']          = $status;
 							$param['txn_id']          = $txnID;
-							$result = $this->common_model->addData('uw_hourly_orders',$param);
+							// $result = $this->common_model->addData('uw_hourly_orders',$param);
+							$result = $this->mongodb_client->insertDocument('uw_hourly_orders',$param, $session);
 							if(empty($result)):
 								goto A;
 							endif;
-							$orderOid = $result['_id']->{'$id'};
+							// $orderOid = $result['_id']->{'$id'};
+							$orderOid = $result['_id'];
 
 							if(!empty($tickets) && $isCouponsRequired == "Y"):
 								foreach($tickets as $index => $item):
-									$ticketParam['order_oid']       = new MongoDB\BSON\ObjectID($orderOid);
+									// $ticketParam['order_oid']       = new MongoDB\BSON\ObjectID($orderOid);
+									$ticketParam['order_oid']       = $orderOid;
 									$ticketParam['users_id']        = (int)$usersId;
 									$ticketParam['users_oid']       = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
 									$ticketParam['products_oid']    = new MongoDB\BSON\ObjectID($productsId);
@@ -742,7 +745,8 @@ class Hourlygames extends CI_Controller {
 							$loadBalanceParam['users_id']      = (int)$usersId;
 							$loadBalanceParam['user_oid']     = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
 							$loadBalanceParam['load_balance_id'] = $this->common_model->getNextSequence('loadBalance');
-							$loadBalanceParam['order_oid']     = new MongoDB\BSON\ObjectID($result['_id']->{'$id'});
+							// $loadBalanceParam['order_oid']     = new MongoDB\BSON\ObjectID($result['_id']->{'$id'});
+							$loadBalanceParam['order_oid']     = $result['_id'];
 							$loadBalanceParam['product_oid']   = new MongoDB\BSON\ObjectID($productsId);
 							$loadBalanceParam['user_id_deb']   = (int)$usersId;
 							$loadBalanceParam['user_id_cred']  = (int)0;
@@ -768,7 +772,8 @@ class Hourlygames extends CI_Controller {
 								$commissionParam['users_id']      = (int)$usersId;
 								$commissionParam['user_oid']     = new MongoDB\BSON\ObjectID($userData['_id']->{'$id'});
 								$commissionParam['load_balance_id'] = $this->common_model->getNextSequence('loadBalance');
-								$commissionParam['order_oid']     = new MongoDB\BSON\ObjectID($result['_id']->{'$id'});
+								// $commissionParam['order_oid']     = new MongoDB\BSON\ObjectID($result['_id']->{'$id'});
+								$commissionParam['order_oid'] 	  = $result['_id'];
 								$commissionParam['product_oid']   = new MongoDB\BSON\ObjectID($productsId);
 								$commissionParam['user_id_deb']   = (int)0;
 								$commissionParam['user_id_cred']  = (int)$usersId;
@@ -858,6 +863,11 @@ class Hourlygames extends CI_Controller {
 								endif;	
 							endif;
 
+							if (isset($result['_id']) && $result['_id'] instanceof MongoDB\BSON\ObjectId) {
+							    $result['_id'] = [
+							        '$id' => (string)$result['_id']
+							    ];
+							}
 							echo outPut(1, lang('SUCCESS_CODE'), lang('SUCCESS_ACTION'), $result);
 						endif;
 					endif;
