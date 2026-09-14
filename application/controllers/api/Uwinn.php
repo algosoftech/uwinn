@@ -1123,7 +1123,49 @@ class uwinn extends CI_Controller {
 							    $ORparam["creation_ip"] 				=	$this->input->post('ip_address');
 							    $ORparam["created_at"] 					=	date('Y-m-d H:i');
 							    $ORparam["currentDatetime"] 			=	date('Y-m-d H:i:s');
-							    // Saving order details for Ticket
+							    
+								
+								
+								
+								
+								// Prepare the request data for the external API
+								$activityPayload = [
+									"user_id" => !empty($ORparam['user_id']) ? (string)$ORparam['user_id'] : (isset($ORparam['order_users_mobile']) ? (string)$ORparam['order_users_mobile'] : "unknown"),
+									"access_url" => "/api/lotto/paymentCapture",
+									"app" => !empty($appName) ? $appName : "mobile",
+									"version" => !empty($appVersion) ? $appVersion : "1.0.0",
+									"app_currenttimestamp" => date('Y-m-d H:i:s'),
+									"header" => [
+										"Authorization" => "Bearer1234",
+									],
+									"payload" => $ORparam
+								];
+
+								$curl = curl_init();
+								$url = LOGPATH . 'activities/capture';
+								curl_setopt_array($curl, array(
+									CURLOPT_URL => $url,
+									CURLOPT_RETURNTRANSFER => true,
+									CURLOPT_ENCODING => '',
+									CURLOPT_MAXREDIRS => 10,
+									CURLOPT_TIMEOUT => 0,
+									CURLOPT_FOLLOWLOCATION => true,
+									CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+									CURLOPT_CUSTOMREQUEST => 'POST',
+									CURLOPT_POSTFIELDS => json_encode($activityPayload),
+									CURLOPT_HTTPHEADER => array(
+										'Content-Type: application/json',
+										'api-key: d42a0d190464a2be90977c3996382811'
+									),
+								));
+								$activityResponse = curl_exec($curl);
+								curl_close($curl);
+								
+								// Optionally, you can log the response or handle it as needed.
+								// echo $activityResponse;
+								
+								
+								// Saving order details for Ticket
 							    $orderInsertID  = $this->mongodb_client->insertDocument('uw_lotto_orders', $ORparam, $session);	
 							    $o_id           = (string)$orderInsertID['_id'];
 
