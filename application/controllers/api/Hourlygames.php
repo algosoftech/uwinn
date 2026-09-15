@@ -1122,6 +1122,7 @@ class Hourlygames extends CI_Controller {
 		$apiHeaderData = getApiHeaderData();
 		$this->generatelogs->putLog('APP',logOutPut($_POST));
 		$result 	   = array();
+		$session = null;
 		try {
 			if(requestAuthenticate(APIKEY,'POST')):
 				$usersId    = $this->input->post('users_id');
@@ -1158,7 +1159,7 @@ class Hourlygames extends CI_Controller {
 							throw new Exception(lang('DATA_NOT_FOUND'), 1);
 						elseif($orderDetails['status'] == 'CL'):
 							throw new Exception(lang('ORDER_ALREADY_CANCELLED'), 1);
-						elseif($currentDateTime >= (int)$orderDetails['expiry_date']):
+						elseif($currentDateTime >= (int)$orderDetails['draw_time']):
 							throw new Exception(lang('CANNOT_CANCEL_ORDER'), 1);
 						elseif(in_array($orderDetails['status'], array('A', 'INI'), true)):
 
@@ -1185,6 +1186,10 @@ class Hourlygames extends CI_Controller {
 							$openingBalance = (float)$UserData['availableArabianPoints'];
 							$endBalance = $openingBalance + $refundAmount;
 
+							$this->session->sess_regenerate();
+							$session = $this->mongodb_client->client->startSession();
+							$session->startTransaction();
+
 							/* updated order status */
 							$param1['status']		= 'CL';
 							$param1['update_ip']	= currentIp();
@@ -1193,8 +1198,10 @@ class Hourlygames extends CI_Controller {
 							$param1['updated_by']	= (int)$usersId;
 							$param1['cancel_reason']= 'android api Hourly Game';
 							$orderWhereCon          = array('_id' => new MongoDB\BSON\ObjectId($orderOId));
-							$this->common_model->editData('uw_hourly_orders',$param1,'_id', new MongoDB\BSON\ObjectID($orderOId));
-							$this->common_model->editMultipleDataByMultipleCondition('uw_hourly_tickets', $param1, $orderWhereCon);
+							// $this->common_model->editData('uw_hourly_orders',$param1,'_id', new MongoDB\BSON\ObjectID($orderOId));
+							$this->mongodb_client->updateDocument('uw_hourly_orders',$orderWhereCon, ['$set' => $param1],$session);
+							// $this->common_model->editMultipleDataByMultipleCondition('uw_hourly_tickets', $param1, $orderWhereCon);
+							$this->mongodb_client->updateDocument('uw_hourly_tickets',$orderWhereCon, ['$set' => $param1],$session);
 
 							/* Generating order cancellation record in loadbalance */
 							$loadBalanceParam['users_id']        = (int)$usersId;
@@ -1214,11 +1221,22 @@ class Hourlygames extends CI_Controller {
 							$loadBalanceParam['created_at']    = date('Y-m-d H:i:s');
 							$loadBalanceParam['created_by']    = (int)$usersId;
 							$loadBalanceParam['status']        = 'A';
-							$this->common_model->addData('uw_loadBalance',$loadBalanceParam);
+							// $this->common_model->addData('uw_loadBalance',$loadBalanceParam);
+							$this->mongodb_client->insertDocument('uw_loadBalance', $loadBalanceParam, $session);
 							
 							/* Balance Updated.. */
 							$updateBalance['availableArabianPoints'] = $endBalance;
-							$this->common_model->editData('uw_users',$updateBalance,'users_id',(int)$usersId);
+							// $this->common_model->editData('uw_users',$updateBalance,'users_id',(int)$usersId);
+							$this->mongodb_client->updateDocument(
+								'uw_users',         				// Collection name
+								['users_id' => (int)$usersId],       // Filter / condition for which document to update
+								['$set' => $updateBalance],         // Proper MongoDB update syntax
+								$session                            // MongoDB session (optional)
+							);
+
+							$session->commitTransaction();
+							$this->mongodb_client->commitTransaction($session);
+							$session->endSession();
 
 							echo outPut(1,lang('SUCCESS_CODE'),lang('ORDER_CANCELLED_SUCCESSFULLY'),$result);
 							die();
@@ -1231,6 +1249,9 @@ class Hourlygames extends CI_Controller {
 				throw new Exception(lang('FORBIDDEN_MSG'),1);
 			endif;
 		} catch (\Throwable $e) {
+			$session->abortTransaction();
+			$this->mongodb_client->abortTransaction($session);
+			$session->endSession();
 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result);
 			die();
 		}
@@ -2288,10 +2309,115 @@ class Hourlygames extends CI_Controller {
 	 * * Date 		   : 01 May 2026
 	 * * Updated By    : Dilip Halder --added order calcelled status alert only line no -- 2316-2317
 	 * * **********************************************************************/
+	// public function moveToWallet() { 
+	// 	$apiHeaderData = getApiHeaderData(); 
+	// 	$this->generatelogs->putLog('APP',logOutPut($_POST)); 
+	// 	$result = array(); 
+	// 	try { 
+	// 		if(requestAuthenticate(APIKEY,'POST')):
+	// 			$usersId = $this->input->post('users_id'); 
+	// 			$orderID = $this->input->post('order_id'); 
+	// 			$redeemStatus = $this->input->post('redeem_status'); 
+	// 			$redeemByMode = $this->input->post('redeem_by_mode');
+
+	// 			if(empty($usersId)): 
+	// 				throw new Exception(lang('USER_ID_EMPTY'), 1); 
+	// 			elseif(empty($orderID)): 
+	// 				throw new Exception(lang('ORDER_ID_EMPTY'), 1); 
+	// 			else: 
+	// 				// checking order_id is winner or not 
+	// 				$tableName = "uw_hourly_orders"; 
+	// 				$whereCon['where'] = array('order_id' => $orderID); 
+	// 				$orderData = $this->common_model->getData('single',$tableName,$whereCon); 
+
+	// 				if($orderData && $orderData['is_winner'] === 'Y' && !empty($orderData['winning_details'])): 
+	// 					if((isset($orderData['winning_status']) && $orderData['winning_status'] == 'paid') || (isset($orderData['redeem_status']) && $orderData['redeem_status'] == 'paid')):
+	// 						// throw new Exception(lang('ALREADY_REDEEM'));
+	// 						echo outPut(0,lang('SUCCESS_CODE'),lang('ALREADY_REDEEM'),$result);die();
+	// 					endif;
+	// 					// get user details 
+	// 					$tblName = 'uw_users'; 
+	// 					$fieldList = array('users_id','status','users_type','totalArabianPoints','availableArabianPoints'); 
+	// 					$UserwhereCon['where']['users_id'] = (int)$usersId;
+
+	// 					$userData = $this->common_model->getParticularFieldByMultipleCondition($fieldList ,$tblName,$UserwhereCon); 
+
+	// 					if(empty($userData) || $userData['status'] != "A"): 
+	// 						throw new Exception(lang('INVALID_USER'), 1);
+	// 					elseif($orderData['status'] == 'CL'): 
+	// 						throw new Exception(lang('ORDER_CANCELLED'), 1);
+	// 					else: 
+	// 						// update uw_hourly_orders table 
+	// 						$updateParams['winning_status']   = 'paid';
+	// 						$updateParams['status']           = 'Redeemed';
+	// 						$updateParams['redeem_status'] 	  = $redeemStatus; 
+	// 						$updateParams['redeem_by_mode']   = $redeemByMode; 
+	// 						$updateParams['redeemed_at']      =  strtotime(date('Y-m-d H:i'));
+	// 						$updateParams["modified_at"] 	  = date('Y-m-d H:i'); 
+	// 						$updateParams['settler_users_id'] = (int)$usersId;
+	// 						$updateParams['settler_users_oid'] = new MongoDB\BSON\ObjectId($userData['_id']['$id']);
+	// 						// $updateParams['seller_id'] 		= (int)$usersId; 
+	// 						$updateParams['update_ip']     		= currentIp(); 
+							
+	// 						$WInnner_whereCon = array('order_id' => $orderID,'redeem_status' => array('$ne' => 'paid') ); 
+	// 						$winnerRedeemResult = $this->common_model->editMultipleDataByMultipleCondition('uw_hourly_orders', $updateParams,$WInnner_whereCon);
+
+	// 						if($winnerRedeemResult > 0 ): 
+	// 							$totalPrizeAmount = $orderData['winning_amount'] ?? 0; 
+
+	// 							//Credting user's winning prize amount to users account. 
+	// 							$userParam['totalArabianPoints'] = (float)$userData['totalArabianPoints'] + $totalPrizeAmount; 
+	// 							$userParam['availableArabianPoints'] = (float) $userData['availableArabianPoints'] + $totalPrizeAmount; 
+	// 							$userParam["update_date"] = date('Y-m-d H:i'); 
+								
+	// 							$userResult = $this->common_model->editData('uw_users', $userParam,'users_id',(int)$usersId); 
+						
+	// 							if(!empty($userResult)): 
+	// 								/* Load Balance Table -- after Sign Up*/ 
+	// 								$Redeemparam["load_balance_id"] = (int)$this->geneal_model->getNextSequence('uw_loadBalance'); 
+	// 								$Redeemparam["user_oid"] = new MongoDB\BSON\ObjectId($userData['_id']['$id']); 
+	// 								$Redeemparam["order_oid"] = new MongoDB\BSON\ObjectId($orderData['_id']->{'$id'}); 
+	// 								$Redeemparam["order_id"] = $orderID;
+	// 								$Redeemparam["product_id"] = isset($orderData['products_id']) ? (int)$orderData['products_id'] : 0; // $orderData['product_id'] ?? 0; 
+	// 								$Redeemparam["user_id_deb"] = (int)0; 
+	// 								$Redeemparam["user_id_cred"] = (int)$usersId; 
+	// 								$Redeemparam["upoints"] = (float)$totalPrizeAmount; 
+	// 								$Redeemparam["record_type"] = 'Credit'; 
+	// 								// $Redeemparam["narration"] = 'Moved winning Prize';
+	// 								$Redeemparam["narration"] = 'Hourly Game Prize Redeemed'; 
+	// 								$Redeemparam["remarks"] = "Hourly Game Prize for ( ".$orderID." ) transferred to wallet."; 
+	// 								$Redeemparam["availableArabianPoints"] = (float)$userData['availableArabianPoints']; 
+	// 								$Redeemparam["end_balance"] = (float)$userData['availableArabianPoints']+$totalPrizeAmount; 
+	// 								$Redeemparam["creation_ip"] = currentIp(); 
+	// 								$Redeemparam["created_at"] = date('Y-m-d H:i'); 
+	// 								$Redeemparam["created_by"] = (int)$usersId; 
+	// 								$Redeemparam["status"] = "A"; 
+
+	// 								$this->geneal_model->addData('uw_loadBalance', $Redeemparam); 
+	// 								$result = array('payment_date' => date('Y-m-d H:i')); 
+
+	// 								echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die(); 
+	// 							else: 
+	// 								echo outPut(1,lang('SUCCESS_CODE'),lang('BALANCE_TRANSERFER_EORROR'),$result);die(); 
+	// 							endif; 
+	// 						else: 
+	// 							echo outPut(0,lang('SUCCESS_CODE'),lang('ALREADY_REDEEM'),$result); 
+	// 						endif; 
+	// 					endif; 
+	// 				endif; 
+	// 			endif; 
+	// 		else: 
+	// 			throw new Exception(lang('FORBIDDEN_MSG'),1); 
+	// 		endif; 
+	// 	} catch (Exception $e) { 
+	// 		echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result); 
+	// 	} 
+	// }
 	public function moveToWallet() { 
 		$apiHeaderData = getApiHeaderData(); 
 		$this->generatelogs->putLog('APP',logOutPut($_POST)); 
 		$result = array(); 
+		$session = null; 
 		try { 
 			if(requestAuthenticate(APIKEY,'POST')):
 				$usersId = $this->input->post('users_id'); 
@@ -2326,6 +2452,10 @@ class Hourlygames extends CI_Controller {
 						elseif($orderData['status'] == 'CL'): 
 							throw new Exception(lang('ORDER_CANCELLED'), 1);
 						else: 
+							$this->session->sess_regenerate();
+							$session = $this->mongodb_client->client->startSession();
+							$session->startTransaction();
+
 							// update uw_hourly_orders table 
 							$updateParams['winning_status']   = 'paid';
 							$updateParams['status']           = 'Redeemed';
@@ -2339,7 +2469,8 @@ class Hourlygames extends CI_Controller {
 							$updateParams['update_ip']     		= currentIp(); 
 							
 							$WInnner_whereCon = array('order_id' => $orderID,'redeem_status' => array('$ne' => 'paid') ); 
-							$winnerRedeemResult = $this->common_model->editMultipleDataByMultipleCondition('uw_hourly_orders', $updateParams,$WInnner_whereCon);
+							// $winnerRedeemResult = $this->common_model->editMultipleDataByMultipleCondition('uw_hourly_orders', $updateParams,$WInnner_whereCon);
+							$winnerRedeemResult =$this->mongodb_client->updateDocument('uw_hourly_orders',$WInnner_whereCon,['$set' => $updateParams], $session);
 
 							if($winnerRedeemResult > 0 ): 
 								$totalPrizeAmount = $orderData['winning_amount'] ?? 0; 
@@ -2349,7 +2480,8 @@ class Hourlygames extends CI_Controller {
 								$userParam['availableArabianPoints'] = (float) $userData['availableArabianPoints'] + $totalPrizeAmount; 
 								$userParam["update_date"] = date('Y-m-d H:i'); 
 								
-								$userResult = $this->common_model->editData('uw_users', $userParam,'users_id',(int)$usersId); 
+								// $userResult = $this->common_model->editData('uw_users', $userParam,'users_id',(int)$usersId); 
+								$userResult = $this->mongodb_client->updateDocument('uw_users',['users_id' => (int)$usersId],['$set' => $userParam], $session);
 						
 								if(!empty($userResult)): 
 									/* Load Balance Table -- after Sign Up*/ 
@@ -2372,14 +2504,26 @@ class Hourlygames extends CI_Controller {
 									$Redeemparam["created_by"] = (int)$usersId; 
 									$Redeemparam["status"] = "A"; 
 
-									$this->geneal_model->addData('uw_loadBalance', $Redeemparam); 
+									// $this->geneal_model->addData('uw_loadBalance', $Redeemparam); 
+									$this->mongodb_client->insertDocument('uw_loadBalance', $Redeemparam, $session);
+
+									$session->commitTransaction();
+									$this->mongodb_client->commitTransaction($session);
+									$session->endSession();
+
 									$result = array('payment_date' => date('Y-m-d H:i')); 
 
 									echo outPut(1,lang('SUCCESS_CODE'),lang('COUPON_REDEEMED_SUCCESFULLY'),$result);die(); 
 								else: 
+									$session->abortTransaction();
+									$this->mongodb_client->abortTransaction($session);
+									$session->endSession();
 									echo outPut(1,lang('SUCCESS_CODE'),lang('BALANCE_TRANSERFER_EORROR'),$result);die(); 
 								endif; 
 							else: 
+								$session->abortTransaction();
+								$this->mongodb_client->abortTransaction($session);
+								$session->endSession();
 								echo outPut(0,lang('SUCCESS_CODE'),lang('ALREADY_REDEEM'),$result); 
 							endif; 
 						endif; 
@@ -2389,6 +2533,9 @@ class Hourlygames extends CI_Controller {
 				throw new Exception(lang('FORBIDDEN_MSG'),1); 
 			endif; 
 		} catch (Exception $e) { 
+			$session->abortTransaction();
+			$this->mongodb_client->abortTransaction($session);
+			$session->endSession();
 			echo outPut(0,lang('SUCCESS_CODE'),$e->getMessage(),$result); 
 		} 
 	}
